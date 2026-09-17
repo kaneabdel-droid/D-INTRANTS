@@ -21,7 +21,7 @@ export default async function TarifsPage() {
             <LanguageSelector currentLang={locale} />
           </div>
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl text-center">
-            <Link href="/decouvrir-dquinca" className="text-sm font-medium text-foreground-muted hover:text-primary flex items-center justify-center gap-2 mb-6">
+            <Link href="/decouvrir-dintrants" className="text-sm font-medium text-foreground-muted hover:text-primary flex items-center justify-center gap-2 mb-6">
               <ArrowLeft className="w-4 h-4" /> {t.back}
             </Link>
             <h1 className="text-4xl md:text-6xl font-bold font-heading tracking-tight mb-6">

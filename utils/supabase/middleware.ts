@@ -94,7 +94,7 @@ export async function updateSession(request: NextRequest) {
     !pathname.startsWith('/forgot-password') &&
     !pathname.startsWith('/update-password') &&
     !pathname.startsWith('/auth') &&
-    !pathname.startsWith('/decouvrir-dquinca') &&
+    !pathname.startsWith('/decouvrir-dintrants') &&
     !pathname.startsWith('/tarifs') &&
     !pathname.startsWith('/api')
   ) {

@@ -21,7 +21,7 @@ const DEMO_ACCOUNTS = {
 export async function loginDemo(formData: FormData) {
   const role = formData.get('role') as keyof typeof DEMO_ACCOUNTS
   const email = DEMO_ACCOUNTS[role]
-  if (!email) redirect('/decouvrir-dquinca?demo_error=1')
+  if (!email) redirect('/decouvrir-dintrants?demo_error=1')
 
   const admin = createAdminClient()
   const { data, error } = await withRetry(() =>
@@ -30,7 +30,7 @@ export async function loginDemo(formData: FormData) {
 
   if (error || !data?.properties?.hashed_token) {
     console.error('Erreur génération lien démo:', error)
-    redirect('/decouvrir-dquinca?demo_error=1')
+    redirect('/decouvrir-dintrants?demo_error=1')
   }
 
   const supabase = await createClient()
@@ -43,7 +43,7 @@ export async function loginDemo(formData: FormData) {
 
   if (verifyError) {
     console.error('Erreur connexion démo:', verifyError)
-    redirect('/decouvrir-dquinca?demo_error=1')
+    redirect('/decouvrir-dintrants?demo_error=1')
   }
 
   redirect('/dashboard')

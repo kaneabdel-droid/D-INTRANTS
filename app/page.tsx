@@ -20,8 +20,8 @@ export default async function HomePage() {
         >
           {dict.home.subscribe}
         </Link>
-        <Link href="/decouvrir-dquinca" className="text-sm font-semibold text-foreground-muted hover:text-primary">
-          {dict.home.discover}
+        <Link href="/decouvrir-dintrants" className="text-sm font-semibold text-foreground-muted hover:text-primary">
+          {dict.home.discover} <span aria-hidden="true">&rarr;</span>
         </Link>
       </div>
 
