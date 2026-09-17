@@ -5,17 +5,17 @@ import { createClient } from '@/utils/supabase/server'
 import { withRetry } from '@/utils/supabase/retry'
 import { redirect } from 'next/navigation'
 
-// Comptes de démonstration publics (entreprise SUNUQuinca, cf.
-// scripts/seed-sunuquinca.mjs) — un par rôle pour montrer les 3 points de vue
+// Comptes de démonstration publics (entreprise SUNUIntrants, cf.
+// scripts/seed-sunuintrants.mjs) — un par rôle pour montrer les 3 points de vue
 // (vue consolidée + un gérant par magasin). Même mécanisme que SIGGIE
 // (app/decouvrir-siggie/actions.ts côté siggie/) : generateLink() + verifyOtp()
 // exécutés côté serveur avec la clé service-role, aucun mot de passe n'est
 // jamais transmis au visiteur, et chaque clic ouvre sa propre session cookie
 // sans affecter les autres visiteurs pointant vers les mêmes comptes.
 const DEMO_ACCOUNTS = {
-  admin: 'admin@sunuquinca.sn',
-  gerant1: 'gerant1@sunuquinca.sn',
-  gerant2: 'gerant2@sunuquinca.sn',
+  admin: 'admin@sunuintrants.sn',
+  gerant1: 'gerant1@sunuintrants.sn',
+  gerant2: 'gerant2@sunuintrants.sn',
 } as const
 
 export async function loginDemo(formData: FormData) {

@@ -1,4 +1,4 @@
-// Script de démo unique : crée l'entreprise SUNUQuinca avec 2 magasins et un
+// Script de démo unique : crée l'entreprise SUNUIntrants avec 2 magasins et un
 // circuit complet achats → stock → ventes → créances/dettes → règlements →
 // trésorerie → charges, avec un catalogue d'articles de Boutique d'intrants
 // (plomberie, construction, métallurgie, électricité) représentatif de la
@@ -7,7 +7,7 @@
 // via le client service-role, car ces RPC sont `security invoker` et donc
 // inutilisables sans une vraie session utilisateur authentifiée (auth.uid()).
 //
-// Usage : node scripts/seed-sunuquinca.mjs   (depuis d-intrants/)
+// Usage : node scripts/seed-sunuintrants.mjs   (depuis d-intrants/)
 
 import { createClient } from '@supabase/supabase-js'
 import { readFileSync } from 'node:fs'
@@ -296,13 +296,13 @@ async function creerUtilisateur({ entrepriseId, email, password, role, magasinId
 }
 
 async function main() {
-  console.log('1. Entreprise SUNUQuinca...')
+  console.log('1. Entreprise SUNUIntrants...')
   const abonnementExpireLe = daysAgo(-180)
   const entreprise = insist(
     await supabase
       .from('entreprises')
       .insert({
-        nom: 'SUNUQuinca',
+        nom: 'SUNUIntrants',
         adresse: 'Route de Rufisque, Dakar, Sénégal',
         telephone: '+221 77 123 45 67',
         devise: 'XOF',
@@ -322,7 +322,7 @@ async function main() {
       duree_mois: 6,
       montant_fcfa: 42750,
       provider: 'chariow',
-      provider_reference: 'demo_seed_sunuquinca',
+      provider_reference: 'demo_seed_sunuintrants',
       statut: 'paye',
       periode_debut: daysAgo(1),
       periode_fin: abonnementExpireLe,
@@ -335,7 +335,7 @@ async function main() {
   const magasin1 = insist(
     await supabase
       .from('magasins')
-      .insert({ entreprise_id: entreprise.id, nom: 'SUNUQuinca1', adresse: 'Marché Sandaga, Dakar', telephone: '+221 77 111 22 33' })
+      .insert({ entreprise_id: entreprise.id, nom: 'SUNUIntrants1', adresse: 'Marché Sandaga, Dakar', telephone: '+221 77 111 22 33' })
       .select()
       .single(),
     'insert magasin1'
@@ -343,7 +343,7 @@ async function main() {
   const magasin2 = insist(
     await supabase
       .from('magasins')
-      .insert({ entreprise_id: entreprise.id, nom: 'SUNUQuinca2', adresse: 'Avenue Général de Gaulle, Thiès', telephone: '+221 77 444 55 66' })
+      .insert({ entreprise_id: entreprise.id, nom: 'SUNUIntrants2', adresse: 'Avenue Général de Gaulle, Thiès', telephone: '+221 77 444 55 66' })
       .select()
       .single(),
     'insert magasin2'
@@ -351,9 +351,9 @@ async function main() {
 
   console.log('3. Utilisateurs...')
   const motDePasse = 'Demo@2024'
-  await creerUtilisateur({ entrepriseId: entreprise.id, email: 'admin@sunuquinca.sn', password: motDePasse, role: 'admin_entreprise', magasinId: null, nom: 'Ndiaye', prenom: 'Abdoulaye' })
-  const gerant1Id = await creerUtilisateur({ entrepriseId: entreprise.id, email: 'gerant1@sunuquinca.sn', password: motDePasse, role: 'gerant', magasinId: magasin1.id, nom: 'Diop', prenom: 'Moussa' })
-  const gerant2Id = await creerUtilisateur({ entrepriseId: entreprise.id, email: 'gerant2@sunuquinca.sn', password: motDePasse, role: 'gerant', magasinId: magasin2.id, nom: 'Fall', prenom: 'Aïssatou' })
+  await creerUtilisateur({ entrepriseId: entreprise.id, email: 'admin@sunuintrants.sn', password: motDePasse, role: 'admin_entreprise', magasinId: null, nom: 'Ndiaye', prenom: 'Abdoulaye' })
+  const gerant1Id = await creerUtilisateur({ entrepriseId: entreprise.id, email: 'gerant1@sunuintrants.sn', password: motDePasse, role: 'gerant', magasinId: magasin1.id, nom: 'Diop', prenom: 'Moussa' })
+  const gerant2Id = await creerUtilisateur({ entrepriseId: entreprise.id, email: 'gerant2@sunuintrants.sn', password: motDePasse, role: 'gerant', magasinId: magasin2.id, nom: 'Fall', prenom: 'Aïssatou' })
 
   console.log('4. Catégories & articles...')
   const CATEGORIES = {
@@ -447,8 +447,8 @@ async function main() {
     )
     return { caisse: caisse.id, mobileMoney: mm.id }
   }
-  const comptes1 = await creerComptes(magasin1.id, 'SUNUQuinca1')
-  const comptes2 = await creerComptes(magasin2.id, 'SUNUQuinca2')
+  const comptes1 = await creerComptes(magasin1.id, 'SUNUIntrants1')
+  const comptes2 = await creerComptes(magasin2.id, 'SUNUIntrants2')
 
   console.log('8. Achats (stock initial)...')
   const articlesParCategorie = (cat) => Object.entries(articles).filter(([, a]) => a.cat === cat)
@@ -591,14 +591,14 @@ async function main() {
   await creerCharge(magasin2.id, comptes2.caisse, gerant2Id, 'electricite', 'Facture électricité', 12000, 14, true)
   await creerCharge(magasin2.id, comptes2.caisse, gerant2Id, 'transport', 'Transport marchandises', 9000, 4, false)
 
-  console.log('\n✅ Démo SUNUQuinca créée avec succès.')
+  console.log('\n✅ Démo SUNUIntrants créée avec succès.')
   console.log(`Entreprise: ${entreprise.id}`)
-  console.log(`Magasin SUNUQuinca1: ${magasin1.id}`)
-  console.log(`Magasin SUNUQuinca2: ${magasin2.id}`)
+  console.log(`Magasin SUNUIntrants1: ${magasin1.id}`)
+  console.log(`Magasin SUNUIntrants2: ${magasin2.id}`)
   console.log('\nComptes de connexion (mot de passe commun): ' + motDePasse)
-  console.log('  admin@sunuquinca.sn      (admin_entreprise, vue consolidée)')
-  console.log('  gerant1@sunuquinca.sn    (gérant SUNUQuinca1)')
-  console.log('  gerant2@sunuquinca.sn    (gérant SUNUQuinca2)')
+  console.log('  admin@sunuintrants.sn      (admin_entreprise, vue consolidée)')
+  console.log('  gerant1@sunuintrants.sn    (gérant SUNUIntrants1)')
+  console.log('  gerant2@sunuintrants.sn    (gérant SUNUIntrants2)')
 }
 
 main().catch((err) => {

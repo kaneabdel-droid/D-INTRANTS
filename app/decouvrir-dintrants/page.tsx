@@ -8,7 +8,7 @@ export const metadata = {
   title: 'Découvrir d-intrants — Comment ça marche',
 }
 
-export default async function DecouvrirDquincaPage({
+export default async function DecouvrirDintrantsPage({
   searchParams,
 }: {
   searchParams?: Promise<{ demo_error?: string }>

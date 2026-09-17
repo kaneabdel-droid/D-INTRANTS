@@ -74,13 +74,13 @@ async function main() {
   console.log('Fetching context for step 11 & 12...')
 
   const magasins = insist(await supabase.from('magasins').select('id, nom').order('nom'), 'magasins')
-  const mag1 = magasins.find(m => m.nom === 'SUNUQuinca1')
-  const mag2 = magasins.find(m => m.nom === 'SUNUQuinca2')
+  const mag1 = magasins.find(m => m.nom === 'SUNUIntrants1')
+  const mag2 = magasins.find(m => m.nom === 'SUNUIntrants2')
 
   const { data: usersData } = await supabase.auth.admin.listUsers()
   const users = usersData.users
-  const gerant1 = users.find(u => u.email === 'gerant1@sunuquinca.sn')
-  const gerant2 = users.find(u => u.email === 'gerant2@sunuquinca.sn')
+  const gerant1 = users.find(u => u.email === 'gerant1@sunuintrants.sn')
+  const gerant2 = users.find(u => u.email === 'gerant2@sunuintrants.sn')
 
   const comptes = insist(await supabase.from('comptes_tresorerie').select('id, nom, magasin_id'), 'comptes')
   const comptes1 = {

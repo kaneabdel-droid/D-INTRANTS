@@ -1,4 +1,4 @@
--- Schéma initial D-QUINCA : tenancy à deux niveaux (entreprises -> magasins).
+-- Schéma initial D-INTRANTS : tenancy à deux niveaux (entreprises -> magasins).
 -- Voir implementation plan §2. gen_random_uuid() est fourni nativement par les
 -- projets Supabase (extension pgcrypto activée par défaut) : pas besoin de uuid-ossp.
 
@@ -820,7 +820,7 @@ language sql stable as $$
 $$;
 
 
--- Facturation de la plateforme D-QUINCA elle-même (paiement des abonnements
+-- Facturation de la plateforme D-INTRANTS elle-même (paiement des abonnements
 -- clients), PAS un modèle BYOK/marketplace : un seul compte Chariow / Moneroo /
 -- Bictorys pour toute la plateforme, clé API en variable d'environnement
 -- (voir lib/abonnements/providers/*.ts) — inutile de chiffrer des identifiants
@@ -910,7 +910,7 @@ alter table public.abonnements
 
 
 -- Miroir de la table du même nom côté SIGGIE (chariow_produits), mais keyée par
--- palier×durée plutôt que par montant : D-QUINCA a 3 paliers × 3 durées (9
+-- palier×durée plutôt que par montant : D-INTRANTS a 3 paliers × 3 durées (9
 -- produits Chariow possibles) plutôt qu'un tarif unique par montant. Permet à
 -- l'admin système de faire pointer un palier/durée vers un autre product_id
 -- Chariow sans redéploiement (cf. lib/abonnements/providers/chariow.ts, qui lit
