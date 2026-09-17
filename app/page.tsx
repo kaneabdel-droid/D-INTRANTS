@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 import LanguageSelector from '@/components/LanguageSelector'
 import { getDictionary, getLocale } from '@/dictionaries'
 
@@ -8,6 +9,14 @@ export default async function HomePage() {
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center">
+      <div className="absolute top-4 left-4">
+        <a
+          href="https://www.dembasolution.com"
+          className="flex items-center gap-2 text-sm font-medium text-foreground-muted hover:text-primary"
+        >
+          <ArrowLeft className="w-4 h-4" /> {dict.home.backToDemba}
+        </a>
+      </div>
       <div className="absolute top-4 right-4">
         <LanguageSelector currentLang={locale} />
       </div>
