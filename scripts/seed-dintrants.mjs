@@ -404,7 +404,7 @@ async function main() {
   const FOURNISSEURS = [
     ['plomberie', 'Sénégal Plomberie Distribution', '+221 33 821 00 01', 'Zone industrielle, Dakar'],
     ['construction', 'Matériaux BTP Sahel', '+221 33 834 12 45', 'Route de Rufisque, Dakar'],
-    ['metallurgie', 'Boutique d'intrants Générale de Dakar', '+221 33 822 55 10', 'Marché Sandaga, Dakar'],
+    ['metallurgie', "Boutique d'intrants Générale de Dakar", '+221 33 822 55 10', 'Marché Sandaga, Dakar'],
     ['electricite', 'Diallo Matériel Électrique', '+221 77 555 66 77', 'Liberté 6, Dakar'],
   ]
   const fournisseurs = {}
