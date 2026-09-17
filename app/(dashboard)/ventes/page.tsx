@@ -101,14 +101,14 @@ export default async function VentesPage() {
                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                   <div className="flex items-center justify-end gap-1">
                     <PosReceiptButton
-                      vente={vente}
-                      entreprise={entreprise}
+                      vente={vente as any}
+                      entreprise={entreprise as any}
                       magasinNom={context.magasinNom ?? ''}
                       clientNom={nomClient(vente.clients) ?? null}
                     />
                     <ReceiptPdfButton
-                      vente={vente}
-                      entreprise={entreprise}
+                      vente={vente as any}
+                      entreprise={entreprise as any}
                       magasinNom={context.magasinNom ?? ''}
                       clientNom={nomClient(vente.clients) ?? null}
                       title={t.downloadReceipt}

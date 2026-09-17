@@ -404,7 +404,13 @@
     "voirComparatif": "View store comparison →",
     "voirRentabilite": "View detailed profitability →",
     "chartVentes": "Sales",
-    "chartProjection": "Projection"
+    "chartProjection": "Projection",
+    "palmaresTitle": "Top customers ranking",
+    "palmaresDesc": "Over the last 30 days",
+    "client": "Customer",
+    "ca": "Revenue",
+    "achats": "Purchases",
+    "dernierAchat": "Last purchase"
   },
   "tarifs": {
     "back": "Back",

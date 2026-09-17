@@ -402,10 +402,10 @@ async function main() {
 
   console.log('5. Fournisseurs...')
   const FOURNISSEURS = [
-    ['plomberie', 'Sénégal Plomberie Distribution', '+221 33 821 00 01', 'Zone industrielle, Dakar'],
-    ['construction', 'Matériaux BTP Sahel', '+221 33 834 12 45', 'Route de Rufisque, Dakar'],
-    ['metallurgie', "Boutique d'intrants Générale de Dakar", '+221 33 822 55 10', 'Marché Sandaga, Dakar'],
-    ['electricite', 'Diallo Matériel Électrique', '+221 77 555 66 77', 'Liberté 6, Dakar'],
+    ['semences', 'Sénégal Semences Distribution', '+221 33 821 00 01', 'Zone industrielle, Dakar'],
+    ['engrais', 'Engrais Sahel', '+221 33 834 12 45', 'Route de Rufisque, Dakar'],
+    ['phytosanitaires', 'Phyto Dakar', '+221 33 822 55 10', 'Marché Sandaga, Dakar'],
+    ['materiels', 'Diallo Matériels', '+221 77 555 66 77', 'Liberté 6, Dakar'],
   ]
   const fournisseurs = {}
   for (const [cat, nom, telephone, adresse] of FOURNISSEURS) {
@@ -438,7 +438,7 @@ async function main() {
   console.log('7. Comptes de trésorerie...')
   async function creerComptes(magasinId, label) {
     const caisse = insist(
-      await supabase.from('comptes_tresorerie').insert({ magasin_id: magasinId, nom: `Caisse ${label}`, type_compte: 'caisse', solde_initial: 150000 }).select().single(),
+      await supabase.from('comptes_tresorerie').insert({ magasin_id: magasinId, nom: `Caisse ${label}`, type_compte: 'caisse', solde_initial: 5000000 }).select().single(),
       `insert compte caisse ${label}`
     )
     const mm = insist(
@@ -455,7 +455,7 @@ async function main() {
 
   async function achatsMagasin(magasinId, utilisateurId, comptesTresorerie, modes) {
     let jour = 45
-    for (const cat of ['plomberie', 'construction', 'metallurgie', 'electricite']) {
+    for (const cat of ['semences', 'engrais', 'phytosanitaires', 'materiels']) {
       const lignes = articlesParCategorie(cat).map(([, a]) => ({ articleId: a.id, quantite: a.qte, prixUnitaireAchat: a.prixAchat }))
       const montantTotal = lignes.reduce((s, l) => s + l.quantite * l.prixUnitaireAchat, 0)
       const mode = modes[cat]
@@ -474,28 +474,28 @@ async function main() {
     }
   }
 
-  await achatsMagasin(magasin1.id, gerant1Id, comptes1, { plomberie: 'comptant', construction: 'credit', metallurgie: 'mixte', electricite: 'comptant' })
-  await achatsMagasin(magasin2.id, gerant2Id, comptes2, { plomberie: 'mixte', construction: 'credit', metallurgie: 'comptant', electricite: 'comptant' })
+  await achatsMagasin(magasin1.id, gerant1Id, comptes1, { semences: 'comptant', engrais: 'credit', phytosanitaires: 'mixte', materiels: 'comptant' })
+  await achatsMagasin(magasin2.id, gerant2Id, comptes2, { semences: 'mixte', engrais: 'credit', phytosanitaires: 'comptant', materiels: 'comptant' })
 
   console.log('9. Ventes...')
   const a = (ref) => articles[ref].id
 
   const ventes1 = [
-    { client: 'Cheikh Ndiaye', mode: 'comptant', jour: 25, lignes: [{ articleId: a('PLB-001'), quantite: 3, prixUnitaire: 4500 }, { articleId: a('PLB-003'), quantite: 5, prixUnitaire: 800 }] },
-    { client: 'Fatou Diop', mode: 'mixte', jour: 20, lignes: [{ articleId: a('ELE-003'), quantite: 10, prixUnitaire: 1200 }, { articleId: a('ELE-004'), quantite: 10, prixUnitaire: 500 }], paiementPartiel: 10000 },
-    { client: 'Entreprise Sarr & Fils BTP', mode: 'credit', jour: 15, lignes: [{ articleId: a('CST-001'), quantite: 20, prixUnitaire: 4750 }, { articleId: a('CST-002'), quantite: 5, prixUnitaire: 5200 }] },
-    { client: 'Cheikh Ndiaye', mode: 'comptant', jour: 10, lignes: [{ articleId: a('MET-003'), quantite: 2, prixUnitaire: 2000 }, { articleId: a('MET-004'), quantite: 3, prixUnitaire: 1500 }] },
-    { client: 'Fatou Diop', mode: 'comptant', jour: 7, lignes: [{ articleId: a('ELE-002'), quantite: 4, prixUnitaire: 2500 }] },
-    { client: 'Entreprise Sarr & Fils BTP', mode: 'mixte', jour: 3, lignes: [{ articleId: a('CST-004'), quantite: 100, prixUnitaire: 350 }, { articleId: a('CST-006'), quantite: 10, prixUnitaire: 6500 }], paiementPartiel: 50000 },
+    { client: 'Cheikh Ndiaye', mode: 'comptant', jour: 25, lignes: [{ articleId: a('SEM-001'), quantite: 2, prixUnitaire: 4500 }, { articleId: a('SEM-002'), quantite: 2, prixUnitaire: 800 }] },
+    { client: 'Fatou Diop', mode: 'mixte', jour: 20, lignes: [{ articleId: a('MAT-003'), quantite: 2, prixUnitaire: 1200 }, { articleId: a('MAT-004'), quantite: 2, prixUnitaire: 500 }], paiementPartiel: 10000 },
+    { client: 'Entreprise Sarr & Fils BTP', mode: 'credit', jour: 15, lignes: [{ articleId: a('ENG-001'), quantite: 2, prixUnitaire: 4750 }, { articleId: a('ENG-002'), quantite: 2, prixUnitaire: 5200 }] },
+    { client: 'Cheikh Ndiaye', mode: 'comptant', jour: 10, lignes: [{ articleId: a('PHY-003'), quantite: 2, prixUnitaire: 2000 }, { articleId: a('PHY-001'), quantite: 2, prixUnitaire: 1500 }] },
+    { client: 'Fatou Diop', mode: 'comptant', jour: 7, lignes: [{ articleId: a('MAT-002'), quantite: 2, prixUnitaire: 2500 }] },
+    { client: 'Entreprise Sarr & Fils BTP', mode: 'mixte', jour: 3, lignes: [{ articleId: a('ENG-001'), quantite: 2, prixUnitaire: 350 }, { articleId: a('ENG-002'), quantite: 2, prixUnitaire: 6500 }], paiementPartiel: 50000 },
   ]
 
   const ventes2 = [
-    { client: 'Amadou Ba', mode: 'comptant', jour: 25, lignes: [{ articleId: a('PLB-002'), quantite: 10, prixUnitaire: 1200 }, { articleId: a('PLB-005'), quantite: 5, prixUnitaire: 1000 }] },
-    { client: 'Aïssatou Sow BTP', mode: 'credit', jour: 20, lignes: [{ articleId: a('CST-001'), quantite: 30, prixUnitaire: 4750 }, { articleId: a('CST-003'), quantite: 8, prixUnitaire: 7300 }] },
-    { client: 'Ibrahima Kane', mode: 'mixte', jour: 15, lignes: [{ articleId: a('ELE-001'), quantite: 2, prixUnitaire: 32000 }, { articleId: a('ELE-005'), quantite: 10, prixUnitaire: 800 }], paiementPartiel: 40000 },
-    { client: 'Amadou Ba', mode: 'comptant', jour: 10, lignes: [{ articleId: a('MET-001'), quantite: 5, prixUnitaire: 1500 }, { articleId: a('MET-002'), quantite: 8, prixUnitaire: 1200 }] },
-    { client: 'Aïssatou Sow BTP', mode: 'comptant', jour: 7, lignes: [{ articleId: a('CST-007'), quantite: 10, prixUnitaire: 3200 }] },
-    { client: 'Ibrahima Kane', mode: 'mixte', jour: 3, lignes: [{ articleId: a('PLB-006'), quantite: 2, prixUnitaire: 6000 }, { articleId: a('PLB-007'), quantite: 4, prixUnitaire: 2500 }], paiementPartiel: 12000 },
+    { client: 'Amadou Ba', mode: 'comptant', jour: 25, lignes: [{ articleId: a('SEM-002'), quantite: 2, prixUnitaire: 1200 }, { articleId: a('SEM-001'), quantite: 2, prixUnitaire: 1000 }] },
+    { client: 'Aïssatou Sow BTP', mode: 'credit', jour: 20, lignes: [{ articleId: a('ENG-001'), quantite: 2, prixUnitaire: 4750 }, { articleId: a('ENG-003'), quantite: 2, prixUnitaire: 7300 }] },
+    { client: 'Ibrahima Kane', mode: 'mixte', jour: 15, lignes: [{ articleId: a('MAT-001'), quantite: 2, prixUnitaire: 32000 }, { articleId: a('MAT-005'), quantite: 2, prixUnitaire: 800 }], paiementPartiel: 40000 },
+    { client: 'Amadou Ba', mode: 'comptant', jour: 10, lignes: [{ articleId: a('PHY-001'), quantite: 2, prixUnitaire: 1500 }, { articleId: a('PHY-002'), quantite: 2, prixUnitaire: 1200 }] },
+    { client: 'Aïssatou Sow BTP', mode: 'comptant', jour: 7, lignes: [{ articleId: a('ENG-003'), quantite: 2, prixUnitaire: 3200 }] },
+    { client: 'Ibrahima Kane', mode: 'mixte', jour: 3, lignes: [{ articleId: a('SEM-002'), quantite: 2, prixUnitaire: 6000 }, { articleId: a('SEM-001'), quantite: 2, prixUnitaire: 2500 }], paiementPartiel: 12000 },
   ]
 
   const creances1 = {}

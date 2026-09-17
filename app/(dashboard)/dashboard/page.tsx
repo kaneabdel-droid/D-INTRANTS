@@ -90,7 +90,7 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        <PalmaresClients magasinId={context.magasinId} dateDebut={p_date_debut} dateFin={p_date_fin} devise={context.devise} />
+        <PalmaresClients magasinId={context.magasinId!} dateDebut={p_date_debut} dateFin={p_date_fin} devise={context.entrepriseDevise} />
       </div>
     )
   }

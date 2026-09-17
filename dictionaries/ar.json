@@ -404,7 +404,13 @@
     "voirComparatif": "عرض مقارنة المتاجر ←",
     "voirRentabilite": "عرض تفاصيل الربحية ←",
     "chartVentes": "المبيعات",
-    "chartProjection": "التوقع"
+    "chartProjection": "التوقع",
+    "palmaresTitle": "ترتيب أفضل العملاء",
+    "palmaresDesc": "خلال الـ 30 يومًا الماضية",
+    "client": "العميل",
+    "ca": "رقم الأعمال",
+    "achats": "المشتريات",
+    "dernierAchat": "آخر عملية شراء"
   },
   "tarifs": {
     "back": "رجوع",
