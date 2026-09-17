@@ -35,9 +35,9 @@ export default async function DecouvrirDintrantsPage({
             <LanguageSelector currentLang={locale} />
           </div>
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl text-center">
-            <Link href="/" className="text-sm font-medium text-foreground-muted hover:text-primary flex items-center justify-center gap-2 mb-6">
+            <a href="https://www.dembasolution.com" className="text-sm font-medium text-foreground-muted hover:text-primary flex items-center justify-center gap-2 mb-6">
               <ArrowLeft className="w-4 h-4" /> {d.backHome}
-            </Link>
+            </a>
             <h1 className="text-4xl md:text-6xl font-bold font-heading tracking-tight mb-6">
               {d.heroTitlePrefix} <span className="text-primary">d-intrants</span> {d.heroTitleSuffix}
             </h1>
