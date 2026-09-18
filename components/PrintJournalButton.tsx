@@ -22,8 +22,8 @@ export default function PrintJournalButton({
   compteId,
 }: {
   journalType: JournalType
-  magasinId: string
-  entreprise: EntrepriseInfo
+  magasinId: string | null
+  entreprise: EntrepriseInfo | any
   compteId?: string
 }) {
   const [isOpen, setIsOpen] = useState(false)

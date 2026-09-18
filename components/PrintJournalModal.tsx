@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Loader2, Calendar, LayoutTemplate } from 'lucide-react'
+import { X, Loader2, Calendar, LayoutTemplate, Printer } from 'lucide-react'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { createClient } from '@/utils/supabase/client'
@@ -23,8 +23,8 @@ export default function PrintJournalModal({
   isOpen: boolean
   onClose: () => void
   journalType: JournalType
-  magasinId: string
-  entreprise: EntrepriseInfo
+  magasinId: string | null
+  entreprise: EntrepriseInfo | any
   compteId?: string
 }) {
   const [dateDebut, setDateDebut] = useState('')
@@ -45,12 +45,10 @@ export default function PrintJournalModal({
       
       // Filtres de base
       if (journalType === 'tresorerie') {
-        query = query.eq('magasin_id', magasinId)
-        if (compteId) {
-          query = query.eq('compte_tresorerie_id', compteId)
-        }
+        if (magasinId) query = query.eq('magasin_id', magasinId)
+        if (compteId) query = query.eq('compte_tresorerie_id', compteId)
       } else {
-        query = query.eq('magasin_id', magasinId)
+        if (magasinId) query = query.eq('magasin_id', magasinId)
       }
 
       // Filtres de date
