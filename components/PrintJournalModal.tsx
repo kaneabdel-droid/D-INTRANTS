@@ -149,9 +149,9 @@ export default function PrintJournalModal({
     const totals = calculateTotals(journalType, data)
     let ty = finalY + 10
     totals.forEach((t) => {
-      doc.text(t.label, pageWidth - 60, ty)
+      doc.text(t.label, pageWidth - 85, ty)
       doc.text(t.value, pageWidth - 14, ty, { align: 'right' })
-      ty += 6
+      ty += 8
     })
 
     doc.save(`${title.replace(/ /g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`)
