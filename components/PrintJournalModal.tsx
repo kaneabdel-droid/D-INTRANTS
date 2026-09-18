@@ -135,7 +135,7 @@ export default function PrintJournalModal({
       body: tableConfig.body,
       theme: 'striped',
       headStyles: { fillColor: [30, 86, 49], textColor: [255, 255, 255], fontStyle: 'bold' },
-      styles: { font: 'helvetica', fontSize: 9, cellPadding: 3 },
+      styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
       columnStyles: tableConfig.columnStyles,
     })
 
@@ -320,7 +320,7 @@ function getTableConfig(type: JournalType, data: any[]) {
           formatMontant(d.montant_paye), 
           d.statut
         ]),
-        columnStyles: { 2: { halign: 'right' }, 3: { halign: 'right' } } as any
+        columnStyles: { 2: { halign: 'right', cellWidth: 'wrap' }, 3: { halign: 'right', cellWidth: 'wrap' } } as any
       }
     case 'ventes':
       return {
@@ -332,7 +332,7 @@ function getTableConfig(type: JournalType, data: any[]) {
           formatMontant(d.montant_paye), 
           d.statut
         ]),
-        columnStyles: { 2: { halign: 'right' }, 3: { halign: 'right' } } as any
+        columnStyles: { 2: { halign: 'right', cellWidth: 'wrap' }, 3: { halign: 'right', cellWidth: 'wrap' } } as any
       }
     case 'charges':
       return {
@@ -343,7 +343,7 @@ function getTableConfig(type: JournalType, data: any[]) {
           d.libelle || '-', 
           formatMontant(d.montant)
         ]),
-        columnStyles: { 3: { halign: 'right' } } as any
+        columnStyles: { 3: { halign: 'right', cellWidth: 'wrap' } } as any
       }
     case 'creances':
     case 'dettes':
@@ -361,7 +361,7 @@ function getTableConfig(type: JournalType, data: any[]) {
             (d.statut || '').replace('_', ' ')
           ]
         }),
-        columnStyles: { 2: { halign: 'right' }, 3: { halign: 'right' } } as any
+        columnStyles: { 2: { halign: 'right', cellWidth: 'wrap' }, 3: { halign: 'right', cellWidth: 'wrap' } } as any
       }
     case 'tresorerie':
       return {
@@ -374,7 +374,7 @@ function getTableConfig(type: JournalType, data: any[]) {
           d.type_mouvement === 'entree' ? formatMontant(d.montant) : '',
           d.type_mouvement === 'sortie' ? formatMontant(d.montant) : ''
         ]),
-        columnStyles: { 4: { halign: 'right', textColor: [30, 86, 49] }, 5: { halign: 'right', textColor: [180, 50, 50] } } as any
+        columnStyles: { 4: { halign: 'right', textColor: [30, 86, 49], cellWidth: 'wrap' }, 5: { halign: 'right', textColor: [180, 50, 50], cellWidth: 'wrap' } } as any
       }
   }
 }
