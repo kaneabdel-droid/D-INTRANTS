@@ -51,7 +51,6 @@ export default function PrintJournalModal({
         if (magasinId) query = query.eq('magasin_id', magasinId)
       }
 
-      // Filtres de date
       const dateField = getDateField(journalType)
       if (dateDebut) {
         query = query.gte(dateField, `${dateDebut}T00:00:00.000Z`)
@@ -68,11 +67,37 @@ export default function PrintJournalModal({
 
       // Pour la trésorerie, il faut éventuellement résoudre les tiers
       let rowsData = data ?? []
+      let soldeInitialTresorerie = 0
+
       if (journalType === 'tresorerie') {
         rowsData = await resolveTresorerieTiers(supabase, rowsData)
+        
+        if (dateDebut) {
+          let qInitial = supabase.from('journal_tresorerie').select('type_mouvement, montant')
+          if (magasinId) qInitial = qInitial.eq('magasin_id', magasinId)
+          if (compteId) qInitial = qInitial.eq('compte_tresorerie_id', compteId)
+          qInitial = qInitial.lt('date_mouvement', `${dateDebut}T00:00:00.000Z`).limit(1000000)
+          
+          const { data: initialData } = await qInitial
+          if (initialData) {
+            soldeInitialTresorerie = initialData.reduce((acc, m) => acc + (m.type_mouvement === 'entree' ? Number(m.montant) : -Number(m.montant)), 0)
+          }
+
+          if (soldeInitialTresorerie !== 0) {
+            rowsData.unshift({
+              isInitial: true,
+              date_mouvement: dateDebut,
+              comptes_tresorerie: { nom: '-' },
+              tiers: '-',
+              motif: 'Report à nouveau (Solde initial)',
+              type_mouvement: soldeInitialTresorerie > 0 ? 'entree' : 'sortie',
+              montant: Math.abs(soldeInitialTresorerie)
+            })
+          }
+        }
       }
 
-      generatePdf(rowsData)
+      generatePdf(rowsData, soldeInitialTresorerie)
       onClose()
     } catch (err: any) {
       console.error(err)
@@ -82,7 +107,7 @@ export default function PrintJournalModal({
     }
   }
 
-  const generatePdf = (data: any[]) => {
+  const generatePdf = (data: any[], soldeInitialTresorerie: number = 0) => {
     const doc = new jsPDF({ orientation })
     const pageWidth = doc.internal.pageSize.getWidth()
 
@@ -404,12 +429,18 @@ function calculateTotals(type: JournalType, data: any[]) {
       ]
     }
     case 'tresorerie': {
-      const entrees = data.filter(d => d.type_mouvement === 'entree').reduce((acc, d) => acc + Number(d.montant || 0), 0)
-      const sorties = data.filter(d => d.type_mouvement === 'sortie').reduce((acc, d) => acc + Number(d.montant || 0), 0)
+      const initialRow = data.find(d => d.isInitial)
+      const soldeInitial = initialRow ? (initialRow.type_mouvement === 'entree' ? Number(initialRow.montant) : -Number(initialRow.montant)) : 0
+
+      const entrees = data.filter(d => d.type_mouvement === 'entree' && !d.isInitial).reduce((acc, d) => acc + Number(d.montant || 0), 0)
+      const sorties = data.filter(d => d.type_mouvement === 'sortie' && !d.isInitial).reduce((acc, d) => acc + Number(d.montant || 0), 0)
+      const soldeFinal = soldeInitial + entrees - sorties
+
       return [
-        { label: 'Total Entrées:', value: formatMontant(entrees) },
-        { label: 'Total Sorties:', value: formatMontant(sorties) },
-        { label: 'Balance:', value: formatMontant(entrees - sorties) }
+        { label: 'Solde Initial:', value: formatMontant(soldeInitial) },
+        { label: 'Entrées (Période):', value: formatMontant(entrees) },
+        { label: 'Sorties (Période):', value: formatMontant(sorties) },
+        { label: 'Solde Final:', value: formatMontant(soldeFinal) }
       ]
     }
   }

@@ -219,20 +219,13 @@ type ReleveOperation = {
 }
 
 async function fetchReleveData(supabase: any, type: ReleveType, referenceId: string, dateDebut: string, dateFin: string) {
-  const operations: ReleveOperation[] = []
+  const allOperations: ReleveOperation[] = []
 
   if (type === 'client') {
-    // 1. Ventes
-    let vq = supabase.from('ventes').select('id, date_vente, montant_total, montant_paye').eq('client_id', referenceId)
-    if (dateDebut) vq = vq.gte('date_vente', dateDebut)
-    if (dateFin) vq = vq.lte('date_vente', dateFin + 'T23:59:59.999Z')
-    const { data: ventes } = await vq
-    
-    // 2. Créances
-    let cq = supabase.from('creances').select('id, created_at, montant_initial').eq('client_id', referenceId)
-    if (dateDebut) cq = cq.gte('created_at', dateDebut)
-    if (dateFin) cq = cq.lte('created_at', dateFin + 'T23:59:59.999Z')
-    const { data: creances } = await cq
+    // 1. Ventes (ALL)
+    const { data: ventes } = await supabase.from('ventes').select('id, date_vente, montant_total, montant_paye').eq('client_id', referenceId)
+    // 2. Créances (ALL)
+    const { data: creances } = await supabase.from('creances').select('id, created_at, montant_initial').eq('client_id', referenceId)
 
     const venteIds = (ventes || []).map((v: any) => v.id)
     const creanceIds = (creances || []).map((c: any) => c.id)
@@ -246,40 +239,28 @@ async function fetchReleveData(supabase: any, type: ReleveType, referenceId: str
       ? await supabase.from('journal_tresorerie').select('date_mouvement, montant, reference_id, reference_type').eq('reference_type', 'creance').in('reference_id', creanceIds)
       : { data: [] }
 
-    // Remplir operations
+    // Remplir allOperations
     ventes?.forEach((v: any) => {
-      operations.push({ date: v.date_vente, libelle: 'Vente', debit: Number(v.montant_total), credit: 0 })
+      allOperations.push({ date: v.date_vente, libelle: 'Vente', debit: Number(v.montant_total), credit: 0 })
       if (Number(v.montant_paye) > 0) {
-        operations.push({ date: v.date_vente, libelle: 'Paiement comptant (Vente)', debit: 0, credit: Number(v.montant_paye) })
+        allOperations.push({ date: v.date_vente, libelle: 'Paiement comptant (Vente)', debit: 0, credit: Number(v.montant_paye) })
       }
     })
     creances?.forEach((c: any) => {
-      operations.push({ date: c.created_at, libelle: 'Créance (Solde initial)', debit: Number(c.montant_initial), credit: 0 })
+      allOperations.push({ date: c.created_at, libelle: 'Créance (Solde initial)', debit: Number(c.montant_initial), credit: 0 })
     })
     paiementsVentes?.forEach((p: any) => {
-      // Filtrer par date
-      if (dateDebut && new Date(p.date_mouvement) < new Date(dateDebut)) return
-      if (dateFin && new Date(p.date_mouvement) > new Date(dateFin + 'T23:59:59.999Z')) return
-      operations.push({ date: p.date_mouvement, libelle: 'Règlement Vente', debit: 0, credit: Number(p.montant) })
+      allOperations.push({ date: p.date_mouvement, libelle: 'Règlement Vente', debit: 0, credit: Number(p.montant) })
     })
     paiementsCreances?.forEach((p: any) => {
-      if (dateDebut && new Date(p.date_mouvement) < new Date(dateDebut)) return
-      if (dateFin && new Date(p.date_mouvement) > new Date(dateFin + 'T23:59:59.999Z')) return
-      operations.push({ date: p.date_mouvement, libelle: 'Règlement Créance', debit: 0, credit: Number(p.montant) })
+      allOperations.push({ date: p.date_mouvement, libelle: 'Règlement Créance', debit: 0, credit: Number(p.montant) })
     })
 
   } else {
-    // 1. Achats
-    let aq = supabase.from('achats').select('id, date_achat, montant_total, montant_paye').eq('fournisseur_id', referenceId)
-    if (dateDebut) aq = aq.gte('date_achat', dateDebut)
-    if (dateFin) aq = aq.lte('date_achat', dateFin + 'T23:59:59.999Z')
-    const { data: achats } = await aq
-    
-    // 2. Dettes
-    let dq = supabase.from('dettes').select('id, created_at, montant_initial').eq('fournisseur_id', referenceId)
-    if (dateDebut) dq = dq.gte('created_at', dateDebut)
-    if (dateFin) dq = dq.lte('created_at', dateFin + 'T23:59:59.999Z')
-    const { data: dettes } = await dq
+    // 1. Achats (ALL)
+    const { data: achats } = await supabase.from('achats').select('id, date_achat, montant_total, montant_paye').eq('fournisseur_id', referenceId)
+    // 2. Dettes (ALL)
+    const { data: dettes } = await supabase.from('dettes').select('id, created_at, montant_initial').eq('fournisseur_id', referenceId)
 
     const achatIds = (achats || []).map((a: any) => a.id)
     const detteIds = (dettes || []).map((d: any) => d.id)
@@ -293,32 +274,60 @@ async function fetchReleveData(supabase: any, type: ReleveType, referenceId: str
       ? await supabase.from('journal_tresorerie').select('date_mouvement, montant, reference_id, reference_type').eq('reference_type', 'dette').in('reference_id', detteIds)
       : { data: [] }
 
-    // Remplir operations (Pour un fournisseur : Achat = Crédit (on lui doit), Paiement = Débit (on le paie))
+    // Remplir allOperations
     achats?.forEach((a: any) => {
-      operations.push({ date: a.date_achat, libelle: 'Achat', debit: 0, credit: Number(a.montant_total) })
+      allOperations.push({ date: a.date_achat, libelle: 'Achat', debit: 0, credit: Number(a.montant_total) })
       if (Number(a.montant_paye) > 0) {
-        operations.push({ date: a.date_achat, libelle: 'Paiement comptant (Achat)', debit: Number(a.montant_paye), credit: 0 })
+        allOperations.push({ date: a.date_achat, libelle: 'Paiement comptant (Achat)', debit: Number(a.montant_paye), credit: 0 })
       }
     })
     dettes?.forEach((d: any) => {
-      operations.push({ date: d.created_at, libelle: 'Dette (Solde initial)', debit: 0, credit: Number(d.montant_initial) })
+      allOperations.push({ date: d.created_at, libelle: 'Dette (Solde initial)', debit: 0, credit: Number(d.montant_initial) })
     })
     paiementsAchats?.forEach((p: any) => {
-      if (dateDebut && new Date(p.date_mouvement) < new Date(dateDebut)) return
-      if (dateFin && new Date(p.date_mouvement) > new Date(dateFin + 'T23:59:59.999Z')) return
-      operations.push({ date: p.date_mouvement, libelle: 'Règlement Achat', debit: Number(p.montant), credit: 0 })
+      allOperations.push({ date: p.date_mouvement, libelle: 'Règlement Achat', debit: Number(p.montant), credit: 0 })
     })
     paiementsDettes?.forEach((p: any) => {
-      if (dateDebut && new Date(p.date_mouvement) < new Date(dateDebut)) return
-      if (dateFin && new Date(p.date_mouvement) > new Date(dateFin + 'T23:59:59.999Z')) return
-      operations.push({ date: p.date_mouvement, libelle: 'Règlement Dette', debit: Number(p.montant), credit: 0 })
+      allOperations.push({ date: p.date_mouvement, libelle: 'Règlement Dette', debit: Number(p.montant), credit: 0 })
     })
   }
 
+  // Filtrer la période et calculer le solde initial
+  let soldeInitialDebit = 0
+  let soldeInitialCredit = 0
+  const periodOperations: ReleveOperation[] = []
+
+  allOperations.forEach(op => {
+    if (dateDebut && new Date(op.date) < new Date(dateDebut)) {
+      soldeInitialDebit += op.debit
+      soldeInitialCredit += op.credit
+    } else if (dateFin && new Date(op.date) > new Date(dateFin + 'T23:59:59.999Z')) {
+      // Ignorer
+    } else {
+      periodOperations.push(op)
+    }
+  })
+
   // Trier par date
-  operations.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-  
-  return operations
+  periodOperations.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+
+  // Ajouter le report à nouveau si une date de début est spécifiée
+  if (dateDebut) {
+    const soldeInitial = type === 'client' 
+      ? soldeInitialDebit - soldeInitialCredit 
+      : soldeInitialCredit - soldeInitialDebit
+
+    if (soldeInitial !== 0) {
+      periodOperations.unshift({
+        date: dateDebut,
+        libelle: 'Report à nouveau (Solde initial)',
+        debit: type === 'client' ? (soldeInitial > 0 ? soldeInitial : 0) : (soldeInitial < 0 ? -soldeInitial : 0),
+        credit: type === 'client' ? (soldeInitial < 0 ? -soldeInitial : 0) : (soldeInitial > 0 ? soldeInitial : 0)
+      })
+    }
+  }
+
+  return periodOperations
 }
 
 function getTableConfig(type: ReleveType, data: ReleveOperation[]) {
@@ -337,13 +346,25 @@ function getTableConfig(type: ReleveType, data: ReleveOperation[]) {
 }
 
 function calculateTotals(data: ReleveOperation[]) {
+  const initialRow = data.find(d => d.libelle === 'Report à nouveau (Solde initial)')
+  const soldeInitialDebit = initialRow?.debit || 0
+  const soldeInitialCredit = initialRow?.credit || 0
+  
+  const soldeInitial = Math.abs(soldeInitialDebit - soldeInitialCredit)
+  const labelInitial = soldeInitialDebit > soldeInitialCredit ? 'Solde Initial (Débiteur):' : (soldeInitialCredit > soldeInitialDebit ? 'Solde Initial (Créditeur):' : 'Solde Initial:')
+
+  const periodDebit = data.filter(d => d !== initialRow).reduce((acc, d) => acc + d.debit, 0)
+  const periodCredit = data.filter(d => d !== initialRow).reduce((acc, d) => acc + d.credit, 0)
+
   const totalDebit = data.reduce((acc, d) => acc + d.debit, 0)
   const totalCredit = data.reduce((acc, d) => acc + d.credit, 0)
-  const solde = Math.abs(totalDebit - totalCredit)
+  const soldeFinal = Math.abs(totalDebit - totalCredit)
+  const labelFinal = totalDebit > totalCredit ? 'Solde Final (Débiteur):' : (totalCredit > totalDebit ? 'Solde Final (Créditeur):' : 'Solde Final:')
   
   return [
-    { label: 'Total Débit:', value: formatMontant(totalDebit) },
-    { label: 'Total Crédit:', value: formatMontant(totalCredit) },
-    { label: 'Solde Final:', value: formatMontant(solde) }
+    { label: labelInitial, value: formatMontant(soldeInitial) },
+    { label: 'Débit (Période):', value: formatMontant(periodDebit) },
+    { label: 'Crédit (Période):', value: formatMontant(periodCredit) },
+    { label: labelFinal, value: formatMontant(soldeFinal) }
   ]
 }
