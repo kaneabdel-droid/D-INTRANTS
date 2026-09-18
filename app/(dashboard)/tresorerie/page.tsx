@@ -54,7 +54,7 @@ export default async function TresoreriePage({ searchParams }: { searchParams: P
   const { data: mouvements } = await mouvementsQuery
 
   const soldeParCompte = new Map<string, number>()
-  for (const c of comptes ?? []) soldeParCompte.set(c.id, Number(c.solde_initial))
+  for (const c of comptes ?? []) soldeParCompte.set(c.id, 0)
   for (const m of allMouvements ?? []) {
     const courant = soldeParCompte.get(m.compte_tresorerie_id) ?? 0
     soldeParCompte.set(m.compte_tresorerie_id, courant + (m.type_mouvement === 'entree' ? Number(m.montant) : -Number(m.montant)))
