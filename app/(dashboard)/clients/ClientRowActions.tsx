@@ -5,10 +5,11 @@ import { Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Dictionary } from '@/dictionaries'
 import { updateClient, deleteClient } from './actions'
+import PrintReleveButton from '@/components/PrintReleveButton'
 
 type Client = { id: string; nom: string; telephone: string | null; adresse: string | null }
 
-export default function ClientRowActions({ client, dict }: { client: Client; dict: Dictionary }) {
+export default function ClientRowActions({ client, dict, magasinId, entreprise }: { client: Client; dict: Dictionary; magasinId: string | null; entreprise: any }) {
   const t = dict.clients
   const c = dict.common
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -40,7 +41,14 @@ export default function ClientRowActions({ client, dict }: { client: Client; dic
 
   return (
     <>
-      <div className="flex justify-end gap-2">
+      <div className="flex justify-end gap-2 items-center">
+        <PrintReleveButton 
+          releveType="client" 
+          magasinId={magasinId} 
+          entreprise={entreprise} 
+          referenceId={client.id}
+          referenceName={client.nom}
+        />
         <button onClick={() => setIsEditOpen(true)} className="text-foreground-muted hover:text-primary p-1" title={c.edit}>
           <Pencil className="h-4 w-4" />
         </button>

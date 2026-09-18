@@ -11,6 +11,12 @@ export default async function ClientsPage() {
   const t = dict.clients
   const c = dict.common
 
+  const { data: entreprise } = await supabase
+    .from('entreprises')
+    .select('nom, adresse, telephone, identification, logo_url, devise')
+    .eq('id', context.entrepriseId)
+    .single()
+
   const { data: clients } = await supabase
     .from('clients')
     .select('id, nom, telephone, adresse')
@@ -48,7 +54,7 @@ export default async function ClientsPage() {
                 <td className="px-3 py-4 text-sm text-foreground-muted">{client.telephone || '-'}</td>
                 <td className="px-3 py-4 text-sm text-foreground-muted">{client.adresse || '-'}</td>
                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                  <ClientRowActions client={client} dict={dict} />
+                  <ClientRowActions client={client} dict={dict} magasinId={context.magasinId} entreprise={entreprise} />
                 </td>
               </tr>
             ))}

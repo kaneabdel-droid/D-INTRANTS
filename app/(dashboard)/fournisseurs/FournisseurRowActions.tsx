@@ -5,10 +5,11 @@ import { Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Dictionary } from '@/dictionaries'
 import { updateFournisseur, deleteFournisseur } from './actions'
+import PrintReleveButton from '@/components/PrintReleveButton'
 
 type Fournisseur = { id: string; nom: string; telephone: string | null; adresse: string | null }
 
-export default function FournisseurRowActions({ fournisseur, dict }: { fournisseur: Fournisseur; dict: Dictionary }) {
+export default function FournisseurRowActions({ fournisseur, dict, magasinId, entreprise }: { fournisseur: Fournisseur; dict: Dictionary; magasinId: string | null; entreprise: any }) {
   const t = dict.fournisseurs
   const c = dict.common
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -40,7 +41,14 @@ export default function FournisseurRowActions({ fournisseur, dict }: { fournisse
 
   return (
     <>
-      <div className="flex justify-end gap-2">
+      <div className="flex justify-end gap-2 items-center">
+        <PrintReleveButton 
+          releveType="fournisseur" 
+          magasinId={magasinId} 
+          entreprise={entreprise} 
+          referenceId={fournisseur.id}
+          referenceName={fournisseur.nom}
+        />
         <button onClick={() => setIsEditOpen(true)} className="text-foreground-muted hover:text-primary p-1" title={c.edit}>
           <Pencil className="h-4 w-4" />
         </button>
