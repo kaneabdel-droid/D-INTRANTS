@@ -23,7 +23,7 @@ async function checkAdmin(): Promise<string | null> {
 // que SIGGIE, Supabase Auth n'ayant pas de statut désactivé natif.
 const BAN_DUREE_DESACTIVATION = '87600h'
 
-export async function creerEntreprise(nom: string, adresse: string, telephone: string, email: string, identifiant_fiscal: string, devise: string): Promise<ActionResult> {
+export async function creerEntreprise(nom: string, adresse: string, telephone: string, email: string, identification: string, devise: string): Promise<ActionResult> {
   const authError = await checkAdmin()
   if (authError) return { error: authError }
   if (!nom.trim()) return { error: 'Le nom est requis' }
@@ -35,7 +35,7 @@ export async function creerEntreprise(nom: string, adresse: string, telephone: s
       adresse: adresse.trim() || null,
       telephone: telephone.trim() || null,
       email: email.trim() || null,
-      identifiant_fiscal: identifiant_fiscal.trim() || null,
+      identification: identification.trim() || null,
       devise: devise.trim() || 'XOF',
     })
   )

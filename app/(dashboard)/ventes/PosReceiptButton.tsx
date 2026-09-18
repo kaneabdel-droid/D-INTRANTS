@@ -28,7 +28,7 @@ export default function PosReceiptButton({
   clientNom,
 }: {
   vente: Vente
-  entreprise: { nom: string; adresse: string | null; telephone: string | null; identifiant_fiscal: string | null; logo_url: string | null; devise: string }
+  entreprise: { nom: string; adresse: string | null; telephone: string | null; identification: string | null; logo_url: string | null; devise: string }
   magasinNom: string
   clientNom: string | null
 }) {

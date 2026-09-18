@@ -15,7 +15,7 @@ export default async function VentesPage() {
 
   const { data: entreprise } = await supabase
     .from('entreprises')
-    .select('id, nom, adresse, telephone, identifiant_fiscal, logo_url, devise')
+    .select('id, nom, adresse, telephone, identification, logo_url, devise')
     .eq('id', context.entrepriseId)
     .single()
 

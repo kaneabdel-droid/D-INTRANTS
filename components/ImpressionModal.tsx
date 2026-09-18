@@ -34,7 +34,7 @@ export default function ImpressionModal({
   onClose: () => void
   vente: Vente
   lignes: LigneVente[]
-  entreprise: { nom: string; adresse: string | null; telephone: string | null; identifiant_fiscal: string | null, logo_url: string | null }
+  entreprise: { nom: string; adresse: string | null; telephone: string | null; identification: string | null, logo_url: string | null }
   magasinNom: string
   clientNom: string | null
   devise: string
@@ -86,7 +86,7 @@ export default function ImpressionModal({
                 {magasinNom !== entreprise.nom && <p className="font-semibold">{magasinNom}</p>}
                 {entreprise.adresse && <p>{entreprise.adresse}</p>}
                 {entreprise.telephone && <p>Tél: {entreprise.telephone}</p>}
-                {entreprise.identifiant_fiscal && <p>Id: {entreprise.identifiant_fiscal}</p>}
+                {entreprise.identification && <p>Id: {entreprise.identification}</p>}
               </div>
 
               <div className="border-t border-dashed border-gray-400 py-2 mb-2 space-y-1">
