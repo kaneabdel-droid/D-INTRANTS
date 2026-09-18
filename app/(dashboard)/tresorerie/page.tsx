@@ -38,6 +38,7 @@ export default async function TresoreriePage({ searchParams }: { searchParams: P
     .from('journal_tresorerie')
     .select('compte_tresorerie_id, type_mouvement, montant')
     .eq('magasin_id', context.magasinId)
+    .limit(1000000)
 
   let mouvementsQuery = supabase
     .from('journal_tresorerie')
@@ -103,6 +104,7 @@ export default async function TresoreriePage({ searchParams }: { searchParams: P
         {(comptes ?? []).map((compte) => {
           const Icon = iconParType[compte.type_compte] ?? Wallet
           const isActive = compte_id === compte.id
+          const shouldShowBalance = !compte_id || isActive
           return (
             <Link 
               href={isActive ? '/tresorerie' : `/tresorerie?compte_id=${compte.id}`} 
@@ -118,7 +120,9 @@ export default async function TresoreriePage({ searchParams }: { searchParams: P
                   <p className="text-xs text-foreground-muted capitalize">{compte.type_compte.replace('_', ' ')}</p>
                 </div>
               </div>
-              <p className="mt-4 text-2xl font-bold text-foreground">{(soldeParCompte.get(compte.id) ?? 0).toLocaleString('fr-FR')}</p>
+              <p className="mt-4 text-2xl font-bold text-foreground">
+                {shouldShowBalance ? Math.round(soldeParCompte.get(compte.id) ?? 0).toLocaleString('fr-FR') : '***'}
+              </p>
             </Link>
           )
         })}
