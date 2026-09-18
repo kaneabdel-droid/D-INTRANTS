@@ -66,7 +66,7 @@ export default function PrintJournalModal({
       if (fetchError) throw fetchError
 
       // Pour la trésorerie, il faut éventuellement résoudre les tiers
-      let rowsData = data ?? []
+      let rowsData: any[] = data ?? []
       let soldeInitialTresorerie = 0
 
       if (journalType === 'tresorerie') {
