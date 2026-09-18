@@ -101,6 +101,25 @@ export default async function TresoreriePage({ searchParams }: { searchParams: P
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Carte "Tous les comptes" */}
+        <Link
+          href="/tresorerie"
+          className={`block overflow-hidden rounded-xl bg-surface p-6 shadow-sm border transition-all ${!compte_id ? 'border-primary ring-1 ring-primary shadow-md bg-primary/5' : 'border-surface-border hover:border-primary/50'}`}
+        >
+          <div className="flex items-start gap-3">
+            <div className="rounded-lg bg-primary/10 p-2.5 shrink-0">
+              <Wallet className="h-5 w-5 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground-muted truncate">Tous les comptes</p>
+              <p className="text-xs text-foreground-muted capitalize">Solde global</p>
+            </div>
+          </div>
+          <p className="mt-4 text-2xl font-bold text-foreground">
+            {!compte_id ? Math.round(Array.from(soldeParCompte.values()).reduce((acc, val) => acc + val, 0)).toLocaleString('fr-FR') : '***'}
+          </p>
+        </Link>
+
         {(comptes ?? []).map((compte) => {
           const Icon = iconParType[compte.type_compte] ?? Wallet
           const isActive = compte_id === compte.id
