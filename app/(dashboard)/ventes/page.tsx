@@ -5,6 +5,7 @@ import CreateVenteButton from './CreateVenteButton'
 import ReceiptPdfButton from './ReceiptPdfButton'
 import PosReceiptButton from './PosReceiptButton'
 import AnnulerVenteButton from './AnnulerVenteButton'
+import PrintJournalButton from '@/components/PrintJournalButton'
 
 export default async function VentesPage() {
   const context = await requireGerant()
@@ -63,7 +64,14 @@ export default async function VentesPage() {
           <h2 className="text-2xl font-bold font-heading text-foreground">{t.title}</h2>
           <p className="mt-2 text-sm text-foreground-muted">{context.magasinNom}</p>
         </div>
-        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex items-center gap-3">
+          {entreprise && (
+            <PrintJournalButton
+              journalType="ventes"
+              magasinId={context.magasinId}
+              entreprise={entreprise}
+            />
+          )}
           <CreateVenteButton articles={articles ?? []} clients={clients ?? []} dict={dict} />
         </div>
       </div>

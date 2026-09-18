@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { requireGerant } from '@/lib/auth/getCurrentUserContext'
 import { getDictionary, getLocale } from '@/dictionaries'
 import ReglerCreanceButton from './ReglerCreanceButton'
+import PrintJournalButton from '@/components/PrintJournalButton'
 
 export default async function CreancesPage() {
   const context = await requireGerant()
@@ -9,6 +10,12 @@ export default async function CreancesPage() {
   const dict = await getDictionary(await getLocale())
   const t = dict.creances
   const c = dict.common
+
+  const { data: entreprise } = await supabase
+    .from('entreprises')
+    .select('nom, adresse, telephone, identification, logo_url, devise')
+    .eq('id', context.entrepriseId)
+    .single()
 
   const { data: creances } = await supabase
     .from('creances')
@@ -47,6 +54,15 @@ export default async function CreancesPage() {
           <p className="mt-2 text-sm text-foreground-muted">
             {t.totalRestant} <strong className="text-foreground">{totalRestant.toLocaleString('fr-FR')}</strong>
           </p>
+        </div>
+        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex items-center gap-3">
+          {entreprise && (
+            <PrintJournalButton
+              journalType="creances"
+              magasinId={context.magasinId}
+              entreprise={entreprise}
+            />
+          )}
         </div>
       </div>
 

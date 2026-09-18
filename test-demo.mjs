@@ -1,0 +1,1 @@
+import { createClient } from '@supabase/supabase-js'; const env = process.env; const admin = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } }); admin.auth.admin.generateLink({ type: 'magiclink', email: 'admin@sunuintrants.sn' }).then(console.log).catch(console.error);  

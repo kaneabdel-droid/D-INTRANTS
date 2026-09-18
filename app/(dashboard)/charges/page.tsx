@@ -3,6 +3,7 @@ import { requireGerant } from '@/lib/auth/getCurrentUserContext'
 import { getDictionary, getLocale } from '@/dictionaries'
 import CreateChargeButton from './CreateChargeButton'
 import ChargeRowActions from './ChargeRowActions'
+import PrintJournalButton from '@/components/PrintJournalButton'
 
 export default async function ChargesPage() {
   const context = await requireGerant()
@@ -10,6 +11,12 @@ export default async function ChargesPage() {
   const dict = await getDictionary(await getLocale())
   const t = dict.charges
   const c = dict.common
+
+  const { data: entreprise } = await supabase
+    .from('entreprises')
+    .select('nom, adresse, telephone, identification, logo_url, devise')
+    .eq('id', context.entrepriseId)
+    .single()
 
   const { data: comptes } = await supabase
     .from('comptes_tresorerie')
@@ -36,7 +43,14 @@ export default async function ChargesPage() {
             {t.thisMonth} <strong className="text-foreground">{totalMois.toLocaleString('fr-FR')}</strong>
           </p>
         </div>
-        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex items-center gap-3">
+          {entreprise && (
+            <PrintJournalButton
+              journalType="charges"
+              magasinId={context.magasinId}
+              entreprise={entreprise}
+            />
+          )}
           <CreateChargeButton comptes={comptes ?? []} dict={dict} />
         </div>
       </div>

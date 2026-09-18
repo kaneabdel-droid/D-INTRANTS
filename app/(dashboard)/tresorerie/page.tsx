@@ -6,6 +6,7 @@ import CreateCompteButton from './CreateCompteButton'
 import AddEcritureButton from './AddEcritureButton'
 import EcritureRowActions from './EcritureRowActions'
 import Link from 'next/link'
+import PrintJournalButton from '@/components/PrintJournalButton'
 
 const iconParType: Record<string, typeof Wallet> = {
   caisse: Wallet,
@@ -20,6 +21,12 @@ export default async function TresoreriePage({ searchParams }: { searchParams: P
   const dict = await getDictionary(await getLocale())
   const t = dict.tresorerie
   const c = dict.common
+
+  const { data: entreprise } = await supabase
+    .from('entreprises')
+    .select('nom, adresse, telephone, identification, logo_url, devise')
+    .eq('id', context.entrepriseId)
+    .single()
 
   const { data: comptes } = await supabase
     .from('comptes_tresorerie')
@@ -78,7 +85,15 @@ export default async function TresoreriePage({ searchParams }: { searchParams: P
           <h2 className="text-2xl font-bold font-heading text-foreground">{t.title}</h2>
           <p className="mt-2 text-sm text-foreground-muted">{context.magasinNom}</p>
         </div>
-        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex gap-2">
+        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex items-center gap-3">
+          {entreprise && (
+            <PrintJournalButton
+              journalType="tresorerie"
+              magasinId={context.magasinId}
+              entreprise={entreprise}
+              compteId={compte_id}
+            />
+          )}
           <CreateCompteButton dict={dict} />
           <AddEcritureButton comptes={comptes ?? []} dict={dict} />
         </div>

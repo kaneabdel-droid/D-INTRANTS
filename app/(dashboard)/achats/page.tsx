@@ -3,6 +3,7 @@ import { requireGerant } from '@/lib/auth/getCurrentUserContext'
 import { getDictionary, getLocale } from '@/dictionaries'
 import CreateAchatButton from './CreateAchatButton'
 import AnnulerAchatButton from './AnnulerAchatButton'
+import PrintJournalButton from '@/components/PrintJournalButton'
 
 export default async function AchatsPage() {
   const context = await requireGerant()
@@ -10,6 +11,12 @@ export default async function AchatsPage() {
   const dict = await getDictionary(await getLocale())
   const t = dict.achats
   const c = dict.common
+
+  const { data: entreprise } = await supabase
+    .from('entreprises')
+    .select('nom, adresse, telephone, identification, logo_url, devise')
+    .eq('id', context.entrepriseId)
+    .single()
 
   const { data: articles } = await supabase
     .from('articles')
@@ -50,7 +57,14 @@ export default async function AchatsPage() {
           <h2 className="text-2xl font-bold font-heading text-foreground">{t.title}</h2>
           <p className="mt-2 text-sm text-foreground-muted">{context.magasinNom}</p>
         </div>
-        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex items-center gap-3">
+          {entreprise && (
+            <PrintJournalButton
+              journalType="achats"
+              magasinId={context.magasinId}
+              entreprise={entreprise}
+            />
+          )}
           <CreateAchatButton articles={articles ?? []} fournisseurs={fournisseurs ?? []} dict={dict} />
         </div>
       </div>
