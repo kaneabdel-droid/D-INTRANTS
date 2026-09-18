@@ -4,6 +4,7 @@ import { createAdminClient } from '@/utils/supabase/admin'
 import { createClient } from '@/utils/supabase/server'
 import { withRetry } from '@/utils/supabase/retry'
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 
 // Comptes de démonstration publics (entreprise SUNUIntrants, cf.
 // scripts/seed-sunuintrants.mjs) — un par rôle pour montrer les 3 points de vue
@@ -46,5 +47,6 @@ export async function loginDemo(formData: FormData) {
     redirect('/decouvrir-dintrants?demo_error=1')
   }
 
+  revalidatePath('/', 'layout')
   redirect('/dashboard')
 }
