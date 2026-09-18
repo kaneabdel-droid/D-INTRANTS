@@ -8,7 +8,7 @@ import { createClient } from '@/utils/supabase/client'
 import type { JournalType, EntrepriseInfo } from './PrintJournalButton'
 
 const formatMontant = (n: number | undefined | null) =>
-  Math.round(n ?? 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+  Math.round(n ?? 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0')
 
 type JsPDFAvecAutoTable = InstanceType<typeof jsPDF> & { lastAutoTable?: { finalY: number } }
 
@@ -149,7 +149,7 @@ export default function PrintJournalModal({
     const totals = calculateTotals(journalType, data)
     let ty = finalY + 10
     totals.forEach((t) => {
-      doc.text(t.label, pageWidth - 85, ty)
+      doc.text(t.label, pageWidth - 90, ty)
       doc.text(t.value, pageWidth - 14, ty, { align: 'right' })
       ty += 8
     })

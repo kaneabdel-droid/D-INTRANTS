@@ -108,7 +108,7 @@ export default function PrintReleveModal({
       const totals = calculateTotals(data)
       let ty = finalY + 10
       totals.forEach((t) => {
-        doc.text(t.label, pageWidth - 85, ty)
+        doc.text(t.label, pageWidth - 90, ty)
         doc.text(t.value, pageWidth - 14, ty, { align: 'right' })
         ty += 8
       })
@@ -205,8 +205,9 @@ export default function PrintReleveModal({
 
 // Helpers
 
-const formatMontant = (m: number | string | null | undefined) => {
-  return Number(m || 0).toLocaleString('fr-FR')
+const formatMontant = (n: number | string | null | undefined) => {
+  const num = Number(n || 0)
+  return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0')
 }
 
 type ReleveOperation = {
