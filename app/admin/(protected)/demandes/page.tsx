@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { PALIERS, type PalierCode } from '@/lib/abonnements/paliers'
 import RattacherDemandeForm from './RattacherDemandeForm'
+import SupprimerAbonnementButton from '../paiements/SupprimerAbonnementButton'
 
 type Metadata = { nomEntreprise?: string; contactNom?: string; contactEmail?: string; contactTelephone?: string }
 
@@ -45,6 +46,7 @@ export default async function AdminDemandesPage() {
               <th className="px-4 py-3 font-medium">Palier</th>
               <th className="px-4 py-3 font-medium">Montant</th>
               <th className="px-4 py-3 font-medium">Rattacher</th>
+              <th className="px-4 py-3 font-medium"><span className="sr-only">Supprimer</span></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-border">
@@ -65,11 +67,17 @@ export default async function AdminDemandesPage() {
                   <td className="px-4 py-3">
                     <RattacherDemandeForm abonnementId={d.id} entreprises={entreprises ?? []} />
                   </td>
+                  <td className="px-4 py-3 text-right">
+                    <SupprimerAbonnementButton
+                      abonnementId={d.id}
+                      confirmation="Cette demande a DÉJÀ été payée et n’est rattachée à aucune entreprise. La supprimer efface définitivement la trace de ce paiement. Continuer ?"
+                    />
+                  </td>
                 </tr>
               )
             })}
             {(demandesEnAttente ?? []).length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-6 text-center text-foreground-muted">Aucune demande en attente</td></tr>
+              <tr><td colSpan={7} className="px-4 py-6 text-center text-foreground-muted">Aucune demande en attente</td></tr>
             )}
           </tbody>
         </table>

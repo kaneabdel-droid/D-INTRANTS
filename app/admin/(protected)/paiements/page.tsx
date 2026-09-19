@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { PALIERS, type PalierCode } from '@/lib/abonnements/paliers'
+import SupprimerAbonnementButton from './SupprimerAbonnementButton'
 
 export default async function AdminPaiementsPage({
   searchParams,
@@ -56,6 +57,7 @@ export default async function AdminPaiementsPage({
               <th className="px-4 py-3 font-medium">Montant</th>
               <th className="px-4 py-3 font-medium">Prestataire</th>
               <th className="px-4 py-3 font-medium">Statut</th>
+              <th className="px-4 py-3 font-medium"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-border">
@@ -84,11 +86,23 @@ export default async function AdminPaiementsPage({
                       {p.statut}
                     </span>
                   </td>
+                  <td className="px-4 py-3 text-right">
+                    {(p.statut === 'echoue' || !p.entreprise_id) && (
+                      <SupprimerAbonnementButton
+                        abonnementId={p.id}
+                        confirmation={
+                          p.statut === 'paye'
+                            ? 'Cette demande a DÉJÀ été payée et n’est rattachée à aucune entreprise. La supprimer efface définitivement la trace de ce paiement. Continuer ?'
+                            : 'Supprimer définitivement cette ligne ?'
+                        }
+                      />
+                    )}
+                  </td>
                 </tr>
               )
             })}
             {(paiements ?? []).length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-6 text-center text-foreground-muted">Aucun paiement</td></tr>
+              <tr><td colSpan={8} className="px-4 py-6 text-center text-foreground-muted">Aucun paiement</td></tr>
             )}
           </tbody>
         </table>
