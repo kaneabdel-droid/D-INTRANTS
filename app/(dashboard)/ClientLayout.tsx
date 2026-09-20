@@ -175,23 +175,28 @@ export default function ClientLayout({
       </div>
 
       <div className="lg:pl-60">
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-surface-border bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
-          <button type="button" className="-m-2.5 p-2.5 text-foreground-muted lg:hidden" onClick={() => setSidebarOpen(true)}>
+        <div className="sticky top-0 z-40 flex min-h-16 shrink-0 items-center gap-x-2 border-b border-surface-border bg-background px-3 py-2 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+          <button type="button" className="-m-1 shrink-0 p-2 text-foreground-muted lg:hidden" onClick={() => setSidebarOpen(true)}>
             <span className="sr-only">{nav.openSidebar}</span>
             <Menu className="h-6 w-6" aria-hidden="true" />
           </button>
 
-          <div className="h-6 w-px bg-surface-border lg:hidden" aria-hidden="true" />
+          <div className="hidden h-6 w-px bg-surface-border sm:block lg:hidden" aria-hidden="true" />
 
-          <div className="flex flex-1 min-w-0 gap-x-4 self-stretch lg:gap-x-6">
-            <div className="flex flex-1"></div>
-            <div className="flex min-w-0 items-center gap-x-3 sm:gap-x-4 lg:gap-x-6">
+          {/* Mobile : le nom prend toute la largeur restante et passe à la ligne (jamais coupé) ; sm+ : nom à droite après les contrôles */}
+          <div className="flex min-w-0 flex-1 items-center gap-x-2 sm:justify-end sm:gap-x-4 lg:gap-x-6">
+            <div className="min-w-0 flex-1 text-xs font-semibold leading-tight text-foreground [overflow-wrap:anywhere] sm:order-last sm:max-w-md sm:flex-none sm:text-right sm:text-sm">
+              <span className="block sm:inline">{entrepriseNom}</span>
+              {magasinNom && (
+                <span className="block font-normal text-foreground-muted sm:inline">
+                  <span className="hidden sm:inline"> · </span>
+                  {magasinNom}
+                </span>
+              )}
+            </div>
+            <div className="flex shrink-0 items-center gap-x-2 sm:gap-x-4 lg:gap-x-6">
               <LanguageSelector currentLang={locale} />
               <ThemeSwitcher />
-              <div className="min-w-0 max-w-[10rem] truncate text-sm font-semibold leading-6 text-foreground sm:max-w-xs">
-                {entrepriseNom}
-                {magasinNom && <span className="text-foreground-muted font-normal"> · {magasinNom}</span>}
-              </div>
             </div>
           </div>
         </div>

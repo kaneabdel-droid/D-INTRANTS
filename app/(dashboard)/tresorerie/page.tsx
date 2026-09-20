@@ -1,18 +1,12 @@
 import { createClient } from '@/utils/supabase/server'
 import { requireGerant } from '@/lib/auth/getCurrentUserContext'
-import { Wallet, Landmark, Smartphone } from 'lucide-react'
 import { getDictionary, getLocale } from '@/dictionaries'
 import CreateCompteButton from './CreateCompteButton'
 import AddEcritureButton from './AddEcritureButton'
+import FitAmount from './FitAmount'
 import EcritureRowActions from './EcritureRowActions'
 import Link from 'next/link'
 import PrintJournalButton from '@/components/PrintJournalButton'
-
-const iconParType: Record<string, typeof Wallet> = {
-  caisse: Wallet,
-  banque: Landmark,
-  mobile_money: Smartphone,
-}
 
 export default async function TresoreriePage({ searchParams }: { searchParams: Promise<{ compte_id?: string }> }) {
   const { compte_id } = await searchParams
@@ -100,48 +94,33 @@ export default async function TresoreriePage({ searchParams }: { searchParams: P
         </div>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
         {/* Carte "Tous les comptes" */}
         <Link
           href="/tresorerie"
-          className={`block overflow-hidden rounded-xl bg-surface p-6 shadow-sm border transition-all ${!compte_id ? 'border-primary ring-1 ring-primary shadow-md bg-primary/5' : 'border-surface-border hover:border-primary/50'}`}
+          className={`block min-w-0 rounded-lg bg-surface px-3 py-2 shadow-sm border transition-all ${!compte_id ? 'border-primary ring-1 ring-primary shadow-md bg-primary/5' : 'border-surface-border hover:border-primary/50'}`}
         >
-          <div className="flex items-start gap-3">
-            <div className="rounded-lg bg-primary/10 p-2.5 shrink-0">
-              <Wallet className="h-5 w-5 text-primary" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-foreground-muted truncate">Tous les comptes</p>
-              <p className="text-xs text-foreground-muted capitalize">Solde global</p>
-            </div>
-          </div>
-          <p className="mt-4 text-2xl font-bold text-foreground">
+          <p className="text-xs font-semibold leading-tight text-foreground [overflow-wrap:anywhere]">Tous les comptes</p>
+          <p className="text-[10px] leading-tight text-foreground-muted">Solde global</p>
+          <FitAmount className="mt-1 font-bold leading-tight text-foreground">
             {!compte_id ? Math.round(Array.from(soldeParCompte.values()).reduce((acc, val) => acc + val, 0)).toLocaleString('fr-FR') : '***'}
-          </p>
+          </FitAmount>
         </Link>
 
         {(comptes ?? []).map((compte) => {
-          const Icon = iconParType[compte.type_compte] ?? Wallet
           const isActive = compte_id === compte.id
           const shouldShowBalance = !compte_id || isActive
           return (
-            <Link 
-              href={isActive ? '/tresorerie' : `/tresorerie?compte_id=${compte.id}`} 
-              key={compte.id} 
-              className={`block overflow-hidden rounded-xl bg-surface p-6 shadow-sm border transition-all ${isActive ? 'border-primary ring-1 ring-primary shadow-md bg-primary/5' : 'border-surface-border hover:border-primary/50'}`}
+            <Link
+              href={isActive ? '/tresorerie' : `/tresorerie?compte_id=${compte.id}`}
+              key={compte.id}
+              className={`block min-w-0 rounded-lg bg-surface px-3 py-2 shadow-sm border transition-all ${isActive ? 'border-primary ring-1 ring-primary shadow-md bg-primary/5' : 'border-surface-border hover:border-primary/50'}`}
             >
-              <div className="flex items-start gap-3">
-                <div className="rounded-lg bg-primary/10 p-2.5 shrink-0">
-                  <Icon className="h-5 w-5 text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-foreground-muted truncate">{compte.nom}</p>
-                  <p className="text-xs text-foreground-muted capitalize">{compte.type_compte.replace('_', ' ')}</p>
-                </div>
-              </div>
-              <p className="mt-4 text-2xl font-bold text-foreground">
+              <p className="text-xs font-semibold leading-tight text-foreground [overflow-wrap:anywhere]">{compte.nom}</p>
+              <p className="text-[10px] capitalize leading-tight text-foreground-muted">{compte.type_compte.replace('_', ' ')}</p>
+              <FitAmount className="mt-1 font-bold leading-tight text-foreground">
                 {shouldShowBalance ? Math.round(soldeParCompte.get(compte.id) ?? 0).toLocaleString('fr-FR') : '***'}
-              </p>
+              </FitAmount>
             </Link>
           )
         })}

@@ -35,19 +35,22 @@ export function ThemeSwitcher() {
   if (!mounted) return null
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1 sm:gap-2">
       {themes.map((theme) => (
         <button
           key={theme.name}
           type="button"
+          title={theme.name}
+          aria-label={theme.name}
           onClick={() => changeTheme(theme.class)}
-          className={`px-3 py-1.5 text-xs font-semibold rounded-md border transition-all ${
+          className={`min-w-7 px-2 py-1.5 text-center text-xs font-semibold rounded-md border transition-all sm:px-3 ${
             currentTheme === theme.class
               ? 'bg-primary text-white border-primary shadow-sm'
               : 'bg-surface text-foreground-muted border-surface-border hover:text-foreground hover:bg-black/5'
           }`}
         >
-          {theme.name}
+          <span className="sm:hidden">{theme.name.charAt(0)}</span>
+          <span className="hidden sm:inline">{theme.name}</span>
         </button>
       ))}
     </div>
