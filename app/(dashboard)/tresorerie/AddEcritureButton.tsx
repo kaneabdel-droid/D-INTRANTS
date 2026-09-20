@@ -13,6 +13,8 @@ export default function AddEcritureButton({ comptes, dict }: { comptes: Compte[]
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [categorie, setCategorie] = useState('autres_produits')
+  const sensForce = categorie === 'autres_produits' ? 'entree' : categorie === 'autres_charges' ? 'sortie' : null
 
   async function handleSubmit(formData: FormData) {
     setLoading(true)
@@ -55,10 +57,20 @@ export default function AddEcritureButton({ comptes, dict }: { comptes: Compte[]
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-foreground">{t.senseLabel}</label>
-                      <select name="type_mouvement" required className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2">
+                      {sensForce ? (
+                        <>
+                          <select value={sensForce} disabled className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2 opacity-70">
+                            <option value="entree">{t.senseEntree}</option>
+                            <option value="sortie">{t.senseSortie}</option>
+                          </select>
+                          <input type="hidden" name="type_mouvement" value={sensForce} />
+                        </>
+                      ) : (
+                        <select name="type_mouvement" required className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2">
                         <option value="entree">{t.senseEntree}</option>
                         <option value="sortie">{t.senseSortie}</option>
                       </select>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground">{t.montantLabel}</label>
@@ -67,8 +79,8 @@ export default function AddEcritureButton({ comptes, dict }: { comptes: Compte[]
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-foreground">{t.categorieLabel}</label>
-                    <select name="categorie" className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2">
-                                            <option value="autres_produits">{t.categorieAutresProduits}</option>
+                    <select name="categorie" value={categorie} onChange={(e) => setCategorie(e.target.value)} className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2">
+                      <option value="autres_produits">{t.categorieAutresProduits}</option>
                       <option value="autres_charges">{t.categorieAutresCharges}</option>
                       <option value="virement">{t.categorieVirement}</option>
                       <option value="remboursement">{t.categorieRemboursement}</option>

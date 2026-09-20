@@ -28,6 +28,14 @@ export async function addCompteTresorerie(formData: FormData): Promise<ActionRes
   return { success: true }
 }
 
+// « Autres produits » est toujours une entrée et « Autres charges » toujours une sortie :
+// le sens est imposé ici, côté serveur, quel que soit ce que le formulaire envoie.
+function sensImpose(categorie: string, sens: string): string {
+  if (categorie === 'autres_produits') return 'entree'
+  if (categorie === 'autres_charges') return 'sortie'
+  return sens
+}
+
 // Écriture manuelle : virement entre comptes ou mouvement "autre" non couvert
 // par les RPC dédiées (creer_vente/creer_achat/regler_creance/regler_dette
 // écrivent déjà leur propre ligne de journal automatiquement).
@@ -47,7 +55,7 @@ export async function addEcritureTresorerie(formData: FormData): Promise<ActionR
   const { error } = await supabase.from('journal_tresorerie').insert({
     magasin_id: context.magasinId,
     compte_tresorerie_id: compteId,
-    type_mouvement: typeMouvement,
+    type_mouvement: sensImpose(categorie, typeMouvement),
     montant,
     categorie,
     motif,
@@ -85,7 +93,7 @@ export async function updateEcritureTresorerie(
 
   const { error } = await supabase
     .from('journal_tresorerie')
-    .update({ compte_tresorerie_id: compteId, type_mouvement: typeMouvement, montant, categorie, motif: motif.trim() || null })
+    .update({ compte_tresorerie_id: compteId, type_mouvement: sensImpose(categorie, typeMouvement), montant, categorie, motif: motif.trim() || null })
     .eq('id', id)
     .is('reference_type', null)
   if (error) return { error: error.message }
