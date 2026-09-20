@@ -64,10 +64,82 @@
     "subscribe": "Subscribe",
     "discover": "Discover →",
     "features": {
-      "stock": { "title": "Real-time stock", "desc": "Track incoming and outgoing stock, store by store, without a spreadsheet." },
-      "ventes": { "title": "Sales & purchases", "desc": "Invoice your customers, manage your suppliers, track receivables and debts." },
-      "magasins": { "title": "Multiple stores", "desc": "A consolidated view of your whole company, plus the detail per store." }
-    }
+      "stock": {
+        "title": "Real-time stock",
+        "desc": "Track incoming and outgoing stock, store by store, without a spreadsheet."
+      },
+      "ventes": {
+        "title": "Sales & purchases",
+        "desc": "Invoice your customers, manage your suppliers, track receivables and debts."
+      },
+      "magasins": {
+        "title": "Multiple stores",
+        "desc": "A consolidated view of your whole company, plus the detail per store."
+      }
+    },
+    "eyebrow": "Agri-input shop management",
+    "heroA": "Seeds, fertilizer,",
+    "heroB": "stock under control.",
+    "stats": [
+      [
+        "Multi-shop",
+        "Consolidated view"
+      ],
+      [
+        "Real time",
+        "Stock always current"
+      ],
+      [
+        "3 languages",
+        "FR · EN · AR"
+      ],
+      [
+        "Receivables",
+        "Tracked to the cent"
+      ]
+    ],
+    "catEyebrow": "What you sell",
+    "catTitle": "A catalog built for agricultural inputs",
+    "cats": [
+      [
+        "Seeds",
+        "Varieties, lots and expiry dates"
+      ],
+      [
+        "Fertilizer",
+        "NPK, urea, organic — by bag or in bulk"
+      ],
+      [
+        "Crop protection",
+        "Lot and supplier traceability"
+      ],
+      [
+        "Small equipment",
+        "Tools, irrigation, field gear"
+      ]
+    ],
+    "solutionsEyebrow": "Our solutions",
+    "solutionsTitle": "Everything to run your shop end to end",
+    "learn": "Learn more",
+    "howEyebrow": "How it works",
+    "howTitle": "Ready before the next season",
+    "steps": [
+      [
+        "Create your shop",
+        "Add your outlets and your input catalog."
+      ],
+      [
+        "Record your flows",
+        "Purchases, sales and transfers update stock automatically."
+      ],
+      [
+        "Follow your accounts",
+        "Customer receivables, supplier debts and margins at a glance."
+      ]
+    ],
+    "ctaEyebrow": "Get started",
+    "ctaTitle": "Ready for the next season?",
+    "ctaSub": "Pick the plan that fits the size of your shop."
   },
   "decouvrir": {
     "backHome": "Back to home",
@@ -85,10 +157,22 @@
     "demoGerant2Role": "Manager, Bamako",
     "demoNote": "This space is shared between all visitors — avoid entering real information.",
     "modulesTitle": "A complete workflow, store by store",
-    "moduleStock": { "title": "Real-time stock", "desc": "Categories, items, alert thresholds and movement history." },
-    "moduleVentes": { "title": "Sales & purchases", "desc": "Cash, credit or mixed, with a receipt and margin tracking." },
-    "moduleCreances": { "title": "Receivables & debts", "desc": "Who owes you, who you owe, settled in one click." },
-    "moduleTresorerie": { "title": "Cash management", "desc": "Cash box, mobile money, bank — a complete movement journal." },
+    "moduleStock": {
+      "title": "Real-time stock",
+      "desc": "Categories, items, alert thresholds and movement history."
+    },
+    "moduleVentes": {
+      "title": "Sales & purchases",
+      "desc": "Cash, credit or mixed, with a receipt and margin tracking."
+    },
+    "moduleCreances": {
+      "title": "Receivables & debts",
+      "desc": "Who owes you, who you owe, settled in one click."
+    },
+    "moduleTresorerie": {
+      "title": "Cash management",
+      "desc": "Cash box, mobile money, bank — a complete movement journal."
+    },
     "cta": "Subscribe"
   },
   "auth": {

@@ -59,15 +59,87 @@
   },
   "home": {
     "title": "d-intrants",
-    "tagline": "La solution de gestion pour Boutique d'intrantss en Afrique. Suivez vos stocks, vos ventes et vos magasins en toute simplicité.",
+    "tagline": "La solution de gestion pour Boutique d'intrants en Afrique. Suivez vos stocks, vos ventes et vos magasins en toute simplicité.",
     "backToDemba": "Retour à Demba Solution",
     "subscribe": "S'abonner",
     "discover": "Découvrir →",
     "features": {
-      "stock": { "title": "Stock en temps réel", "desc": "Suivez vos entrées et sorties, magasin par magasin, sans feuille de calcul." },
-      "ventes": { "title": "Ventes & achats", "desc": "Facturez vos clients, gérez vos fournisseurs, suivez créances et dettes." },
-      "magasins": { "title": "Plusieurs magasins", "desc": "Une vue consolidée de toute votre entreprise, et le détail par magasin." }
-    }
+      "stock": {
+        "title": "Stock en temps réel",
+        "desc": "Suivez vos entrées et sorties, magasin par magasin, sans feuille de calcul."
+      },
+      "ventes": {
+        "title": "Ventes & achats",
+        "desc": "Facturez vos clients, gérez vos fournisseurs, suivez créances et dettes."
+      },
+      "magasins": {
+        "title": "Plusieurs magasins",
+        "desc": "Une vue consolidée de toute votre entreprise, et le détail par magasin."
+      }
+    },
+    "eyebrow": "Gestion de boutique d'intrants",
+    "heroA": "Semences, engrais,",
+    "heroB": "stocks sous contrôle.",
+    "stats": [
+      [
+        "Multi-boutiques",
+        "Vue consolidée"
+      ],
+      [
+        "Temps réel",
+        "Stocks à jour"
+      ],
+      [
+        "3 langues",
+        "FR · EN · AR"
+      ],
+      [
+        "Créances",
+        "Suivies au centime"
+      ]
+    ],
+    "catEyebrow": "Ce que vous vendez",
+    "catTitle": "Un catalogue pensé pour les intrants agricoles",
+    "cats": [
+      [
+        "Semences",
+        "Variétés, lots et dates de péremption"
+      ],
+      [
+        "Engrais",
+        "NPK, urée, organiques — par sac ou en vrac"
+      ],
+      [
+        "Produits phytosanitaires",
+        "Traçabilité des lots et des fournisseurs"
+      ],
+      [
+        "Petit matériel",
+        "Outils, arrosage, équipements de champ"
+      ]
+    ],
+    "solutionsEyebrow": "Nos solutions",
+    "solutionsTitle": "Tout pour tenir votre boutique de bout en bout",
+    "learn": "En savoir plus",
+    "howEyebrow": "Comment ça marche",
+    "howTitle": "Prêt avant la prochaine campagne",
+    "steps": [
+      [
+        "Créez votre boutique",
+        "Ajoutez vos points de vente et votre catalogue d'intrants."
+      ],
+      [
+        "Enregistrez vos flux",
+        "Achats, ventes et transferts mettent le stock à jour automatiquement."
+      ],
+      [
+        "Suivez vos comptes",
+        "Créances clients, dettes fournisseurs et marges en un coup d'œil."
+      ]
+    ],
+    "ctaEyebrow": "Pour commencer",
+    "ctaTitle": "Prêt pour la prochaine campagne ?",
+    "ctaSub": "Choisissez la formule adaptée à la taille de votre boutique."
   },
   "decouvrir": {
     "backHome": "Retour à l'accueil",
@@ -85,10 +157,22 @@
     "demoGerant2Role": "Gérant, Bamako",
     "demoNote": "Cet espace est partagé entre tous les visiteurs — évitez d'y saisir des informations réelles.",
     "modulesTitle": "Un circuit complet, magasin par magasin",
-    "moduleStock": { "title": "Stock en temps réel", "desc": "Catégories, articles, seuils d'alerte et historique des mouvements." },
-    "moduleVentes": { "title": "Ventes & achats", "desc": "Comptant, crédit ou mixte, avec reçu et suivi des marges." },
-    "moduleCreances": { "title": "Créances & dettes", "desc": "Qui vous doit, à qui vous devez, réglé en un clic." },
-    "moduleTresorerie": { "title": "Trésorerie", "desc": "Caisse, mobile money, banque — journal complet des mouvements." },
+    "moduleStock": {
+      "title": "Stock en temps réel",
+      "desc": "Catégories, articles, seuils d'alerte et historique des mouvements."
+    },
+    "moduleVentes": {
+      "title": "Ventes & achats",
+      "desc": "Comptant, crédit ou mixte, avec reçu et suivi des marges."
+    },
+    "moduleCreances": {
+      "title": "Créances & dettes",
+      "desc": "Qui vous doit, à qui vous devez, réglé en un clic."
+    },
+    "moduleTresorerie": {
+      "title": "Trésorerie",
+      "desc": "Caisse, mobile money, banque — journal complet des mouvements."
+    },
     "cta": "S'abonner"
   },
   "auth": {

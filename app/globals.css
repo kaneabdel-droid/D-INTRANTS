@@ -5,19 +5,19 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Palette premium d-intrants - Boutique d'intrants Ouest-Africaine (vert savane / ocre) */
-  --background: #ECEFEF;
-  --surface: #FFFFFF;
-  --surface-border: #E2E8F0;
-  --foreground: #09090b;
-  --foreground-muted: #334155;
-  --sidebar: #F4F6F5;
+  /* Palette premium d-intrants - Boutique d'intrants Ouest-Africaine (vert champ / ambre, inspirée d'AgriSunu) */
+  --background: #F3F6F0;
+  --surface: #FCFDFB;
+  --surface-border: #DCE4D6;
+  --foreground: #17211A;
+  --foreground-muted: #56665B;
+  --sidebar: #E8F0E4;
 
-  --primary: #1E5631;
-  --primary-hover: #2F855A;
+  --primary: #2E7D32;
+  --primary-hover: #1B5E20;
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: #D97706;
-  --secondary-foreground: oklch(0.985 0 0);
+  --secondary: #F9A825;
+  --secondary-foreground: #2B2100;
   --danger: #E74C3C;
   --success: #16A34A;
   --warning: #F59E0B;
@@ -115,15 +115,15 @@ body {
 }
 
 .dark {
-  --background: #0F1923;
-  --surface: #1A2634;
-  --surface-border: #2A3B4D;
-  --foreground: #E8ECF1;
-  --foreground-muted: #8899AA;
-  --sidebar: #16212C;
+  --background: #0F1A12;
+  --surface: #17251B;
+  --surface-border: #2A3D2F;
+  --foreground: #E9EFE7;
+  --foreground-muted: #93A597;
+  --sidebar: #122016;
 
-  --primary: #2F855A;
-  --primary-hover: #40916C;
+  --primary: #4CAF50;
+  --primary-hover: #66BB6A;
   --card: var(--surface);
   --card-foreground: var(--foreground);
   --popover: var(--surface);
