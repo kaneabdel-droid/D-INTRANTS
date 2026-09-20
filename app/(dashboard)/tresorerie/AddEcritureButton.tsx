@@ -69,6 +69,8 @@ export default function AddEcritureButton({ comptes, dict }: { comptes: Compte[]
                     <label className="block text-sm font-medium text-foreground">{t.categorieLabel}</label>
                     <select name="categorie" className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2">
                       <option value="virement">{t.categorieVirement}</option>
+                      <option value="remboursement">{t.categorieRemboursement}</option>
+                      <option value="retrait">{t.categorieRetrait}</option>
                       <option value="autre">{t.categorieAutre}</option>
                     </select>
                   </div>

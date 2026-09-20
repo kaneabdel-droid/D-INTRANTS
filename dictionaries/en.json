@@ -414,7 +414,9 @@
     "confirmDeleteEcriture": "Delete this entry?",
     "ecritureUpdated": "Entry updated",
     "ecritureDeleted": "Entry deleted",
-    "linkedNotice": "Linked — manage from its origin"
+    "linkedNotice": "Linked — manage from its origin",
+    "categorieRemboursement": "Reimbursement",
+    "categorieRetrait": "Cash withdrawal"
   },
   "charges": {
     "title": "Expenses",
@@ -495,7 +497,24 @@
     "client": "Customer",
     "ca": "Revenue",
     "achats": "Purchases",
-    "dernierAchat": "Last purchase"
+    "dernierAchat": "Last purchase",
+    "ceTitle": "Operating account",
+    "ceExercice": "Year",
+    "ceMontantsEn": "Amounts in",
+    "ceCa": "Revenue",
+    "ceAchats": "Purchases",
+    "ceMarge": "Trading margin",
+    "ceAutresProduits": "Other income",
+    "ceAutresCharges": "Other expenses",
+    "ceEbe": "Gross operating surplus",
+    "ceTotal": "Total",
+    "ceTrimestres": [
+      "March",
+      "June",
+      "September",
+      "December"
+    ],
+    "ceNote": "Quarters: Jan–Mar, Apr–Jun, Jul–Sep, Oct–Dec. Other income: treasury inflows in the “other” category (excluding receivable settlements, reimbursements and transfers). Other expenses: recorded expenses and “other” outflows (excluding debt payments and cash withdrawals)."
   },
   "tarifs": {
     "back": "Back",

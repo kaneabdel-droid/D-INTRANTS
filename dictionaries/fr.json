@@ -414,7 +414,9 @@
     "confirmDeleteEcriture": "Supprimer cette écriture ?",
     "ecritureUpdated": "Écriture modifiée",
     "ecritureDeleted": "Écriture supprimée",
-    "linkedNotice": "Liée — gérer depuis l'origine"
+    "linkedNotice": "Liée — gérer depuis l'origine",
+    "categorieRemboursement": "Remboursement",
+    "categorieRetrait": "Retrait de fonds"
   },
   "charges": {
     "title": "Charges",
@@ -495,7 +497,24 @@
     "client": "Client",
     "ca": "Chiffre d'affaires",
     "achats": "Achats",
-    "dernierAchat": "Dernier achat"
+    "dernierAchat": "Dernier achat",
+    "ceTitle": "Compte d'exploitation",
+    "ceExercice": "Exercice",
+    "ceMontantsEn": "Montants en",
+    "ceCa": "Chiffre d'affaires",
+    "ceAchats": "Achats",
+    "ceMarge": "Marge commerciale",
+    "ceAutresProduits": "Autres produits",
+    "ceAutresCharges": "Autres charges",
+    "ceEbe": "Excédent brut d'exploitation",
+    "ceTotal": "Total",
+    "ceTrimestres": [
+      "Mars",
+      "Juin",
+      "Septembre",
+      "Décembre"
+    ],
+    "ceNote": "Trimestres : jan.–mars, avr.–juin, juil.–sept., oct.–déc. Autres produits : entrées de trésorerie de catégorie « autre » (hors règlements de créances, remboursements et virements). Autres charges : charges enregistrées et sorties de catégorie « autre » (hors paiements de dettes et retraits de fonds)."
   },
   "tarifs": {
     "back": "Retour",
