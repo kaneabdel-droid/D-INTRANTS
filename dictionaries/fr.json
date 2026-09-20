@@ -416,7 +416,9 @@
     "ecritureDeleted": "Écriture supprimée",
     "linkedNotice": "Liée — gérer depuis l'origine",
     "categorieRemboursement": "Remboursement",
-    "categorieRetrait": "Retrait de fonds"
+    "categorieRetrait": "Retrait de fonds",
+    "categorieAutresProduits": "Autres produits",
+    "categorieAutresCharges": "Autres charges"
   },
   "charges": {
     "title": "Charges",
@@ -514,7 +516,7 @@
       "Septembre",
       "Décembre"
     ],
-    "ceNote": "Trimestres : jan.–mars, avr.–juin, juil.–sept., oct.–déc. Autres produits : entrées de trésorerie de catégorie « autre » (hors règlements de créances, remboursements et virements). Autres charges : charges enregistrées et sorties de catégorie « autre » (hors paiements de dettes et retraits de fonds)."
+    "ceNote": "Trimestres : jan.–mars, avr.–juin, juil.–sept., oct.–déc. Autres produits : écritures de trésorerie de catégorie « Autres produits ». Autres charges : charges enregistrées et écritures de trésorerie de catégorie « Autres charges »."
   },
   "tarifs": {
     "back": "Retour",

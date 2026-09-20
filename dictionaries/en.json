@@ -416,7 +416,9 @@
     "ecritureDeleted": "Entry deleted",
     "linkedNotice": "Linked — manage from its origin",
     "categorieRemboursement": "Reimbursement",
-    "categorieRetrait": "Cash withdrawal"
+    "categorieRetrait": "Cash withdrawal",
+    "categorieAutresProduits": "Other income",
+    "categorieAutresCharges": "Other expenses"
   },
   "charges": {
     "title": "Expenses",
@@ -514,7 +516,7 @@
       "September",
       "December"
     ],
-    "ceNote": "Quarters: Jan–Mar, Apr–Jun, Jul–Sep, Oct–Dec. Other income: treasury inflows in the “other” category (excluding receivable settlements, reimbursements and transfers). Other expenses: recorded expenses and “other” outflows (excluding debt payments and cash withdrawals)."
+    "ceNote": "Quarters: Jan–Mar, Apr–Jun, Jul–Sep, Oct–Dec. Other income: treasury entries in the “Other income” category. Other expenses: recorded expenses and treasury entries in the “Other expenses” category."
   },
   "tarifs": {
     "back": "Back",

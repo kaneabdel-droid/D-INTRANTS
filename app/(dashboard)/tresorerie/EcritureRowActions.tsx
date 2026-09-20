@@ -92,6 +92,8 @@ export default function EcritureRowActions({ ecriture, comptes, dict }: { ecritu
                   <div>
                     <label className="block text-sm font-medium text-foreground">{t.categorieLabel}</label>
                     <select name="categorie" defaultValue={ecriture.categorie ?? 'autre'} className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2">
+                                            <option value="autres_produits">{t.categorieAutresProduits}</option>
+                      <option value="autres_charges">{t.categorieAutresCharges}</option>
                       <option value="virement">{t.categorieVirement}</option>
                       <option value="remboursement">{t.categorieRemboursement}</option>
                       <option value="retrait">{t.categorieRetrait}</option>
