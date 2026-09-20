@@ -4,7 +4,7 @@ import { DollarSign, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
 import { getDictionary, getLocale } from '@/dictionaries'
 import ImpressionEtatsModal from '@/components/ImpressionEtatsModal'
 
-type RentabiliteRow = { ca: number; cout: number; marge_brute: number; charges: number; resultat_net: number }
+type RentabiliteRow = { ca: number; cout: number; marge_brute: number; autres_produits: number; charges: number; resultat_net: number }
 type ArticleRow = { article_id: string; designation: string; quantite: number; ca: number; cout: number; marge: number }
 
 export default async function RentabilitePage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
@@ -35,7 +35,7 @@ export default async function RentabilitePage({ searchParams }: { searchParams: 
     .eq('entreprise_id', context.entrepriseId)
     .order('nom')
 
-  const totaux: RentabiliteRow = { ca: 0, cout: 0, marge_brute: 0, charges: 0, resultat_net: 0 }
+  const totaux: RentabiliteRow = { ca: 0, cout: 0, marge_brute: 0, autres_produits: 0, charges: 0, resultat_net: 0 }
   const parMagasin: (RentabiliteRow & { nom: string })[] = []
   const articlesMap = new Map<string, ArticleRow>()
 
@@ -53,11 +53,12 @@ export default async function RentabilitePage({ searchParams }: { searchParams: 
   )
 
   for (const { nom, rentabilite, articles } of resultats) {
-    const r = (rentabilite ?? { ca: 0, cout: 0, marge_brute: 0, charges: 0, resultat_net: 0 }) as RentabiliteRow
+    const r = (rentabilite ?? { ca: 0, cout: 0, marge_brute: 0, autres_produits: 0, charges: 0, resultat_net: 0 }) as RentabiliteRow
     parMagasin.push({ nom, ...r })
     totaux.ca += Number(r.ca)
     totaux.cout += Number(r.cout)
     totaux.marge_brute += Number(r.marge_brute)
+    totaux.autres_produits += Number(r.autres_produits)
     totaux.charges += Number(r.charges)
     totaux.resultat_net += Number(r.resultat_net)
 
@@ -79,6 +80,7 @@ export default async function RentabilitePage({ searchParams }: { searchParams: 
   const cards = [
     { label: t.cardCa, value: totaux.ca, icon: DollarSign, color: 'text-primary' },
     { label: t.cardMarge, value: totaux.marge_brute, icon: TrendingUp, color: 'text-success' },
+    { label: t.cardAutresProduits, value: totaux.autres_produits, icon: TrendingUp, color: 'text-success' },
     { label: t.cardCharges, value: totaux.charges, icon: TrendingDown, color: 'text-danger' },
     { label: t.cardResultatNet, value: totaux.resultat_net, icon: Wallet, color: totaux.resultat_net >= 0 ? 'text-success' : 'text-danger' },
   ]
@@ -100,7 +102,7 @@ export default async function RentabilitePage({ searchParams }: { searchParams: 
         <p className="text-sm text-gray-600">{context.entrepriseNom} — Du {new Date(p_date_debut).toLocaleDateString('fr-FR')} au {new Date(p_date_fin).toLocaleDateString('fr-FR')}</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         {cards.map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="overflow-hidden rounded-xl bg-surface p-6 shadow-sm border border-surface-border">
             <div className="flex items-start gap-3">
@@ -122,6 +124,7 @@ export default async function RentabilitePage({ searchParams }: { searchParams: 
               <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-foreground sm:pl-6">{t.colMagasin}</th>
               <th scope="col" className="px-3 py-3.5 text-right text-sm font-semibold text-foreground">{t.colCa}</th>
               <th scope="col" className="px-3 py-3.5 text-right text-sm font-semibold text-foreground">{t.colMarge}</th>
+              <th scope="col" className="px-3 py-3.5 text-right text-sm font-semibold text-foreground">{t.colAutresProduits}</th>
               <th scope="col" className="px-3 py-3.5 text-right text-sm font-semibold text-foreground">{t.colCharges}</th>
               <th scope="col" className="px-3 py-3.5 text-right text-sm font-semibold text-foreground">{t.colResultatNet}</th>
             </tr>
@@ -132,6 +135,7 @@ export default async function RentabilitePage({ searchParams }: { searchParams: 
                 <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-foreground sm:pl-6">{m.nom}</td>
                 <td className="px-3 py-4 text-sm text-right text-foreground">{Number(m.ca).toLocaleString('fr-FR')}</td>
                 <td className="px-3 py-4 text-sm text-right text-foreground">{Number(m.marge_brute).toLocaleString('fr-FR')}</td>
+                <td className="px-3 py-4 text-sm text-right text-foreground-muted">{Number(m.autres_produits).toLocaleString('fr-FR')}</td>
                 <td className="px-3 py-4 text-sm text-right text-foreground-muted">{Number(m.charges).toLocaleString('fr-FR')}</td>
                 <td className={`px-3 py-4 text-sm text-right font-medium ${Number(m.resultat_net) >= 0 ? 'text-success' : 'text-danger'}`}>
                   {Number(m.resultat_net).toLocaleString('fr-FR')}
@@ -140,7 +144,7 @@ export default async function RentabilitePage({ searchParams }: { searchParams: 
             ))}
             {parMagasin.length === 0 && (
               <tr>
-                <td colSpan={5} className="py-8 text-center text-sm text-foreground-muted">{t.emptyMagasins}</td>
+                <td colSpan={6} className="py-8 text-center text-sm text-foreground-muted">{t.emptyMagasins}</td>
               </tr>
             )}
           </tbody>

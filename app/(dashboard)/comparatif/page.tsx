@@ -19,7 +19,7 @@ export default async function ComparatifPage() {
     p_date_fin: dateFin.toISOString().slice(0, 10),
   })
 
-  const lignes = (comparatif ?? []) as { magasin_id: string; magasin_nom: string; ca: number; marge_brute: number }[]
+  const lignes = (comparatif ?? []) as { magasin_id: string; magasin_nom: string; ca: number; marge_brute: number; excedent_brut: number }[]
 
   return (
     <div>
@@ -32,7 +32,7 @@ export default async function ComparatifPage() {
 
       {lignes.length > 0 ? (
         <div className="bg-surface rounded-xl border border-surface-border p-4 sm:p-6">
-          <ComparatifChart data={lignes} labelCa={t.colCa} labelMarge={t.colMarge} />
+          <ComparatifChart data={lignes} labelCa={t.colCa} labelMarge={t.colMarge} labelExcedent={t.colExcedentBrut} />
         </div>
       ) : (
         <p className="text-sm text-foreground-muted">{t.noData}</p>
@@ -45,6 +45,7 @@ export default async function ComparatifPage() {
               <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-foreground sm:pl-6">{t.colMagasin}</th>
               <th scope="col" className="px-3 py-3.5 text-right text-sm font-semibold text-foreground">{t.colCa}</th>
               <th scope="col" className="px-3 py-3.5 text-right text-sm font-semibold text-foreground">{t.colMarge}</th>
+              <th scope="col" className="px-3 py-3.5 text-right text-sm font-semibold text-foreground">{t.colExcedentBrut}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-border bg-surface">
@@ -53,11 +54,12 @@ export default async function ComparatifPage() {
                 <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-foreground sm:pl-6">{l.magasin_nom}</td>
                 <td className="px-3 py-4 text-sm text-right text-foreground">{Number(l.ca).toLocaleString('fr-FR')}</td>
                 <td className="px-3 py-4 text-sm text-right text-foreground">{Number(l.marge_brute).toLocaleString('fr-FR')}</td>
+                <td className={`px-3 py-4 text-sm text-right font-medium ${Number(l.excedent_brut) >= 0 ? 'text-foreground' : 'text-danger'}`}>{Number(l.excedent_brut).toLocaleString('fr-FR')}</td>
               </tr>
             ))}
             {lignes.length === 0 && (
               <tr>
-                <td colSpan={3} className="py-8 text-center text-sm text-foreground-muted">{t.empty}</td>
+                <td colSpan={4} className="py-8 text-center text-sm text-foreground-muted">{t.empty}</td>
               </tr>
             )}
           </tbody>

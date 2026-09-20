@@ -456,7 +456,8 @@
     "colMagasin": "Magasin",
     "colCa": "Chiffre d'affaires",
     "colMarge": "Marge brute",
-    "empty": "Aucun magasin"
+    "empty": "Aucun magasin",
+    "colExcedentBrut": "Excédent brut d'exploitation"
   },
   "rentabilite": {
     "title": "Rentabilité",
@@ -477,7 +478,9 @@
     "colQuantiteVendue": "Qté vendue",
     "colCaShort": "CA",
     "colMargeShort": "Marge",
-    "emptyVentes": "Aucune vente sur la période"
+    "emptyVentes": "Aucune vente sur la période",
+    "cardAutresProduits": "Autres produits",
+    "colAutresProduits": "Autres produits"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -516,7 +519,8 @@
       "Septembre",
       "Décembre"
     ],
-    "ceNote": "Trimestres : jan.–mars, avr.–juin, juil.–sept., oct.–déc. Autres produits : écritures de trésorerie de catégorie « Autres produits ». Autres charges : charges enregistrées et écritures de trésorerie de catégorie « Autres charges »."
+    "ceNote": "Trimestres : jan.–mars, avr.–juin, juil.–sept., oct.–déc. Variation de stock : coût des marchandises vendues (coût figé à la vente) moins les achats ; la marge commerciale est ainsi identique à la marge brute de Rentabilité et du Comparatif. Autres produits : écritures de trésorerie de catégorie « Autres produits ». Autres charges : charges enregistrées et écritures de trésorerie de catégorie « Autres charges ».",
+    "ceVariationStock": "Variation de stock"
   },
   "tarifs": {
     "back": "Retour",

@@ -456,7 +456,8 @@
     "colMagasin": "Store",
     "colCa": "Revenue",
     "colMarge": "Gross margin",
-    "empty": "No stores"
+    "empty": "No stores",
+    "colExcedentBrut": "Gross operating surplus"
   },
   "rentabilite": {
     "title": "Profitability",
@@ -477,7 +478,9 @@
     "colQuantiteVendue": "Qty sold",
     "colCaShort": "Revenue",
     "colMargeShort": "Margin",
-    "emptyVentes": "No sales for this period"
+    "emptyVentes": "No sales for this period",
+    "cardAutresProduits": "Other income",
+    "colAutresProduits": "Other income"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -516,7 +519,8 @@
       "September",
       "December"
     ],
-    "ceNote": "Quarters: Jan–Mar, Apr–Jun, Jul–Sep, Oct–Dec. Other income: treasury entries in the “Other income” category. Other expenses: recorded expenses and treasury entries in the “Other expenses” category."
+    "ceNote": "Quarters: Jan–Mar, Apr–Jun, Jul–Sep, Oct–Dec. Change in stock: cost of goods sold (cost frozen at sale) minus purchases, so the trading margin equals the gross margin shown in Profitability and Comparison. Other income: treasury entries in the “Other income” category. Other expenses: recorded expenses and treasury entries in the “Other expenses” category.",
+    "ceVariationStock": "Change in stock"
   },
   "tarifs": {
     "back": "Back",

@@ -2,7 +2,7 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts'
 
-type Ligne = { magasin_nom: string; ca: number; marge_brute: number }
+type Ligne = { magasin_nom: string; ca: number; marge_brute: number; excedent_brut: number }
 
 // Palette validée (node scripts/validate_palette.js) : CA en vert clair
 // (--primary-hover), marge brute en ocre (--secondary) — la paire passe les
@@ -12,12 +12,15 @@ type Ligne = { magasin_nom: string; ca: number; marge_brute: number }
 // chaque barre (LabelList) pour ne jamais reposer sur la seule couleur.
 const COULEUR_CA = '#2F855A'
 const COULEUR_MARGE = '#D97706'
+// Excédent brut d'exploitation : bleu, distinct du vert et de l'ocre ; comme pour les autres séries,
+// la valeur est écrite sur chaque barre (LabelList).
+const COULEUR_EXCEDENT = '#2B6CB0'
 
 function formatMontant(value: unknown) {
   return Number(value ?? 0).toLocaleString('fr-FR')
 }
 
-export default function ComparatifChart({ data, labelCa, labelMarge }: { data: Ligne[]; labelCa?: string; labelMarge?: string }) {
+export default function ComparatifChart({ data, labelCa, labelMarge, labelExcedent }: { data: Ligne[]; labelCa?: string; labelMarge?: string; labelExcedent?: string }) {
   return (
     <div style={{ width: '100%', height: 360 }}>
       <ResponsiveContainer>
@@ -36,6 +39,9 @@ export default function ComparatifChart({ data, labelCa, labelMarge }: { data: L
           </Bar>
           <Bar dataKey="marge_brute" name={labelMarge ?? 'Marge brute'} fill={COULEUR_MARGE} radius={[4, 4, 0, 0]} maxBarSize={48}>
             <LabelList dataKey="marge_brute" position="top" formatter={formatMontant} style={{ fill: 'var(--foreground-muted)', fontSize: 11 }} />
+          </Bar>
+          <Bar dataKey="excedent_brut" name={labelExcedent ?? "Excédent brut d'exploitation"} fill={COULEUR_EXCEDENT} radius={[4, 4, 0, 0]} maxBarSize={48}>
+            <LabelList dataKey="excedent_brut" position="top" formatter={formatMontant} style={{ fill: 'var(--foreground-muted)', fontSize: 11 }} />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
