@@ -17,8 +17,16 @@
     "abonnement": "Subscription",
     "parametres": "Settings",
     "logout": "Log out",
+    "support": "Help & Support",
     "openSidebar": "Open sidebar",
     "closeSidebar": "Close sidebar"
+  },
+  "supportPage": {
+    "title": "Help & Support",
+    "subtitle": "A question or a problem? Our team will get back to you.",
+    "phone": "Phone / WhatsApp",
+    "hours": "Monday to Saturday, during office hours",
+    "call": "Call"
   },
   "parametres": {
     "title": "Settings",

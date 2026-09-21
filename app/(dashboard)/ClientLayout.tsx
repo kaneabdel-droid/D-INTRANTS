@@ -26,6 +26,7 @@ import {
   Menu,
   X,
   LogOut,
+  LifeBuoy,
 } from 'lucide-react'
 
 type Role = 'admin_entreprise' | 'gerant'
@@ -126,6 +127,27 @@ export default function ClientLayout({
                     </li>
                   ))}
                 </ul>
+                <ul role="list" className="-mx-2 mt-auto space-y-1 border-t border-surface-border pt-4">
+                  <li>
+                    <Link
+                      href="/support"
+                      onClick={() => setSidebarOpen(false)}
+                      className="group flex items-center gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-foreground-muted hover:bg-black/5 hover:text-foreground"
+                    >
+                      <LifeBuoy className="h-6 w-6 shrink-0 text-foreground-muted group-hover:text-foreground" aria-hidden="true" />
+                      {nav.support}
+                    </Link>
+                  </li>
+                  <li>
+                    <a
+                      href="/logout"
+                      className="group flex items-center gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-foreground-muted hover:bg-black/5 hover:text-danger"
+                    >
+                      <LogOut className="h-6 w-6 shrink-0 text-foreground-muted group-hover:text-danger" aria-hidden="true" />
+                      {nav.logout}
+                    </a>
+                  </li>
+                </ul>
               </nav>
             </div>
           </div>
@@ -161,6 +183,13 @@ export default function ClientLayout({
               </li>
 
               <li className="mt-auto">
+                <Link
+                  href="/support"
+                  className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-foreground-muted hover:bg-black/5 hover:text-foreground transition-colors"
+                >
+                  <LifeBuoy className="h-6 w-6 shrink-0 text-foreground-muted group-hover:text-foreground" aria-hidden="true" />
+                  {nav.support}
+                </Link>
                 <a
                   href="/logout"
                   className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-foreground-muted hover:bg-black/5 hover:text-danger transition-colors"

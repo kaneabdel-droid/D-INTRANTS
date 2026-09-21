@@ -17,8 +17,16 @@
     "abonnement": "Abonnement",
     "parametres": "Paramètres",
     "logout": "Déconnexion",
+    "support": "Assistance / Support",
     "openSidebar": "Ouvrir la barre latérale",
     "closeSidebar": "Fermer la barre latérale"
+  },
+  "supportPage": {
+    "title": "Assistance / Support",
+    "subtitle": "Une question ou un problème ? Notre équipe vous répond.",
+    "phone": "Téléphone / WhatsApp",
+    "hours": "Du lundi au samedi, aux heures de bureau",
+    "call": "Appeler"
   },
   "parametres": {
     "title": "Paramètres",

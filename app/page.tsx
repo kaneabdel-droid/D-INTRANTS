@@ -79,7 +79,11 @@ export default async function HomePage() {
               {h.cats.map(([name, desc]: string[], i: number) => {
                 const Icon = catIcons[i]
                 return (
-                  <li key={name} className="flex items-center gap-4 px-2 py-3.5">
+                  <li
+                    key={name}
+                    className="drop-in flex items-center gap-4 px-2 py-3.5"
+                    style={{ '--drop-delay': `${0.3 + i * 0.25}s` } as React.CSSProperties}
+                  >
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sidebar text-primary">
                       <Icon className="h-5 w-5" />
                     </span>
