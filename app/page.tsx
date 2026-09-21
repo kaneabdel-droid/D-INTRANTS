@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Boxes, Receipt, Store, Sprout, FlaskConical, Bug, Wrench } from 'lucide-react'
 import LanguageSelector from '@/components/LanguageSelector'
+import RevealGroup from '@/components/RevealGroup'
 import { getDictionary, getLocale } from '@/dictionaries'
 
 const cardHover =
@@ -82,7 +83,7 @@ export default async function HomePage() {
                   <li
                     key={name}
                     className="drop-in flex items-center gap-4 px-2 py-3.5"
-                    style={{ '--drop-delay': `${0.3 + i * 0.25}s` } as React.CSSProperties}
+                    style={{ '--drop-delay': `${0.3 + i * 0.5}s` } as React.CSSProperties}
                   >
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sidebar text-primary">
                       <Icon className="h-5 w-5" />
@@ -115,9 +116,10 @@ export default async function HomePage() {
       <section id="fonctionnalites" className="mx-auto max-w-6xl px-6 py-20">
         <p className="text-xs font-bold uppercase tracking-widest text-primary">{h.solutionsEyebrow}</p>
         <h2 className="mt-3 max-w-xl font-heading text-3xl font-bold">{h.solutionsTitle}</h2>
-        <div className="mt-10 grid gap-5 md:grid-cols-3">
-          {features.map(({ icon: Icon, key }) => (
-            <div key={key} className={`rounded-xl border border-surface-border bg-surface p-6 ${cardHover}`}>
+        <RevealGroup className="mt-10 grid gap-5 md:grid-cols-3">
+          {features.map(({ icon: Icon, key }, i) => (
+            <div key={key} className="reveal" style={{ '--reveal-index': i } as React.CSSProperties}>
+            <div className={`h-full rounded-xl border border-surface-border bg-surface p-6 ${cardHover}`}>
               <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-sidebar text-primary">
                 <Icon className="h-5 w-5" />
               </span>
@@ -130,8 +132,9 @@ export default async function HomePage() {
                 {h.learn} <ArrowRight className="h-4 w-4 rtl:rotate-180" />
               </Link>
             </div>
+            </div>
           ))}
-        </div>
+        </RevealGroup>
       </section>
 
       {/* Comment ça marche */}
