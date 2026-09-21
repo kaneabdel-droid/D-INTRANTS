@@ -83,7 +83,7 @@ export default async function HomePage() {
                   <li
                     key={name}
                     className="drop-in flex items-center gap-4 px-2 py-3.5"
-                    style={{ '--drop-delay': `${0.3 + i * 0.5}s` } as React.CSSProperties}
+                    style={{ '--drop-delay': `${0.3 + i * 1}s` } as React.CSSProperties}
                   >
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sidebar text-primary">
                       <Icon className="h-5 w-5" />

@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from 'react'
 export default function RevealGroup({
   children,
   className,
-  step = 0.5,
+  step = 1,
 }: {
   children: React.ReactNode
   className?: string
