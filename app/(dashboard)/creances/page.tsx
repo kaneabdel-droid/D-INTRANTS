@@ -1,11 +1,11 @@
 import { createClient } from '@/utils/supabase/server'
-import { requireGerant } from '@/lib/auth/getCurrentUserContext'
+import { requireGerantOuTresorier } from '@/lib/auth/getCurrentUserContext'
 import { getDictionary, getLocale } from '@/dictionaries'
 import ReglerCreanceButton from './ReglerCreanceButton'
 import PrintJournalButton from '@/components/PrintJournalButton'
 
 export default async function CreancesPage() {
-  const context = await requireGerant('/creances', 'lire')
+  const context = await requireGerantOuTresorier('/creances', 'lire')
   const supabase = await createClient()
   const dict = await getDictionary(await getLocale())
   const t = dict.creances

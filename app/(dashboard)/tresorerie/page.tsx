@@ -1,5 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
-import { requireGerant } from '@/lib/auth/getCurrentUserContext'
+import { requireGerantOuTresorier } from '@/lib/auth/getCurrentUserContext'
 import { getDictionary, getLocale } from '@/dictionaries'
 import CreateCompteButton from './CreateCompteButton'
 import AddEcritureButton from './AddEcritureButton'
@@ -10,7 +10,7 @@ import PrintJournalButton from '@/components/PrintJournalButton'
 
 export default async function TresoreriePage({ searchParams }: { searchParams: Promise<{ compte_id?: string }> }) {
   const { compte_id } = await searchParams
-  const context = await requireGerant('/tresorerie', 'lire')
+  const context = await requireGerantOuTresorier('/tresorerie', 'lire')
   const supabase = await createClient()
   const dict = await getDictionary(await getLocale())
   const t = dict.tresorerie

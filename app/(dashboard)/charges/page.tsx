@@ -1,12 +1,12 @@
 import { createClient } from '@/utils/supabase/server'
-import { requireGerant } from '@/lib/auth/getCurrentUserContext'
+import { requireGerantOuTresorier } from '@/lib/auth/getCurrentUserContext'
 import { getDictionary, getLocale } from '@/dictionaries'
 import CreateChargeButton from './CreateChargeButton'
 import ChargeRowActions from './ChargeRowActions'
 import PrintJournalButton from '@/components/PrintJournalButton'
 
 export default async function ChargesPage() {
-  const context = await requireGerant('/charges', 'lire')
+  const context = await requireGerantOuTresorier('/charges', 'lire')
   const supabase = await createClient()
   const dict = await getDictionary(await getLocale())
   const t = dict.charges

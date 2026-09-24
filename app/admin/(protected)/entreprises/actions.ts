@@ -124,7 +124,7 @@ export async function creerUtilisateur(
   entrepriseId: string,
   email: string,
   password: string,
-  role: 'admin_entreprise' | 'gerant',
+  role: 'admin_entreprise' | 'gerant' | 'tresorier',
   magasinId: string | null,
   nom: string,
   prenom: string
@@ -133,7 +133,7 @@ export async function creerUtilisateur(
   if (authError) return { error: authError }
   if (!email.trim()) return { error: "L'email est requis" }
   if (!password || password.length < 6) return { error: 'Le mot de passe doit contenir au moins 6 caractères' }
-  if (role === 'gerant' && !magasinId) return { error: 'Un magasin est requis pour un gérant' }
+  if ((role === 'gerant' || role === 'tresorier') && !magasinId) return { error: 'Un magasin est requis pour un gérant ou un trésorier' }
   if (role === 'admin_entreprise' && magasinId) return { error: "Un admin entreprise n'est rattaché à aucun magasin" }
 
   const supabase = createAdminClient()

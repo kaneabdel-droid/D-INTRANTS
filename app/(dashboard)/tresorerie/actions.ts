@@ -2,12 +2,12 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
-import { requireGerant } from '@/lib/auth/getCurrentUserContext'
+import { requireGerantOuTresorier } from '@/lib/auth/getCurrentUserContext'
 
 type ActionResult = { success?: true; error?: string }
 
 export async function addCompteTresorerie(formData: FormData): Promise<ActionResult> {
-  const context = await requireGerant('/tresorerie', 'ecrire')
+  const context = await requireGerantOuTresorier('/tresorerie', 'ecrire')
   const supabase = await createClient()
 
   const nom = (formData.get('nom') as string)?.trim()
@@ -40,7 +40,7 @@ function sensImpose(categorie: string, sens: string): string {
 // par les RPC dédiées (creer_vente/creer_achat/regler_creance/regler_dette
 // écrivent déjà leur propre ligne de journal automatiquement).
 export async function addEcritureTresorerie(formData: FormData): Promise<ActionResult> {
-  const context = await requireGerant('/tresorerie', 'ecrire')
+  const context = await requireGerantOuTresorier('/tresorerie', 'ecrire')
   const supabase = await createClient()
 
   const compteId = formData.get('compte_tresorerie_id') as string
@@ -80,7 +80,7 @@ export async function updateEcritureTresorerie(
   categorie: string,
   motif: string
 ): Promise<ActionResult> {
-  await requireGerant('/tresorerie', 'modifier')
+  await requireGerantOuTresorier('/tresorerie', 'modifier')
   const supabase = await createClient()
 
   if (!compteId) return { error: 'Un compte est requis' }
@@ -103,7 +103,7 @@ export async function updateEcritureTresorerie(
 }
 
 export async function deleteEcritureTresorerie(id: string): Promise<ActionResult> {
-  await requireGerant('/tresorerie', 'modifier')
+  await requireGerantOuTresorier('/tresorerie', 'modifier')
   const supabase = await createClient()
 
   const { data: existante } = await supabase.from('journal_tresorerie').select('reference_type').eq('id', id).single()

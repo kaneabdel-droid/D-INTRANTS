@@ -21,7 +21,7 @@ export default function AjouterUtilisateurButton({ entrepriseId, magasins }: { e
   const [password, setPassword] = useState('')
   const [nom, setNom] = useState('')
   const [prenom, setPrenom] = useState('')
-  const [role, setRole] = useState<'admin_entreprise' | 'gerant'>('gerant')
+  const [role, setRole] = useState<'admin_entreprise' | 'gerant' | 'tresorier'>('gerant')
   const [magasinId, setMagasinId] = useState(magasins[0]?.id ?? '')
   const [isPending, startTransition] = useTransition()
   const [message, setMessage] = useState<string | null>(null)
@@ -49,7 +49,7 @@ export default function AjouterUtilisateurButton({ entrepriseId, magasins }: { e
           email,
           password,
           role,
-          role === 'gerant' ? magasinId : null,
+          role === 'gerant' || role === 'tresorier' ? magasinId : null,
           nom,
           prenom
         )
@@ -153,15 +153,16 @@ export default function AjouterUtilisateurButton({ entrepriseId, magasins }: { e
                       <label className="block text-sm font-medium text-foreground">Rôle</label>
                       <select
                         value={role}
-                        onChange={(e) => setRole(e.target.value as 'admin_entreprise' | 'gerant')}
+                        onChange={(e) => setRole(e.target.value as 'admin_entreprise' | 'gerant' | 'tresorier')}
                         disabled={isPending}
                         className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2"
                       >
                         <option value="gerant">Gérant</option>
+                        <option value="tresorier">Trésorier</option>
                         <option value="admin_entreprise">Admin entreprise</option>
                       </select>
                     </div>
-                    {role === 'gerant' && (
+                    {(role === 'gerant' || role === 'tresorier') && (
                       <div>
                         <label className="block text-sm font-medium text-foreground">Magasin</label>
                         <select
@@ -189,7 +190,7 @@ export default function AjouterUtilisateurButton({ entrepriseId, magasins }: { e
                   <button
                     type="submit"
                     form="add-user-form"
-                    disabled={isPending || (role === 'gerant' && magasins.length === 0)}
+                    disabled={isPending || ((role === 'gerant' || role === 'tresorier') && magasins.length === 0)}
                     className="inline-flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-hover sm:ml-3 sm:w-auto disabled:opacity-50"
                   >
                     {isPending ? 'Création...' : 'Créer le compte'}

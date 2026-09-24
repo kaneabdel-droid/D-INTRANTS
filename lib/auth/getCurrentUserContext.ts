@@ -11,7 +11,7 @@ export type UserContext = {
   entrepriseStatut: 'actif' | 'suspendu'
   entrepriseDevise: string
   entrepriseLogoUrl: string | null
-  role: 'admin_entreprise' | 'gerant'
+  role: 'admin_entreprise' | 'gerant' | 'tresorier'
   magasinId: string | null
   magasinNom: string | null
   permissions: Matrice
@@ -78,6 +78,19 @@ export async function requireGerant(href?: string, action: ActionPermission = 'e
   const context = await getCurrentUserContext()
   if (context.role !== 'gerant') redirect('/dashboard')
   if (href && !permissionModule(context.permissions, href, action)) redirect('/dashboard')
+  return context
+}
+
+// Garde-fou pour les 4 modules de trésorerie (creances, dettes, tresorerie,
+// charges), accessibles au gérant ET au trésorier — le trésorier n'a pas de
+// plafond de rôle plus large que celui-ci (cf. can_write_tresorerie() côté
+// base, 20260924130000_role_tresorier.sql). La matrice de permissions reste
+// partagée avec requireGerant() ci-dessus : restreindre un de ces modules
+// s'applique aux deux rôles.
+export async function requireGerantOuTresorier(href: string, action: ActionPermission = 'ecrire'): Promise<UserContext> {
+  const context = await getCurrentUserContext()
+  if (context.role !== 'gerant' && context.role !== 'tresorier') redirect('/dashboard')
+  if (!permissionModule(context.permissions, href, action)) redirect('/dashboard')
   return context
 }
 

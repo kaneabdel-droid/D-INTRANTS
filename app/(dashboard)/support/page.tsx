@@ -21,12 +21,12 @@ export default async function SupportPage() {
           <p className="text-sm font-semibold text-foreground">{t.phone}</p>
           <p className="mt-1 text-sm text-foreground-muted">{t.hours}</p>
           <p className="mt-2 font-medium text-foreground" dir="ltr">
-            <a href="tel:+221775390196" className="transition-colors hover:text-primary">
-              +221 77 539 01 96
+            <a href="tel:+221708484298" className="transition-colors hover:text-primary">
+              +221 70 848 42 98
             </a>
           </p>
           <a
-            href="tel:+221775390196"
+            href="tel:+221708484298"
             className="mt-4 inline-block rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-hover"
           >
             {t.call}

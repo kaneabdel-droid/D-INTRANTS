@@ -2,12 +2,12 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
-import { requireGerant } from '@/lib/auth/getCurrentUserContext'
+import { requireGerantOuTresorier } from '@/lib/auth/getCurrentUserContext'
 
 type ActionResult = { success?: true; error?: string }
 
 export async function reglerCreance(creanceId: string, montant: number, compteTresorerieId: string): Promise<ActionResult> {
-  await requireGerant('/creances', 'ecrire')
+  await requireGerantOuTresorier('/creances', 'ecrire')
   const supabase = await createClient()
 
   const { error } = await supabase.rpc('regler_creance', {

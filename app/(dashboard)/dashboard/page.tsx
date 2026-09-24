@@ -24,7 +24,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const p_date_debut = dateDebut.toISOString().slice(0, 10)
   const p_date_fin = dateFin.toISOString().slice(0, 10)
 
-  if (context.role === 'gerant') {
+  if (context.role === 'gerant' || context.role === 'tresorier') {
     const { data: ventesPeriode } = await supabase.rpc('ventes_par_periode', {
       p_magasin_id: context.magasinId,
       p_date_debut,

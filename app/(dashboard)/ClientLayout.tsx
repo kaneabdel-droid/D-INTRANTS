@@ -30,7 +30,7 @@ import {
   LifeBuoy,
 } from 'lucide-react'
 
-type Role = 'admin_entreprise' | 'gerant'
+type Role = 'admin_entreprise' | 'gerant' | 'tresorier'
 
 const navGerant = [
   { key: 'dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -41,6 +41,17 @@ const navGerant = [
   { key: 'fournisseurs', href: '/fournisseurs', icon: Building2 },
   { key: 'ventes', href: '/ventes', icon: ShoppingCart },
   { key: 'achats', href: '/achats', icon: Truck },
+  { key: 'creances', href: '/creances', icon: HandCoins },
+  { key: 'dettes', href: '/dettes', icon: Banknote },
+  { key: 'tresorerie', href: '/tresorerie', icon: Wallet },
+  { key: 'charges', href: '/charges', icon: Receipt },
+] as const
+
+// Trésorier : mêmes 4 modules que le gérant peut écrire côté trésorerie (cf.
+// can_write_tresorerie(), 20260924130000_role_tresorier.sql), rien d'autre —
+// pas de catalogue, stock, ventes ni achats.
+const navTresorier = [
+  { key: 'dashboard', href: '/dashboard', icon: LayoutDashboard },
   { key: 'creances', href: '/creances', icon: HandCoins },
   { key: 'dettes', href: '/dettes', icon: Banknote },
   { key: 'tresorerie', href: '/tresorerie', icon: Wallet },
@@ -83,8 +94,8 @@ export default function ClientLayout({
 
   // Le tableau de bord reste toujours accessible (page d'atterrissage) ; les autres modules du gérant
   // peuvent être masqués par la matrice de permissions (Paramètres → Permissions, admin_entreprise seul).
-  const navigation = (role === 'gerant' ? navGerant : navAdminEntreprise)
-    .filter((item) => item.href === '/dashboard' || permissionModule(permissions, item.href, 'lire'))
+  const navBase = role === 'gerant' ? navGerant : role === 'tresorier' ? navTresorier : navAdminEntreprise
+  const navigation = navBase.filter((item) => item.href === '/dashboard' || permissionModule(permissions, item.href, 'lire'))
 
   // Ferme la sidebar mobile à chaque changement de route (y compris navigation
   // navigateur avant/arrière, pas seulement via les liens dont l'onClick le
