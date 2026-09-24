@@ -5,7 +5,7 @@ import CreateFournisseurButton from './CreateFournisseurButton'
 import FournisseurRowActions from './FournisseurRowActions'
 
 export default async function FournisseursPage() {
-  const context = await requireGerant()
+  const context = await requireGerant('/fournisseurs', 'lire')
   const supabase = await createClient()
   
   const { data: entreprise } = await supabase

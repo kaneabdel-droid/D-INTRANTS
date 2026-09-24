@@ -14,7 +14,7 @@ export async function creerVente(
   montantPaye: number,
   lignes: Ligne[]
 ): Promise<ActionResult> {
-  const context = await requireGerant()
+  const context = await requireGerant('/ventes', 'ecrire')
   const supabase = await createClient()
 
   if (lignes.length === 0) return { error: 'Ajoutez au moins une ligne' }
@@ -37,7 +37,7 @@ export async function creerVente(
 }
 
 export async function annulerVente(venteId: string): Promise<ActionResult> {
-  await requireGerant()
+  await requireGerant('/ventes', 'modifier')
   const supabase = await createClient()
 
   // Toute la logique de réconciliation (stock, créance, trésorerie) vit dans

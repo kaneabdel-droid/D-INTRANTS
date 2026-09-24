@@ -26,6 +26,7 @@ export default async function DashboardLayout({
       role={context.role}
       entrepriseNom={context.entrepriseNom}
       magasinNom={context.magasinNom}
+      permissions={context.permissions}
       locale={locale}
       dict={dict}
     >

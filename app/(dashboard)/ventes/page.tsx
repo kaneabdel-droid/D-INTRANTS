@@ -8,7 +8,7 @@ import AnnulerVenteButton from './AnnulerVenteButton'
 import PrintJournalButton from '@/components/PrintJournalButton'
 
 export default async function VentesPage() {
-  const context = await requireGerant()
+  const context = await requireGerant('/ventes', 'lire')
   const supabase = await createClient()
   const dict = await getDictionary(await getLocale())
   const t = dict.ventes

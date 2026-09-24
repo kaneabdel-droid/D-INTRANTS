@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 import LanguageSelector from '@/components/LanguageSelector'
 import type { Dictionary } from '@/dictionaries'
+import { permissionModule, type Matrice } from '@/lib/permissions'
 import {
   LayoutDashboard,
   Tags,
@@ -63,6 +64,7 @@ export default function ClientLayout({
   role,
   entrepriseNom,
   magasinNom,
+  permissions,
   locale,
   dict,
 }: {
@@ -70,6 +72,7 @@ export default function ClientLayout({
   role: Role
   entrepriseNom: string
   magasinNom: string | null
+  permissions: Matrice
   locale: string
   dict: Dictionary
 }) {
@@ -78,7 +81,10 @@ export default function ClientLayout({
   const [pathnamePrecedent, setPathnamePrecedent] = useState(pathname)
   const nav = dict.nav
 
-  const navigation = role === 'gerant' ? navGerant : navAdminEntreprise
+  // Le tableau de bord reste toujours accessible (page d'atterrissage) ; les autres modules du gérant
+  // peuvent être masqués par la matrice de permissions (Paramètres → Permissions, admin_entreprise seul).
+  const navigation = (role === 'gerant' ? navGerant : navAdminEntreprise)
+    .filter((item) => item.href === '/dashboard' || permissionModule(permissions, item.href, 'lire'))
 
   // Ferme la sidebar mobile à chaque changement de route (y compris navigation
   // navigateur avant/arrière, pas seulement via les liens dont l'onClick le

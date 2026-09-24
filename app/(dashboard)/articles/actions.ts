@@ -7,7 +7,7 @@ import { requireGerant } from '@/lib/auth/getCurrentUserContext'
 type ActionResult = { success?: true; error?: string }
 
 export async function addArticle(formData: FormData): Promise<ActionResult> {
-  const context = await requireGerant()
+  const context = await requireGerant('/articles', 'ecrire')
   const supabase = await createClient()
 
   const designation = (formData.get('designation') as string)?.trim()
@@ -35,7 +35,7 @@ export async function addArticle(formData: FormData): Promise<ActionResult> {
 }
 
 export async function updateArticle(id: string, formData: FormData): Promise<ActionResult> {
-  await requireGerant()
+  await requireGerant('/articles', 'modifier')
   const supabase = await createClient()
 
   const designation = (formData.get('designation') as string)?.trim()
@@ -58,7 +58,7 @@ export async function updateArticle(id: string, formData: FormData): Promise<Act
 }
 
 export async function toggleArticleActif(id: string, actif: boolean): Promise<ActionResult> {
-  await requireGerant()
+  await requireGerant('/articles', 'modifier')
   const supabase = await createClient()
 
   const { error } = await supabase.from('articles').update({ actif }).eq('id', id)
@@ -69,7 +69,7 @@ export async function toggleArticleActif(id: string, actif: boolean): Promise<Ac
 }
 
 export async function deleteArticle(id: string): Promise<ActionResult> {
-  await requireGerant()
+  await requireGerant('/articles', 'modifier')
   const supabase = await createClient()
 
   const { error } = await supabase.from('articles').delete().eq('id', id)

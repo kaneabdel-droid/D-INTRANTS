@@ -14,7 +14,7 @@ export async function creerAchat(
   montantPaye: number,
   lignes: Ligne[]
 ): Promise<ActionResult> {
-  const context = await requireGerant()
+  const context = await requireGerant('/achats', 'ecrire')
   const supabase = await createClient()
 
   if (lignes.length === 0) return { error: 'Ajoutez au moins une ligne' }
@@ -37,7 +37,7 @@ export async function creerAchat(
 }
 
 export async function annulerAchat(achatId: string): Promise<ActionResult> {
-  await requireGerant()
+  await requireGerant('/achats', 'modifier')
   const supabase = await createClient()
 
   // Réconciliation complète (stock, dette, trésorerie) dans la RPC

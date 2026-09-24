@@ -5,7 +5,7 @@ import CreateCategorieButton from './CreateCategorieButton'
 import CategorieRowActions from './CategorieRowActions'
 
 export default async function CategoriesPage() {
-  await requireGerant()
+  await requireGerant('/categories', 'lire')
   const supabase = await createClient()
   const dict = await getDictionary(await getLocale())
   const t = dict.categories

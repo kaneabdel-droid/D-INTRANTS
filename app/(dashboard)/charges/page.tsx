@@ -6,7 +6,7 @@ import ChargeRowActions from './ChargeRowActions'
 import PrintJournalButton from '@/components/PrintJournalButton'
 
 export default async function ChargesPage() {
-  const context = await requireGerant()
+  const context = await requireGerant('/charges', 'lire')
   const supabase = await createClient()
   const dict = await getDictionary(await getLocale())
   const t = dict.charges

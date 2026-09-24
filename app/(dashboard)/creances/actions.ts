@@ -7,7 +7,7 @@ import { requireGerant } from '@/lib/auth/getCurrentUserContext'
 type ActionResult = { success?: true; error?: string }
 
 export async function reglerCreance(creanceId: string, montant: number, compteTresorerieId: string): Promise<ActionResult> {
-  await requireGerant()
+  await requireGerant('/creances', 'ecrire')
   const supabase = await createClient()
 
   const { error } = await supabase.rpc('regler_creance', {

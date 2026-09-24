@@ -1,6 +1,7 @@
 import { cache } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
+import { permissionModule, type ActionPermission, type Matrice } from '@/lib/permissions'
 
 export type UserContext = {
   userId: string
@@ -13,6 +14,7 @@ export type UserContext = {
   role: 'admin_entreprise' | 'gerant'
   magasinId: string | null
   magasinNom: string | null
+  permissions: Matrice
 }
 
 // Une seule requête, mémoïsée via cache() de React pour la durée de la requête
@@ -25,17 +27,21 @@ export const getCurrentUserContext = cache(async (): Promise<UserContext> => {
 
   if (!user) redirect('/login')
 
-  const { data } = await supabase
-    .from('utilisateurs')
-    // logo_url/email/identification (migration 16) sont volontairement absents
-    // de cette requête, contrairement à la page /parametres qui les lit à part :
-    // getCurrentUserContext() est le chokepoint utilisé par CHAQUE page du
-    // dashboard (via le layout), donc une seule colonne manquante ici casserait
-    // l'app entière tant que la migration n'a pas tourné — /parametres, elle,
-    // n'affecte qu'elle-même si elle échoue avant la migration.
-    .select('entreprise_id, role, magasin_id, entreprises(nom, statut, devise), magasins(nom)')
-    .eq('id', user.id)
-    .single()
+  const [{ data }, { data: permData }] = await Promise.all([
+    supabase
+      .from('utilisateurs')
+      // logo_url/email/identification (migration 16) sont volontairement absents
+      // de cette requête, contrairement à la page /parametres qui les lit à part :
+      // getCurrentUserContext() est le chokepoint utilisé par CHAQUE page du
+      // dashboard (via le layout), donc une seule colonne manquante ici casserait
+      // l'app entière tant que la migration n'a pas tourné — /parametres, elle,
+      // n'affecte qu'elle-même si elle échoue avant la migration.
+      .select('entreprise_id, role, magasin_id, entreprises(nom, statut, devise), magasins(nom)')
+      .eq('id', user.id)
+      .single(),
+    // current_entreprise_id() résout l'entreprise côté serveur depuis auth.uid() : peut être lancée en parallèle.
+    supabase.from('parametres_permissions').select('matrice').maybeSingle(),
+  ])
 
   if (!data) redirect('/login')
 
@@ -55,6 +61,7 @@ export const getCurrentUserContext = cache(async (): Promise<UserContext> => {
     role: data.role,
     magasinId: data.magasin_id,
     magasinNom: magasin?.nom ?? null,
+    permissions: (permData?.matrice as Matrice | undefined) ?? {},
   }
 })
 
@@ -62,9 +69,15 @@ export const getCurrentUserContext = cache(async (): Promise<UserContext> => {
 // lien de nav caché n'est pas un contrôle d'accès, cf. plan §5. À appeler en
 // tête de chaque page.tsx d'écriture (categories, articles, stock, ventes,
 // achats, creances, dettes, tresorerie, charges).
-export async function requireGerant(): Promise<UserContext> {
+//
+// href/action (facultatifs) ajoutent la vérification de la matrice de permissions au-dessus du plafond
+// « gérant » déjà imposé ci-dessus : href est le module ('/articles', '/ventes'…) et action la case cochée
+// dans Paramètres → Permissions ('lire' pour une page.tsx, 'ecrire' pour une création, 'modifier' pour une
+// modification ou une suppression). Omis, le comportement reste celui d'avant (plafond de rôle seul).
+export async function requireGerant(href?: string, action: ActionPermission = 'ecrire'): Promise<UserContext> {
   const context = await getCurrentUserContext()
   if (context.role !== 'gerant') redirect('/dashboard')
+  if (href && !permissionModule(context.permissions, href, action)) redirect('/dashboard')
   return context
 }
 

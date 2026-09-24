@@ -5,7 +5,7 @@ import { getDictionary, getLocale } from '@/dictionaries'
 import AjustementStockButton from './AjustementStockButton'
 
 export default async function StockPage() {
-  const context = await requireGerant()
+  const context = await requireGerant('/stock', 'lire')
   const supabase = await createClient()
   const dict = await getDictionary(await getLocale())
   const t = dict.stock

@@ -6,7 +6,7 @@ import AnnulerAchatButton from './AnnulerAchatButton'
 import PrintJournalButton from '@/components/PrintJournalButton'
 
 export default async function AchatsPage() {
-  const context = await requireGerant()
+  const context = await requireGerant('/achats', 'lire')
   const supabase = await createClient()
   const dict = await getDictionary(await getLocale())
   const t = dict.achats

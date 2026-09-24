@@ -5,7 +5,7 @@ import CreateArticleButton from './CreateArticleButton'
 import ArticleRowActions from './ArticleRowActions'
 
 export default async function ArticlesPage() {
-  await requireGerant()
+  await requireGerant('/articles', 'lire')
   const supabase = await createClient()
   const dict = await getDictionary(await getLocale())
   const t = dict.articles

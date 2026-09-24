@@ -46,6 +46,18 @@
     "saved": "Information saved",
     "logoSaved": "Logo updated"
   },
+  "permissions": {
+    "title": "Manager permissions",
+    "subtitle": "For each module, check what the manager can view, create and edit. This only restricts: the manager can never get more than what the app already technically allows.",
+    "module": "Module",
+    "lire": "Read",
+    "ecrire": "Write",
+    "modifier": "Edit",
+    "allowAll": "allow all",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Permissions saved"
+  },
   "common": {
     "create": "Create",
     "creating": "Creating...",

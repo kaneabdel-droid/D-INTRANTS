@@ -5,7 +5,7 @@ import CreateClientButton from './CreateClientButton'
 import ClientRowActions from './ClientRowActions'
 
 export default async function ClientsPage() {
-  const context = await requireGerant()
+  const context = await requireGerant('/clients', 'lire')
   const supabase = await createClient()
   const dict = await getDictionary(await getLocale())
   const t = dict.clients

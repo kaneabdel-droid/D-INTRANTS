@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
 import { requireAdminEntreprise } from '@/lib/auth/getCurrentUserContext'
 import { estDeviseValide } from '@/lib/currency'
+import type { Matrice } from '@/lib/permissions'
 
 type ActionResult = { success?: true; error?: string; logoUrl?: string }
 
@@ -64,4 +65,19 @@ export async function uploadLogo(formData: FormData): Promise<ActionResult> {
 
   revalidatePath('/parametres')
   return { success: true, logoUrl }
+}
+
+// L'écriture est de toute façon bloquée par la policy RLS (admin_entreprise seul) : la vérification ici
+// évite un aller-retour inutile.
+export async function enregistrerPermissions(matrice: Matrice): Promise<ActionResult> {
+  const context = await requireAdminEntreprise()
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('parametres_permissions')
+    .upsert({ entreprise_id: context.entrepriseId, matrice, updated_par: context.userId, updated_at: new Date().toISOString() })
+  if (error) return { error: error.message }
+
+  revalidatePath('/', 'layout')
+  return { success: true }
 }

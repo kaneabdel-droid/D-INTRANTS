@@ -7,7 +7,7 @@ import { requireGerant } from '@/lib/auth/getCurrentUserContext'
 type ActionResult = { success?: true; error?: string }
 
 export async function addCategorie(formData: FormData): Promise<ActionResult> {
-  const context = await requireGerant()
+  const context = await requireGerant('/categories', 'ecrire')
   const supabase = await createClient()
 
   const nom = (formData.get('nom') as string)?.trim()
@@ -26,7 +26,7 @@ export async function addCategorie(formData: FormData): Promise<ActionResult> {
 }
 
 export async function updateCategorie(id: string, nom: string, description: string): Promise<ActionResult> {
-  await requireGerant()
+  await requireGerant('/categories', 'modifier')
   const supabase = await createClient()
 
   if (!nom.trim()) return { error: 'Le nom est requis' }
@@ -42,7 +42,7 @@ export async function updateCategorie(id: string, nom: string, description: stri
 }
 
 export async function deleteCategorie(id: string): Promise<ActionResult> {
-  await requireGerant()
+  await requireGerant('/categories', 'modifier')
   const supabase = await createClient()
 
   const { error } = await supabase.from('categories').delete().eq('id', id)

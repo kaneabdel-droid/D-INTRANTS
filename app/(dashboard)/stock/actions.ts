@@ -12,7 +12,7 @@ type ActionResult = { success?: true; error?: string }
 // zéro — l'erreur Postgres remonte ici sous forme de {error}, jamais une
 // exception brute qui casserait la page (cf. plan §7 phase 4).
 export async function ajusterStock(formData: FormData): Promise<ActionResult> {
-  const context = await requireGerant()
+  const context = await requireGerant('/stock', 'ecrire')
   const supabase = await createClient()
 
   const articleId = formData.get('article_id') as string

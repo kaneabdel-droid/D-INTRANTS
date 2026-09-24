@@ -5,7 +5,7 @@ import ReglerCreanceButton from './ReglerCreanceButton'
 import PrintJournalButton from '@/components/PrintJournalButton'
 
 export default async function CreancesPage() {
-  const context = await requireGerant()
+  const context = await requireGerant('/creances', 'lire')
   const supabase = await createClient()
   const dict = await getDictionary(await getLocale())
   const t = dict.creances

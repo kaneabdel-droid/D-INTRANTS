@@ -46,6 +46,18 @@
     "saved": "Informations enregistrées",
     "logoSaved": "Logo mis à jour"
   },
+  "permissions": {
+    "title": "Permissions du gérant",
+    "subtitle": "Cochez, pour chaque module, ce que le gérant peut consulter, créer et modifier. Ceci ne fait que restreindre : le gérant ne peut jamais obtenir plus que ce que l'application lui permet déjà techniquement.",
+    "module": "Module",
+    "lire": "Lecture",
+    "ecrire": "Écriture",
+    "modifier": "Modification",
+    "allowAll": "tout autoriser",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "saved": "Permissions enregistrées"
+  },
   "common": {
     "create": "Créer",
     "creating": "Création...",

@@ -7,7 +7,7 @@ import { requireGerant } from '@/lib/auth/getCurrentUserContext'
 type ActionResult = { success?: true; error?: string }
 
 export async function addCharge(formData: FormData): Promise<ActionResult> {
-  const context = await requireGerant()
+  const context = await requireGerant('/charges', 'ecrire')
   const supabase = await createClient()
 
   const categorie = formData.get('categorie') as string
@@ -76,7 +76,7 @@ export async function updateCharge(
   recurrente: boolean,
   compteTresorerieId: string | null
 ): Promise<ActionResult> {
-  const context = await requireGerant()
+  const context = await requireGerant('/charges', 'modifier')
   const supabase = await createClient()
 
   if (montant <= 0) return { error: 'Le montant doit être positif' }
@@ -115,7 +115,7 @@ export async function updateCharge(
 }
 
 export async function deleteCharge(id: string): Promise<ActionResult> {
-  await requireGerant()
+  await requireGerant('/charges', 'modifier')
   const supabase = await createClient()
 
   // Retirer l'écriture de trésorerie liée avant la charge elle-même, sinon un
