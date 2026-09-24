@@ -14,8 +14,9 @@ export default async function SupportPage() {
       </h1>
       <p className="mb-8 text-sm text-foreground-muted">{t.subtitle}</p>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-1">
+      <div className="space-y-6">
+        {/* Coordonnées côte à côte au-dessus du formulaire : l'adresse email tient sur une ligne. */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div className="flex items-start gap-4 rounded-lg border border-surface-border bg-surface p-6 shadow-sm">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
               <Phone className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -44,7 +45,7 @@ export default async function SupportPage() {
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground">{t.email}</p>
               <p className="mt-1 text-sm text-foreground-muted">{t.emailDesc}</p>
-              <p className="mt-2 whitespace-nowrap text-sm font-medium text-foreground" dir="ltr">
+              <p className="mt-2 font-medium text-foreground" dir="ltr">
                 <a href="mailto:support@dembasolution.com" className="transition-colors hover:text-primary">
                   support@dembasolution.com
                 </a>
@@ -53,7 +54,7 @@ export default async function SupportPage() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-surface-border bg-surface p-6 shadow-sm sm:p-8 lg:col-span-2">
+        <div className="rounded-lg border border-surface-border bg-surface p-6 shadow-sm sm:p-8">
           <h2 className="mb-2 text-lg font-semibold text-foreground">{t.formTitle}</h2>
           <p className="mb-6 text-sm text-foreground-muted">{t.formDesc}</p>
           <ContactForm t={t} />
