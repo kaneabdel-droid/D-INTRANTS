@@ -26,7 +26,26 @@
     "subtitle": "Une question ou un problème ? Notre équipe vous répond.",
     "phone": "Téléphone / WhatsApp",
     "hours": "Du lundi au samedi, aux heures de bureau",
-    "call": "Appeler"
+    "call": "Appeler",
+    "email": "Email",
+    "emailDesc": "Réponse par email sous 24 h ouvrées",
+    "formTitle": "Envoyez-nous un message",
+    "formDesc": "Un bug, une question ? Décrivez votre demande : nous vous répondons directement par email.",
+    "subject": "Sujet de votre demande",
+    "subjectPlaceholder": "Ex : problème sur une vente, question sur l'abonnement...",
+    "message": "Message détaillé",
+    "messagePlaceholder": "Décrivez votre problème ou votre question en détail...",
+    "send": "Envoyer le message",
+    "sending": "Envoi en cours...",
+    "sentTitle": "Message envoyé !",
+    "sentDesc": "Notre équipe a bien reçu votre message et vous répondra par email dans les plus brefs délais.",
+    "sendAnother": "Envoyer un autre message",
+    "errors": {
+      "required": "Veuillez remplir tous les champs.",
+      "tooLong": "Le sujet (200 caractères max) ou le message (5000 caractères max) est trop long.",
+      "notAuthenticated": "Votre session a expiré. Veuillez vous reconnecter.",
+      "failed": "Le message n'a pas pu être envoyé. Réessayez ou écrivez-nous à support@dembasolution.com."
+    }
   },
   "parametres": {
     "title": "Paramètres",
