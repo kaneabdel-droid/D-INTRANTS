@@ -44,7 +44,7 @@ export default async function SupportPage() {
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground">{t.email}</p>
               <p className="mt-1 text-sm text-foreground-muted">{t.emailDesc}</p>
-              <p className="mt-2 break-all font-medium text-foreground" dir="ltr">
+              <p className="mt-2 whitespace-nowrap text-sm font-medium text-foreground" dir="ltr">
                 <a href="mailto:support@dembasolution.com" className="transition-colors hover:text-primary">
                   support@dembasolution.com
                 </a>
