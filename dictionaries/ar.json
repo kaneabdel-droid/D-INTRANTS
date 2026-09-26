@@ -98,6 +98,7 @@
   },
   "home": {
     "title": "d-intrants",
+    "login": "تسجيل الدخول",
     "tagline": "حل إدارة محلات المدخلات الزراعية. تابع مخزونك ومبيعاتك ومتاجرك بكل بساطة.",
     "backToDemba": "العودة إلى Demba Solution",
     "subscribe": "اشترك",

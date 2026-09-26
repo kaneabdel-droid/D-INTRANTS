@@ -35,6 +35,17 @@ export default async function HomePage() {
           <div className="flex items-center gap-4">
             <LanguageSelector currentLang={locale} />
             <Link
+
+              href="/login"
+
+              className="rounded-md border border-primary/40 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white"
+
+            >
+
+              {h.login}
+
+            </Link>
+            <Link
               href="/tarifs"
               className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-hover"
             >
