@@ -70,12 +70,9 @@ export async function updateSession(request: NextRequest) {
       return supabaseResponse
     }
 
-    if (user) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/dashboard'
-      return NextResponse.redirect(url)
-    }
-
+    // Pas de détour par /dashboard quand une session client existe : le même email peut
+    // avoir un compte client (éventuellement suspendu) et doit pouvoir atteindre la
+    // connexion admin.
     const returnTo = `https://d-intrants.dembasolution.com${pathname}${request.nextUrl.search}`
     return NextResponse.redirect(
       `https://www.dembasolution.com/admin/login?next=${encodeURIComponent(returnTo)}`

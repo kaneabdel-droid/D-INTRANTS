@@ -15,7 +15,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const user = isAdminEmail(sharedUser?.email) ? sharedUser : localUser
 
   if (!isAdminEmail(sharedUser?.email) && !isAdminEmail(localUser?.email)) {
-    redirect(localUser ? '/dashboard' : '/admin/login')
+    redirect('/admin/login')
   }
 
   const navItems = [
