@@ -93,6 +93,7 @@ export async function updateSession(request: NextRequest) {
     !pathname.startsWith('/auth') &&
     !pathname.startsWith('/decouvrir-dintrants') &&
     !pathname.startsWith('/tarifs') &&
+    !pathname.startsWith('/guide') &&
     !pathname.startsWith('/api')
   ) {
     // no user, potentially respond by redirecting the user to the login page

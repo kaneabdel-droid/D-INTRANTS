@@ -580,5 +580,515 @@
     "storesUpTo": "Up to {n} store(s)",
     "perMonth": "/ month",
     "afterPaymentNote": "Once payment is confirmed, your company account is created within 24 business hours and your access details are emailed to you."
+  },
+  "guide": {
+    "meta": {
+      "back": "Back to home",
+      "pageTitle": "Getting-started guide",
+      "toc": "Contents",
+      "menu": "Menu",
+      "important": "Important",
+      "edition": "Related printout:",
+      "editionLink": "See part 3",
+      "needHelp": "Need help getting started?",
+      "needHelpText": "Our getting-started guide explains, in plain words, how to set up D-INTRANTS and then use it day to day in your shop.",
+      "readGuide": "Read the guide",
+      "guideNav": "Guide"
+    },
+    "hero": {
+      "eyebrow": "Getting-started guide",
+      "title": "D-INTRANTS",
+      "subtitle": "The management solution for your agricultural inputs shop: items, stock, sales, purchases, receivables, debts, cash management and expenses, store by store.",
+      "intro": "This guide explains, in plain words, how to use D-INTRANTS. It is read in three steps: first the setup, done once to prepare your shop; then the operations, repeated every day; finally the printouts, statements and reports."
+    },
+    "overview": {
+      "id": "apercu",
+      "title": "D-INTRANTS in one minute",
+      "lead": "D-INTRANTS follows the path of your seeds, fertilizer and other products, and of your money, from the purchase from the supplier to the payment collected from the farmer.",
+      "cards": [
+        {
+          "t": "The catalog",
+          "x": "You describe your items and categories once."
+        },
+        {
+          "t": "Purchases",
+          "x": "Each purchase brings the items into your store’s stock."
+        },
+        {
+          "t": "Sales",
+          "x": "Each sale takes the items out of stock and gives you a receipt."
+        },
+        {
+          "t": "Credit",
+          "x": "What your customers owe you (receivables) and what you owe your suppliers (debts) are tracked for you."
+        },
+        {
+          "t": "Cash management",
+          "x": "Your cash register, bank and mobile money are kept up to date, with their real balance."
+        },
+        {
+          "t": "Results",
+          "x": "You see your turnover, your margin and your expenses, store by store."
+        }
+      ]
+    },
+    "parts": [
+      {
+        "id": "partie-config",
+        "label": "Part 1",
+        "title": "Setup",
+        "text": "To be done once, before your first sales. You can complete it at any time afterwards.",
+        "sections": [
+          {
+            "id": "c-entreprise",
+            "title": "The company’s details",
+            "menu": "Settings",
+            "note": "company administrator",
+            "blocks": [
+              {
+                "p": "Enter the company’s name, address, phone number, email and tax identification (NINEA, RCCM or equivalent). Add your logo (PNG or JPG, 2 MB maximum) and choose the working currency. These details appear on your printed documents: invoices, receipts and slips."
+              }
+            ]
+          },
+          {
+            "id": "c-equipe",
+            "title": "Your stores and your team",
+            "blocks": [
+              {
+                "p": "Your stores and your colleagues’ accounts are created by the DembaSolution team when your account is opened. The number of stores depends on your plan. Each person has a profile:"
+              },
+              {
+                "cards": [
+                  {
+                    "t": "Company administrator",
+                    "x": "Views all the stores (dashboard, comparison, profitability), manages the subscription and the settings. They do not enter transactions."
+                  },
+                  {
+                    "t": "Manager",
+                    "x": "Runs the operations of their store: items, stock, sales, purchases, receivables, debts, cash management and expenses."
+                  },
+                  {
+                    "t": "Treasurer",
+                    "x": "Takes care of their store’s money: receivables, debts, cash management and expenses."
+                  }
+                ]
+              },
+              {
+                "p": "To limit what the manager can do (view, create, modify, module by module), the administrator uses Settings → Permissions."
+              }
+            ]
+          },
+          {
+            "id": "c-categories",
+            "title": "Categories",
+            "menu": "Categories",
+            "blocks": [
+              {
+                "p": "Create the product families of your shop (seeds, fertilizer, plant-protection products, small equipment…) with a name and a description. Categories are shared between all your stores."
+              }
+            ]
+          },
+          {
+            "id": "c-articles",
+            "title": "Items",
+            "menu": "Items",
+            "blocks": [
+              {
+                "p": "With “New item”, record each product you sell: description, reference, category, unit (bag, kilo, liter, sachet, piece…), selling price and alert threshold. The alert threshold is the quantity below which D-INTRANTS warns you of “Low stock”. The catalog is shared between all your stores."
+              },
+              {
+                "p": "An item you no longer sell (seasonal product, end of range) can be made inactive without being deleted: its history is kept."
+              }
+            ]
+          },
+          {
+            "id": "c-tiers",
+            "title": "Customers and suppliers",
+            "menu": "Customers and Suppliers",
+            "blocks": [
+              {
+                "p": "For each one, enter the name, phone number and address. Customers belong to each store; suppliers are shared between all stores."
+              },
+              {
+                "p": "Walk-in customers do not need a record: at the time of sale, the customer is optional. For a farmer who buys on credit before the season and pays after the harvest, create their record: this way you will track what they owe you."
+              }
+            ]
+          },
+          {
+            "id": "c-comptes",
+            "title": "The money accounts",
+            "menu": "Cash Management",
+            "blocks": [
+              {
+                "p": "With “New account”, create an account for each place where the store keeps money: a cash register, a bank account, a mobile money account. Give it a name (for example “Main cash register”) and enter its opening balance: this way you can properly track your money coming in and going out, with the real balance of each account."
+              }
+            ]
+          },
+          {
+            "id": "c-stock",
+            "title": "The opening stock",
+            "menu": "Stock",
+            "blocks": [
+              {
+                "p": "If you already have bags of fertilizer, seeds or other products on the shelves, record them with “Stock adjustment”: choose the item, the direction “In (+)”, the quantity and a reason (for example “opening stock”). After that, the stock changes by itself with your purchases and sales."
+              },
+              {
+                "callout": {
+                  "l": "Important",
+                  "x": "Do the opening inventory item by item: an accurate opening stock means an accurate margin."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "partie-operations",
+        "label": "Part 2",
+        "title": "Operations",
+        "text": "What you do every day in your shop.",
+        "sections": [
+          {
+            "id": "o-achats",
+            "title": "Purchases",
+            "menu": "Purchases",
+            "blocks": [
+              {
+                "ol": [
+                  {
+                    "t": "Create a new purchase",
+                    "x": "by choosing the supplier, then add one line per item: quantity and purchase price."
+                  },
+                  {
+                    "t": "Choose the payment method:",
+                    "x": "cash (everything is paid), credit (nothing is paid) or mixed (part is paid). Enter the amount paid."
+                  },
+                  {
+                    "t": "Confirm the purchase.",
+                    "x": "The stock goes up. What is paid leaves your cash; what remains to be paid becomes a debt to the supplier."
+                  }
+                ]
+              },
+              {
+                "p": "A mistake? Cancel the purchase: the stock that came in is removed and the payment is taken back out of the cash."
+              },
+              {
+                "edition": "the purchases journal, with a choice of period."
+              }
+            ]
+          },
+          {
+            "id": "o-ventes",
+            "title": "Sales",
+            "menu": "Sales",
+            "blocks": [
+              {
+                "ol": [
+                  {
+                    "t": "Create a new sale.",
+                    "x": "Choose the customer (optional: “walk-in customer” if you do not know them), then add one line per item: quantity and unit price."
+                  },
+                  {
+                    "t": "Choose the payment method:",
+                    "x": "cash, credit or mixed, and enter the amount paid."
+                  },
+                  {
+                    "t": "Confirm the sale.",
+                    "x": "The stock goes down and the money collected goes into your cash; what is still owed becomes a receivable on the customer."
+                  }
+                ]
+              },
+              {
+                "p": "A mistake? Cancel the sale: the stock is restored and the payment is taken back out of the cash."
+              },
+              {
+                "edition": "the receipt and the PDF receipt of each sale, as well as the sales journal."
+              }
+            ]
+          },
+          {
+            "id": "o-creances",
+            "title": "Receivables",
+            "menu": "Receivables",
+            "blocks": [
+              {
+                "p": "These are the amounts your customers owe you. For each one, the list shows the starting amount, what remains to be paid, the due date and the status. When a customer pays you, click “Settle”, enter the amount settled and the account that receives the money: the remaining amount goes down and your cash goes up."
+              },
+              {
+                "edition": "the total remaining, the receivables journal and each customer’s account statement."
+              }
+            ]
+          },
+          {
+            "id": "o-dettes",
+            "title": "Debts",
+            "menu": "Debts",
+            "blocks": [
+              {
+                "p": "These are the amounts you owe your suppliers. When you pay them, click “Settle”, enter the amount and the account the money comes from: the debt goes down and your cash goes down."
+              },
+              {
+                "edition": "the total remaining, the debts journal and each supplier’s account statement."
+              }
+            ]
+          },
+          {
+            "id": "o-stock",
+            "title": "Stock day to day",
+            "menu": "Stock",
+            "blocks": [
+              {
+                "p": "The Stock page shows, item by item, the available quantity and its status: “OK” or “Low stock”. Below, the latest movements: purchase entries, sales exits and adjustments."
+              },
+              {
+                "p": "To correct a difference (breakage, theft, counting error), use “Stock adjustment”, always giving a clear reason."
+              }
+            ]
+          },
+          {
+            "id": "o-tresorerie",
+            "title": "Cash management",
+            "menu": "Cash Management",
+            "blocks": [
+              {
+                "ul": [
+                  {
+                    "t": "The accounts.",
+                    "x": "Each account (cash register, bank, mobile money) shows its balance. Sales, purchases, settlements and expenses update it automatically."
+                  },
+                  {
+                    "t": "The journal.",
+                    "x": "All the money transactions: date, account, category, third party, reason and amount. You can filter it by account to see the balance of a single account."
+                  },
+                  {
+                    "t": "Manual entries.",
+                    "x": "With “New entry”, record an inflow or outflow that comes neither from a sale nor from a purchase: choose the account, the direction, the amount, the category (for example “Transfer”) and the reason."
+                  }
+                ]
+              },
+              {
+                "edition": "the cash management journal, with a choice of period."
+              }
+            ]
+          },
+          {
+            "id": "o-charges",
+            "title": "Expenses",
+            "menu": "Expenses",
+            "blocks": [
+              {
+                "p": "Record each operating expense: rent, salaries, electricity, transport or other. Enter the description, the amount, the date and the account debited; tick “Recurring expense” for a cost that comes back every month. The page shows the total expenses of the current month."
+              },
+              {
+                "edition": "the expenses journal, with a choice of period."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "partie-etats",
+        "label": "Part 3",
+        "title": "Printouts, statements and reports",
+        "text": "Once your operations are recorded, D-INTRANTS gathers them for you into printable documents and monitoring statements.",
+        "sections": [
+          {
+            "id": "e-imprimer",
+            "title": "Documents to print",
+            "lead": "They carry the name, address, tax identification and logo entered in the Settings.",
+            "blocks": [
+              {
+                "ul": [
+                  {
+                    "t": "The receipt.",
+                    "x": "From a sale: the slip to hand to the customer, with the total, what is paid and what remains to be paid."
+                  },
+                  {
+                    "t": "The PDF receipt.",
+                    "x": "From a sale: “Download receipt”."
+                  },
+                  {
+                    "t": "The journals.",
+                    "x": "Sales, purchases, receivables, debts, cash management and expenses: “Print” button, with a choice of period and of portrait or landscape orientation."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "e-releves",
+            "title": "Account statements",
+            "blocks": [
+              {
+                "p": "On a customer’s or supplier’s row, the “Statement” button shows all the operations of the period (sales, payments, settlements, purchases) with the opening balance and the closing balance. It is the ideal document to review things with a customer or a supplier."
+              }
+            ]
+          },
+          {
+            "id": "e-tableau",
+            "title": "The dashboard",
+            "blocks": [
+              {
+                "ul": [
+                  {
+                    "t": "For the manager.",
+                    "x": "Today’s sales, current receivables, the number of low-stock items, the ranking of your best customers over 30 days (turnover, purchases and date of last purchase), the operating account of the year and the trend of sales over the last 30 days, with a projection for the following 7 days."
+                  },
+                  {
+                    "t": "For the company administrator.",
+                    "x": "The consolidated view of all the stores: turnover and gross margin over 30 days, current receivables and debts, and the operating account."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "e-admin",
+            "title": "Comparing your stores",
+            "menu": "Store comparison and Profitability",
+            "note": "company administrator",
+            "blocks": [
+              {
+                "ul": [
+                  {
+                    "t": "The store comparison.",
+                    "x": "The turnover, gross margin and gross operating surplus of each store over the last 30 days."
+                  },
+                  {
+                    "t": "The profitability.",
+                    "x": "The turnover, gross margin, expenses and net result of each store, and the ranking of the 10 items that earn the most margin."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "closing": [
+      {
+        "id": "formules",
+        "title": "Plans and subscription",
+        "lead": "The price depends on the number of stores. You pay online: your account is activated as soon as the payment is confirmed.",
+        "blocks": [
+          {
+            "table": {
+              "head": [
+                "Plan",
+                "Stores",
+                "Price per month"
+              ],
+              "rows": [
+                [
+                  "Standard",
+                  "1",
+                  "5,000 FCFA"
+                ],
+                [
+                  "Medium",
+                  "2",
+                  "7,500 FCFA"
+                ],
+                [
+                  "Premium",
+                  "3",
+                  "10,000 FCFA"
+                ]
+              ]
+            }
+          },
+          {
+            "p": "You can pay for 1 month, 6 months (5% discount) or 12 months (10% discount). After the payment is confirmed, your company account is created within 24 business hours and your access details are sent to you by email. Renewal is done in the Subscription menu, by the company administrator. If the subscription is not renewed in time, the account is suspended and is reactivated as soon as the payment is made."
+          }
+        ]
+      },
+      {
+        "id": "conseils",
+        "title": "Good habits and help",
+        "blocks": [
+          {
+            "ul": [
+              {
+                "x": "Create your cash accounts before recording your first sales and purchases."
+              },
+              {
+                "x": "Do the opening inventory before selling: accurate stock gives accurate margins."
+              },
+              {
+                "x": "For a credit sale, choose the customer concerned: this way you can track what they owe you."
+              },
+              {
+                "x": "Record each receivable or debt settlement the same day, with the right account: this keeps your cash accurate."
+              },
+              {
+                "x": "If you make a mistake on a sale or a purchase, cancel it rather than correcting the stock by hand."
+              },
+              {
+                "x": "Always give a clear reason for a stock adjustment or a manual entry."
+              },
+              {
+                "x": "If a menu does not appear for you, your profile does not have access to it: ask the company administrator."
+              }
+            ]
+          },
+          {
+            "callout": {
+              "l": "Need help?",
+              "x": "Open the Help & Support menu: you will find the support number (+221 70 848 42 98, phone or WhatsApp, Monday to Saturday during office hours) and a form to write to the team."
+            }
+          }
+        ]
+      },
+      {
+        "id": "mots",
+        "title": "Short glossary",
+        "blocks": [
+          {
+            "dl": [
+              {
+                "t": "Inputs",
+                "x": "Everything a farmer uses to produce: seeds, fertilizer, plant-protection products and small equipment."
+              },
+              {
+                "t": "Item",
+                "x": "A product you sell, with its price and its alert threshold."
+              },
+              {
+                "t": "Low stock",
+                "x": "A signal that appears when an item’s quantity falls below its alert threshold: time to reorder."
+              },
+              {
+                "t": "Cash, credit, mixed",
+                "x": "Cash: everything is paid right away. Credit: nothing is paid, the amount is due later. Mixed: part is paid, the rest is due."
+              },
+              {
+                "t": "Receivable",
+                "x": "An amount a customer still owes you."
+              },
+              {
+                "t": "Debt",
+                "x": "An amount you still owe a supplier."
+              },
+              {
+                "t": "Gross margin",
+                "x": "What you have left on a sale once the purchase price of the items is taken off."
+              },
+              {
+                "t": "Expenses",
+                "x": "Operating costs: rent, salaries, electricity, transport…"
+              },
+              {
+                "t": "Gross operating surplus",
+                "x": "What your business earns before taxes and depreciation: the margin, minus the expenses."
+              },
+              {
+                "t": "Operating account",
+                "x": "The table that sums up the year: turnover, purchases, margin, other income, other expenses and result."
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
 }

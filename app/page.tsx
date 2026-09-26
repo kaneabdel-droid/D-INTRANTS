@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, Boxes, Receipt, Store, Sprout, FlaskConical, Bug, Wrench } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, Boxes, Receipt, Store, Sprout, FlaskConical, Bug, Wrench } from 'lucide-react'
 import LanguageSelector from '@/components/LanguageSelector'
 import RevealGroup from '@/components/RevealGroup'
 import { getDictionary, getLocale } from '@/dictionaries'
@@ -34,6 +34,9 @@ export default async function HomePage() {
           </div>
           <div className="flex items-center gap-4">
             <LanguageSelector currentLang={locale} />
+            <Link href="/guide" className="hidden text-sm font-medium text-foreground-muted hover:text-primary sm:inline">
+              {dict.guide.meta.guideNav}
+            </Link>
             <Link
 
               href="/login"
@@ -162,6 +165,24 @@ export default async function HomePage() {
               </li>
             ))}
           </ol>
+        </div>
+      </section>
+
+      {/* Guide de prise en main */}
+      <section className="border-y border-surface-border bg-sidebar">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-5 px-6 py-12 text-center md:flex-row md:justify-between md:text-start">
+          <div className="flex items-center gap-4">
+            <span className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-white sm:flex">
+              <BookOpen className="h-6 w-6" />
+            </span>
+            <div>
+              <h2 className="font-heading text-xl font-bold">{dict.guide.meta.needHelp}</h2>
+              <p className="mt-1 text-sm text-foreground-muted">{dict.guide.meta.needHelpText}</p>
+            </div>
+          </div>
+          <Link href="/guide" className="shrink-0 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-hover">
+            {dict.guide.meta.readGuide}
+          </Link>
         </div>
       </section>
 

@@ -580,5 +580,515 @@
     "storesUpTo": "Jusqu'à {n} magasin(s)",
     "perMonth": "/ mois",
     "afterPaymentNote": "Après confirmation du paiement, votre compte entreprise est créé sous 24h ouvrées et vos accès vous sont envoyés par e-mail."
+  },
+  "guide": {
+    "meta": {
+      "back": "Retour à l’accueil",
+      "pageTitle": "Guide de prise en main",
+      "toc": "Sommaire",
+      "menu": "Menu",
+      "important": "Important",
+      "edition": "Édition liée :",
+      "editionLink": "Voir la partie 3",
+      "needHelp": "Besoin d’aide pour démarrer ?",
+      "needHelpText": "Notre guide de prise en main explique, avec des mots simples, comment configurer D-INTRANTS puis l’utiliser au quotidien dans votre boutique.",
+      "readGuide": "Consulter le guide",
+      "guideNav": "Guide"
+    },
+    "hero": {
+      "eyebrow": "Guide de prise en main",
+      "title": "D-INTRANTS",
+      "subtitle": "La solution de gestion de votre boutique d’intrants agricoles : articles, stock, ventes, achats, créances, dettes, trésorerie et charges, magasin par magasin.",
+      "intro": "Ce guide explique, avec des mots simples, comment utiliser D-INTRANTS. Il se lit en trois temps : d’abord la configuration, à faire une seule fois pour préparer votre boutique ; puis les opérations, que vous répétez chaque jour ; enfin les éditions, états et rapports."
+    },
+    "overview": {
+      "id": "apercu",
+      "title": "D-INTRANTS en une minute",
+      "lead": "D-INTRANTS suit le chemin de vos semences, engrais et autres produits, et celui de votre argent, de l’achat chez le fournisseur jusqu’à l’encaissement chez l’agriculteur.",
+      "cards": [
+        {
+          "t": "Le catalogue",
+          "x": "Vous décrivez vos articles et vos catégories une seule fois."
+        },
+        {
+          "t": "Les achats",
+          "x": "Chaque achat fait entrer les articles dans le stock de votre magasin."
+        },
+        {
+          "t": "Les ventes",
+          "x": "Chaque vente fait sortir les articles du stock et vous remet un ticket ou un reçu."
+        },
+        {
+          "t": "Les crédits",
+          "x": "Ce que vos clients vous doivent (créances) et ce que vous devez à vos fournisseurs (dettes) sont suivis pour vous."
+        },
+        {
+          "t": "La trésorerie",
+          "x": "Votre caisse, votre banque et votre mobile money sont tenus à jour, avec leur solde réel."
+        },
+        {
+          "t": "Les résultats",
+          "x": "Vous voyez votre chiffre d’affaires, votre marge et vos charges, magasin par magasin."
+        }
+      ]
+    },
+    "parts": [
+      {
+        "id": "partie-config",
+        "label": "Partie 1",
+        "title": "La configuration",
+        "text": "À faire une seule fois, avant vos premières ventes. Vous pourrez ensuite la compléter à tout moment.",
+        "sections": [
+          {
+            "id": "c-entreprise",
+            "title": "Les informations de l’entreprise",
+            "menu": "Paramètres",
+            "note": "administrateur de l’entreprise",
+            "blocks": [
+              {
+                "p": "Renseignez le nom de l’entreprise, son adresse, son téléphone, son e-mail et son identification fiscale (NINEA, RCCM ou équivalent). Ajoutez votre logo (PNG ou JPG, 2 Mo maximum) et choisissez la devise de travail. Ces informations apparaissent sur vos documents imprimés : factures, tickets et reçus."
+              }
+            ]
+          },
+          {
+            "id": "c-equipe",
+            "title": "Vos magasins et votre équipe",
+            "blocks": [
+              {
+                "p": "Vos magasins et les comptes de vos collaborateurs sont créés par l’équipe DembaSolution à l’ouverture de votre compte. Le nombre de magasins dépend de votre formule. Chaque personne a un profil :"
+              },
+              {
+                "cards": [
+                  {
+                    "t": "Administrateur de l’entreprise",
+                    "x": "Consulte tous les magasins (tableau de bord, comparatif, rentabilité), gère l’abonnement et les paramètres. Il ne saisit pas d’opérations."
+                  },
+                  {
+                    "t": "Gérant",
+                    "x": "Gère les opérations de son magasin : articles, stock, ventes, achats, créances, dettes, trésorerie et charges."
+                  },
+                  {
+                    "t": "Trésorier",
+                    "x": "S’occupe de l’argent de son magasin : créances, dettes, trésorerie et charges."
+                  }
+                ]
+              },
+              {
+                "p": "Pour limiter ce que le gérant peut faire (consulter, créer, modifier, module par module), l’administrateur utilise Paramètres → Permissions."
+              }
+            ]
+          },
+          {
+            "id": "c-categories",
+            "title": "Les catégories",
+            "menu": "Catégories",
+            "blocks": [
+              {
+                "p": "Créez les familles de produits de votre boutique (semences, engrais, produits phytosanitaires, petit matériel…) avec un nom et une description. Les catégories sont partagées entre tous vos magasins."
+              }
+            ]
+          },
+          {
+            "id": "c-articles",
+            "title": "Les articles",
+            "menu": "Articles",
+            "blocks": [
+              {
+                "p": "Avec « Nouvel article », enregistrez chaque produit que vous vendez : désignation, référence, catégorie, unité (sac, kilo, litre, sachet, pièce…), prix de vente et seuil d’alerte. Le seuil d’alerte est la quantité en dessous de laquelle D-INTRANTS vous signale un « stock bas ». Le catalogue est partagé entre tous vos magasins."
+              },
+              {
+                "p": "Un article que vous ne vendez plus (produit de saison, fin de gamme) peut être rendu inactif sans être supprimé : son historique est conservé."
+              }
+            ]
+          },
+          {
+            "id": "c-tiers",
+            "title": "Les clients et les fournisseurs",
+            "menu": "Clients et Fournisseurs",
+            "blocks": [
+              {
+                "p": "Pour chacun, indiquez le nom, le téléphone et l’adresse. Les clients sont propres à chaque magasin ; les fournisseurs sont partagés entre tous les magasins."
+              },
+              {
+                "p": "Les clients de passage n’ont pas besoin de fiche : à la vente, le client est facultatif. Pour un agriculteur qui achète à crédit avant la campagne et paie après la récolte, créez sa fiche : vous suivrez ainsi ce qu’il vous doit."
+              }
+            ]
+          },
+          {
+            "id": "c-comptes",
+            "title": "Les comptes d’argent",
+            "menu": "Trésorerie",
+            "blocks": [
+              {
+                "p": "Avec « Nouveau compte », créez un compte pour chaque endroit où le magasin garde de l’argent : une caisse, un compte en banque, un compte mobile money. Donnez-lui un nom (par exemple « Caisse principale ») et indiquez son solde de départ : vous pourrez ainsi bien suivre vos opérations d’entrée et de sortie d’argent, avec les soldes réels de chaque compte."
+              }
+            ]
+          },
+          {
+            "id": "c-stock",
+            "title": "Le stock de départ",
+            "menu": "Stock",
+            "blocks": [
+              {
+                "p": "Si vous avez déjà des sacs d’engrais, des semences ou d’autres produits en rayon, enregistrez-les avec « Ajustement de stock » : choisissez l’article, le sens « Entrée (+) », la quantité et un motif (par exemple « stock de départ »). Ensuite, le stock évolue tout seul avec vos achats et vos ventes."
+              },
+              {
+                "callout": {
+                  "l": "Important",
+                  "x": "Faites l’inventaire de départ article par article : un stock de départ juste, c’est une marge juste."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "partie-operations",
+        "label": "Partie 2",
+        "title": "Les opérations",
+        "text": "Ce que vous faites chaque jour dans votre boutique.",
+        "sections": [
+          {
+            "id": "o-achats",
+            "title": "Les achats",
+            "menu": "Achats",
+            "blocks": [
+              {
+                "ol": [
+                  {
+                    "t": "Créez un nouvel achat",
+                    "x": "en choisissant le fournisseur, puis ajoutez une ligne par article : quantité et prix d’achat."
+                  },
+                  {
+                    "t": "Choisissez le mode de paiement :",
+                    "x": "comptant (tout est payé), crédit (rien n’est payé) ou mixte (une partie est payée). Indiquez le montant payé."
+                  },
+                  {
+                    "t": "Validez l’achat.",
+                    "x": "Le stock augmente. Ce qui est payé sort de votre trésorerie ; ce qui reste à payer devient une dette envers le fournisseur."
+                  }
+                ]
+              },
+              {
+                "p": "Une erreur ? Annulez l’achat : le stock entré est retiré et le paiement est retiré de la trésorerie."
+              },
+              {
+                "edition": "le journal des achats, avec choix de la période."
+              }
+            ]
+          },
+          {
+            "id": "o-ventes",
+            "title": "Les ventes",
+            "menu": "Ventes",
+            "blocks": [
+              {
+                "ol": [
+                  {
+                    "t": "Créez une nouvelle vente.",
+                    "x": "Choisissez le client (facultatif : « client de passage » si vous ne le connaissez pas), puis ajoutez une ligne par article : quantité et prix unitaire."
+                  },
+                  {
+                    "t": "Choisissez le mode de paiement :",
+                    "x": "comptant, crédit ou mixte, et indiquez le montant payé."
+                  },
+                  {
+                    "t": "Validez la vente.",
+                    "x": "Le stock diminue et l’argent encaissé entre dans votre trésorerie ; ce qui reste dû devient une créance sur le client."
+                  }
+                ]
+              },
+              {
+                "p": "Une erreur ? Annulez la vente : le stock est restauré et l’encaissement est retiré de la trésorerie."
+              },
+              {
+                "edition": "le ticket de caisse et le reçu en PDF de chaque vente, ainsi que le journal des ventes."
+              }
+            ]
+          },
+          {
+            "id": "o-creances",
+            "title": "Les créances",
+            "menu": "Créances",
+            "blocks": [
+              {
+                "p": "Ce sont les sommes que vos clients vous doivent. Pour chacune, la liste montre le montant de départ, ce qu’il reste à payer, l’échéance et le statut. Quand un client vous paie, cliquez sur « Régler », indiquez le montant réglé et le compte qui reçoit l’argent : le reste dû baisse et votre trésorerie augmente."
+              },
+              {
+                "edition": "le total restant dû, le journal des créances et le relevé de compte de chaque client."
+              }
+            ]
+          },
+          {
+            "id": "o-dettes",
+            "title": "Les dettes",
+            "menu": "Dettes",
+            "blocks": [
+              {
+                "p": "Ce sont les sommes que vous devez à vos fournisseurs. Quand vous les payez, cliquez sur « Régler », indiquez le montant et le compte d’où sort l’argent : la dette baisse et votre trésorerie diminue."
+              },
+              {
+                "edition": "le total restant dû, le journal des dettes et le relevé de compte de chaque fournisseur."
+              }
+            ]
+          },
+          {
+            "id": "o-stock",
+            "title": "Le stock au quotidien",
+            "menu": "Stock",
+            "blocks": [
+              {
+                "p": "La page Stock montre, article par article, la quantité disponible et son statut : « OK » ou « Stock bas ». En dessous, les derniers mouvements : entrées d’achat, sorties de vente et ajustements."
+              },
+              {
+                "p": "Pour corriger une différence (casse, vol, erreur de comptage), utilisez « Ajustement de stock » en indiquant toujours un motif clair."
+              }
+            ]
+          },
+          {
+            "id": "o-tresorerie",
+            "title": "La trésorerie",
+            "menu": "Trésorerie",
+            "blocks": [
+              {
+                "ul": [
+                  {
+                    "t": "Les comptes.",
+                    "x": "Chaque compte (caisse, banque, mobile money) affiche son solde. Les ventes, achats, règlements et charges le mettent à jour automatiquement."
+                  },
+                  {
+                    "t": "Le journal.",
+                    "x": "Toutes les opérations d’argent : date, compte, catégorie, tiers, motif et montant. Vous pouvez le filtrer par compte pour voir le solde d’un seul compte."
+                  },
+                  {
+                    "t": "Les écritures manuelles.",
+                    "x": "Avec « Nouvelle écriture », enregistrez une entrée ou une sortie qui ne vient ni d’une vente ni d’un achat : choisissez le compte, le sens, le montant, la catégorie (par exemple « Virement ») et le motif."
+                  }
+                ]
+              },
+              {
+                "edition": "le journal de trésorerie, avec choix de la période."
+              }
+            ]
+          },
+          {
+            "id": "o-charges",
+            "title": "Les charges",
+            "menu": "Charges",
+            "blocks": [
+              {
+                "p": "Enregistrez chaque dépense de fonctionnement : loyer, salaires, électricité, transport ou autre. Indiquez le libellé, le montant, la date et le compte débité ; cochez « Charge récurrente » pour une dépense qui revient chaque mois. La page affiche le total des charges du mois en cours."
+              },
+              {
+                "edition": "le journal des charges, avec choix de la période."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "partie-etats",
+        "label": "Partie 3",
+        "title": "Les éditions, états et rapports",
+        "text": "Une fois vos opérations enregistrées, D-INTRANTS les rassemble pour vous dans des documents à imprimer et des états de suivi.",
+        "sections": [
+          {
+            "id": "e-imprimer",
+            "title": "Les documents à imprimer",
+            "lead": "Ils portent le nom, l’adresse, l’identification fiscale et le logo renseignés dans les Paramètres.",
+            "blocks": [
+              {
+                "ul": [
+                  {
+                    "t": "Le ticket de caisse.",
+                    "x": "Depuis une vente : le ticket à remettre au client, avec le total, ce qui est payé et le reste à payer."
+                  },
+                  {
+                    "t": "Le reçu en PDF.",
+                    "x": "Depuis une vente : « Télécharger le reçu »."
+                  },
+                  {
+                    "t": "Les journaux.",
+                    "x": "Ventes, achats, créances, dettes, trésorerie et charges : bouton « Imprimer », avec choix de la période, et de l’orientation portrait ou paysage."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "e-releves",
+            "title": "Les relevés de compte",
+            "blocks": [
+              {
+                "p": "Sur la ligne d’un client ou d’un fournisseur, le bouton « Relevé » présente toutes les opérations de la période (ventes, paiements, règlements, achats) avec le solde initial et le solde final. C’est le document idéal pour faire le point avec un client ou un fournisseur."
+              }
+            ]
+          },
+          {
+            "id": "e-tableau",
+            "title": "Le tableau de bord",
+            "blocks": [
+              {
+                "ul": [
+                  {
+                    "t": "Pour le gérant.",
+                    "x": "Les ventes du jour, les créances en cours, le nombre d’articles en stock bas, le palmarès de vos meilleurs clients sur 30 jours (chiffre d’affaires, achats et date du dernier achat), le compte d’exploitation de l’année et l’évolution des ventes des 30 derniers jours, avec une projection sur les 7 jours suivants."
+                  },
+                  {
+                    "t": "Pour l’administrateur de l’entreprise.",
+                    "x": "La vue consolidée de tous les magasins : chiffre d’affaires et marge brute sur 30 jours, créances et dettes en cours, et le compte d’exploitation."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "e-admin",
+            "title": "Comparer vos magasins",
+            "menu": "Comparatif magasins et Rentabilité",
+            "note": "administrateur de l’entreprise",
+            "blocks": [
+              {
+                "ul": [
+                  {
+                    "t": "Le comparatif magasins.",
+                    "x": "Le chiffre d’affaires, la marge brute et l’excédent brut d’exploitation de chaque magasin sur les 30 derniers jours."
+                  },
+                  {
+                    "t": "La rentabilité.",
+                    "x": "Le chiffre d’affaires, la marge brute, les charges et le résultat net de chaque magasin, et le classement des 10 articles qui rapportent le plus de marge."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "closing": [
+      {
+        "id": "formules",
+        "title": "Les formules et l’abonnement",
+        "lead": "Le prix dépend du nombre de magasins. Vous payez en ligne : votre compte est activé dès que le paiement est confirmé.",
+        "blocks": [
+          {
+            "table": {
+              "head": [
+                "Formule",
+                "Magasins",
+                "Prix par mois"
+              ],
+              "rows": [
+                [
+                  "Standard",
+                  "1",
+                  "5 000 FCFA"
+                ],
+                [
+                  "Médium",
+                  "2",
+                  "7 500 FCFA"
+                ],
+                [
+                  "Premium",
+                  "3",
+                  "10 000 FCFA"
+                ]
+              ]
+            }
+          },
+          {
+            "p": "Vous pouvez payer 1 mois, 6 mois (5 % de réduction) ou 12 mois (10 % de réduction). Après la confirmation du paiement, votre compte entreprise est créé sous 24 h ouvrées et vos accès vous sont envoyés par e-mail. Le renouvellement se fait dans le menu Abonnement, par l’administrateur de l’entreprise. Si l’abonnement n’est pas renouvelé à temps, le compte est suspendu et se réactive dès le paiement."
+          }
+        ]
+      },
+      {
+        "id": "conseils",
+        "title": "Bons réflexes et aide",
+        "blocks": [
+          {
+            "ul": [
+              {
+                "x": "Créez vos comptes de trésorerie avant d’enregistrer vos premières ventes et vos premiers achats."
+              },
+              {
+                "x": "Faites l’inventaire de départ avant de vendre : un stock juste donne des marges justes."
+              },
+              {
+                "x": "Pour une vente à crédit, choisissez le client concerné : vous pourrez ainsi suivre ce qu’il vous doit."
+              },
+              {
+                "x": "Enregistrez chaque règlement de créance ou de dette le jour même, avec le bon compte : c’est ce qui garde votre trésorerie exacte."
+              },
+              {
+                "x": "En cas d’erreur sur une vente ou un achat, annulez-le plutôt que de corriger le stock à la main."
+              },
+              {
+                "x": "Utilisez toujours un motif clair pour un ajustement de stock ou une écriture manuelle."
+              },
+              {
+                "x": "Si un menu n’apparaît pas chez vous, votre profil n’y a pas accès : demandez à l’administrateur de l’entreprise."
+              }
+            ]
+          },
+          {
+            "callout": {
+              "l": "Besoin d’aide ?",
+              "x": "Ouvrez le menu Assistance / Support : vous y trouvez le numéro d’assistance (+221 70 848 42 98, téléphone ou WhatsApp, du lundi au samedi aux heures de bureau) et un formulaire pour écrire à l’équipe."
+            }
+          }
+        ]
+      },
+      {
+        "id": "mots",
+        "title": "Petit lexique",
+        "blocks": [
+          {
+            "dl": [
+              {
+                "t": "Intrants",
+                "x": "Tout ce que l’agriculteur utilise pour produire : semences, engrais, produits phytosanitaires et petit matériel."
+              },
+              {
+                "t": "Article",
+                "x": "Un produit que vous vendez, avec son prix et son seuil d’alerte."
+              },
+              {
+                "t": "Stock bas",
+                "x": "Signal qui apparaît quand la quantité d’un article passe sous son seuil d’alerte : c’est le moment de racheter."
+              },
+              {
+                "t": "Comptant, crédit, mixte",
+                "x": "Comptant : tout est payé tout de suite. Crédit : rien n’est payé, la somme est due plus tard. Mixte : une partie est payée, le reste est dû."
+              },
+              {
+                "t": "Créance",
+                "x": "Une somme qu’un client vous doit encore."
+              },
+              {
+                "t": "Dette",
+                "x": "Une somme que vous devez encore à un fournisseur."
+              },
+              {
+                "t": "Marge brute",
+                "x": "Ce qu’il vous reste sur une vente une fois le prix d’achat des articles retiré."
+              },
+              {
+                "t": "Charges",
+                "x": "Les dépenses de fonctionnement : loyer, salaires, électricité, transport…"
+              },
+              {
+                "t": "Excédent brut d’exploitation",
+                "x": "Ce que votre activité rapporte avant impôts et amortissements : la marge, moins les charges."
+              },
+              {
+                "t": "Compte d’exploitation",
+                "x": "Le tableau qui résume l’année : chiffre d’affaires, achats, marge, autres produits, autres charges et résultat."
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
 }
