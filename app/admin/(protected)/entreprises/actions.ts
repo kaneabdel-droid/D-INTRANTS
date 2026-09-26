@@ -165,6 +165,47 @@ export async function creerUtilisateur(
   return { success: true }
 }
 
+export async function modifierProfilUtilisateur(
+  entrepriseId: string,
+  utilisateurId: string,
+  role: 'admin_entreprise' | 'gerant' | 'tresorier',
+  magasinId: string | null
+): Promise<ActionResult> {
+  const authError = await checkAdmin()
+  if (authError) return { error: authError }
+  if (!['admin_entreprise', 'gerant', 'tresorier'].includes(role)) return { error: 'Rôle invalide' }
+  if ((role === 'gerant' || role === 'tresorier') && !magasinId) return { error: 'Un magasin est requis pour un gérant ou un trésorier' }
+  if (role === 'admin_entreprise' && magasinId) return { error: "Un admin entreprise n'est rattaché à aucun magasin" }
+
+  const supabase = createAdminClient()
+
+  const { data: utilisateur } = await withRetryResult(() =>
+    supabase.from('utilisateurs').select('id').eq('id', utilisateurId).eq('entreprise_id', entrepriseId).maybeSingle()
+  )
+  if (!utilisateur) return { error: "Utilisateur introuvable dans cette entreprise" }
+
+  if (magasinId) {
+    const { data: magasin } = await withRetryResult(() =>
+      supabase.from('magasins').select('id').eq('id', magasinId).eq('entreprise_id', entrepriseId).eq('statut', 'actif').maybeSingle()
+    )
+    if (!magasin) return { error: 'Magasin introuvable ou archivé' }
+  }
+
+  const { error } = await withRetryResult(() =>
+    supabase.from('utilisateurs').update({ role, magasin_id: magasinId }).eq('id', utilisateurId).eq('entreprise_id', entrepriseId)
+  )
+  if (error) {
+    return {
+      error: error.message.includes('duplicate')
+        ? "Cette entreprise a déjà un admin entreprise : changez d'abord son profil"
+        : error.message,
+    }
+  }
+
+  revalidatePath(`/admin/entreprises/${entrepriseId}`)
+  return { success: true }
+}
+
 export async function desactiverCompteUtilisateur(entrepriseId: string, utilisateurId: string): Promise<ActionResult> {
   const authError = await checkAdmin()
   if (authError) return { error: authError }

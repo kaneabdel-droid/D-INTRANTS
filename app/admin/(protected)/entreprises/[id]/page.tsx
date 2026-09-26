@@ -94,6 +94,8 @@ export default async function AdminEntrepriseDetailPage({ params }: { params: Pr
                   email={authUser?.email || u.id}
                   nomComplet={[u.prenom, u.nom].filter(Boolean).join(' ')}
                   role={u.role}
+                  magasinId={u.magasin_id}
+                  magasins={magasinsActifs}
                   magasinNom={u.magasin_id ? magasinParId.get(u.magasin_id) ?? null : null}
                   banni={Boolean(authUser?.banned_until && new Date(authUser.banned_until) > new Date())}
                 />
