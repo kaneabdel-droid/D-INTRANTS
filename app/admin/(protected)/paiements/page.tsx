@@ -13,7 +13,7 @@ export default async function AdminPaiementsPage({
 
   let query = supabase
     .from('abonnements')
-    .select('id, entreprise_id, palier, duree_mois, montant_fcfa, provider, statut, created_at, paye_at, entreprises(nom)')
+    .select('id, entreprise_id, palier, duree_mois, montant_fcfa, provider, statut, doublon, created_at, paye_at, entreprises(nom)')
     .order('created_at', { ascending: false })
     .limit(200)
 
@@ -85,6 +85,9 @@ export default async function AdminPaiementsPage({
                     <span className={p.statut === 'paye' ? 'text-success' : p.statut === 'echoue' ? 'text-danger' : 'text-primary'}>
                       {p.statut}
                     </span>
+                    {p.doublon && (
+                      <span className="ml-2 rounded bg-danger/10 px-2 py-0.5 text-xs font-semibold text-danger">Doublon — à rembourser</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {(p.statut === 'echoue' || !p.entreprise_id) && (

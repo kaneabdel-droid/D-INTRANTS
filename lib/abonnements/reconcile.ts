@@ -22,6 +22,7 @@ type LigneAbonnement = {
   provider: ProviderId
   provider_reference: string | null
   statut: 'en_attente' | 'paye' | 'echoue'
+  created_at: string
 }
 
 type ResultatReconciliation =
@@ -63,6 +64,26 @@ async function appliquerStatut(ligne: LigneAbonnement, statutDistant: StatutProv
     // on s'arrête ici, la ligne payée attend d'être traitée depuis
     // /admin/demandes — pas d'entreprise à créditer pour l'instant.
     if (!ligne.entreprise_id) return { ok: true, credite: true }
+
+    // Filet anti double paiement : une autre tentative pour le même palier a été
+    // payée entre la création de celle-ci et son paiement (le client a réglé deux
+    // pages de paiement ouvertes en parallèle). L'argent est encaissé mais ne doit
+    // pas prolonger une seconde fois → doublon à rembourser, exclu des ventes.
+    const { count: dejaPaye } = await supabase
+      .from('abonnements')
+      .select('id', { count: 'exact', head: true })
+      .eq('entreprise_id', ligne.entreprise_id)
+      .eq('palier', ligne.palier)
+      .eq('statut', 'paye')
+      .eq('doublon', false)
+      .neq('id', ligne.id)
+      .gte('paye_at', ligne.created_at)
+      .lt('paye_at', dateSucces.toISOString())
+    if (dejaPaye) {
+      await supabase.from('abonnements').update({ doublon: true }).eq('id', ligne.id)
+      console.error('[Abonnements] doublon encaissé — à rembourser', { abonnementId: ligne.id, entrepriseId: ligne.entreprise_id })
+      return { ok: true, credite: true }
+    }
 
     const { data: entreprise } = await supabase
       .from('entreprises')

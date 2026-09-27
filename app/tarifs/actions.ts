@@ -4,6 +4,7 @@ import { createAdminClient } from '@/utils/supabase/admin'
 import { estPalierValide, estDureeValide, calculerMontantFcfa } from '@/lib/abonnements/paliers'
 import { adaptateurActif, providerActif } from '@/lib/abonnements/registry'
 import { reconcilierParAbonnementId } from '@/lib/abonnements/reconcile'
+import { estRecent } from '@/lib/abonnements/antiDoublon'
 
 type ResultatDemarrage = { success: true; checkoutUrl: string } | { error: string }
 
@@ -34,6 +35,38 @@ export async function demarrerInscription(
   const montantFcfa = calculerMontantFcfa(palier, dureeMois)
 
   const supabase = createAdminClient()
+  const emailNormalise = email.trim().toLowerCase()
+
+  // Anti double paiement : une demande publique n'a pas encore d'entreprise, le
+  // dédoublonnage se fait donc sur l'e-mail du contact.
+  const { data: demandes } = await supabase
+    .from('abonnements')
+    .select('id, palier, duree_mois, montant_fcfa, provider, statut, checkout_url, created_at, abandonne_le')
+    .is('entreprise_id', null)
+    .in('statut', ['en_attente', 'paye'])
+    .ilike('metadata->>contactEmail', emailNormalise.replace(/[\\%_]/g, (c) => `\\${c}`)) // insensible à la casse, jokers LIKE échappés
+    .order('created_at', { ascending: false })
+    .limit(10)
+
+  // (1/2) Déjà payée et pas encore transformée en compte : l'équipe doit simplement la traiter.
+  if ((demandes ?? []).some((d) => d.statut === 'paye')) {
+    return { error: 'Une demande payée existe déjà pour cette adresse e-mail : notre équipe vous contacte pour créer votre compte. Aucun nouveau paiement n’est nécessaire.' }
+  }
+
+  // (2/2) Même offre relancée récemment → même page de paiement (double clic, second onglet...).
+  const provider = providerActif()
+  const enCours = (demandes ?? []).find(
+    (d) =>
+      d.statut === 'en_attente' &&
+      !d.abandonne_le &&
+      d.palier === palier &&
+      d.duree_mois === dureeMois &&
+      Number(d.montant_fcfa) === montantFcfa &&
+      d.provider === provider &&
+      d.checkout_url &&
+      estRecent(d.created_at)
+  )
+  if (enCours?.checkout_url) return { success: true, checkoutUrl: enCours.checkout_url }
 
   const { data: abonnement, error: insertError } = await supabase
     .from('abonnements')
@@ -42,13 +75,13 @@ export async function demarrerInscription(
       palier,
       duree_mois: dureeMois,
       montant_fcfa: montantFcfa,
-      provider: providerActif(),
+      provider,
       statut: 'en_attente',
       metadata: {
         demandePublique: true,
         nomEntreprise: nomEntreprise.trim(),
         contactNom: contactNom.trim(),
-        contactEmail: email.trim(),
+        contactEmail: emailNormalise,
         contactTelephone: telephoneLocal.trim(),
       },
     })
@@ -81,11 +114,12 @@ export async function demarrerInscription(
     .from('abonnements')
     .update({
       provider_reference: resultat.referenceProvider,
+      checkout_url: resultat.checkoutUrl,
       metadata: {
         demandePublique: true,
         nomEntreprise: nomEntreprise.trim(),
         contactNom: contactNom.trim(),
-        contactEmail: email.trim(),
+        contactEmail: emailNormalise,
         contactTelephone: telephoneLocal.trim(),
         ...(resultat.montantFacture ? { montantFacture: resultat.montantFacture, deviseFacturee: resultat.deviseFacturee } : {}),
       },

@@ -6,6 +6,7 @@ import { createAdminClient } from '@/utils/supabase/admin'
 import { estPalierValide, estDureeValide, calculerMontantFcfa } from '@/lib/abonnements/paliers'
 import { adaptateurActif, providerActif } from '@/lib/abonnements/registry'
 import { reconcilierParAbonnementId } from '@/lib/abonnements/reconcile'
+import { estRecent, refusRenouvellementAnticipe } from '@/lib/abonnements/antiDoublon'
 
 type ResultatDemarrage = { success: true; checkoutUrl: string } | { error: string }
 
@@ -33,10 +34,21 @@ export async function demarrerPaiementAbonnement(
 
   const supabase = createAdminClient()
 
-  // Supersède toute tentative précédente encore en attente (pas d'empilement de
-  // lignes si l'admin relance un paiement après avoir changé d'avis) — même
-  // logique que supersedeOlderPending() dans Chariow.md §4.
-  await supabase.from('abonnements').update({ statut: 'echoue' }).eq('entreprise_id', context.entrepriseId).eq('statut', 'en_attente')
+  // Anti double paiement (1/2) : une période déjà réglée pour ce palier ne se
+  // rachète pas tant qu'elle n'approche pas de son échéance.
+  const { data: entreprise } = await supabase
+    .from('entreprises')
+    .select('palier, abonnement_expire_le')
+    .eq('id', context.entrepriseId)
+    .single()
+  const refus = refusRenouvellementAnticipe(entreprise?.palier, entreprise?.abonnement_expire_le, palier)
+  if (refus) return { error: refus }
+
+  // Anti double paiement (2/2) : relancer la même offre renvoie vers le paiement
+  // déjà ouvert au lieu d'en créer un second (double clic, second onglet...).
+  const offre = { palier, dureeMois, montantFcfa, provider: providerActif() }
+  const reutilisable = await paiementEnCoursReutilisable(context.entrepriseId, offre)
+  if (reutilisable) return reutilisable
 
   const { data: abonnement, error: insertError } = await supabase
     .from('abonnements')
@@ -51,7 +63,16 @@ export async function demarrerPaiementAbonnement(
     .select('id')
     .single()
 
-  if (insertError || !abonnement) return { error: insertError?.message || "Impossible de créer l'abonnement" }
+  if (insertError || !abonnement) {
+    // 23505 = index unique « un paiement en cours par entreprise » : une requête
+    // concurrente (double clic) vient d'en créer un — on renvoie celui-là.
+    if (insertError?.code === '23505') {
+      const concurrent = await paiementEnCoursReutilisable(context.entrepriseId, offre)
+      if (concurrent) return concurrent
+      return { error: 'Un paiement est déjà en cours. Patientez quelques secondes puis réessayez.' }
+    }
+    return { error: insertError?.message || "Impossible de créer l'abonnement" }
+  }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
   const resultat = await adaptateurActif().initierPaiement({
@@ -77,11 +98,44 @@ export async function demarrerPaiementAbonnement(
     .from('abonnements')
     .update({
       provider_reference: resultat.referenceProvider,
+      checkout_url: resultat.checkoutUrl,
       metadata: resultat.montantFacture ? { montantFacture: resultat.montantFacture, deviseFacturee: resultat.deviseFacturee } : null,
     })
     .eq('id', abonnement.id)
 
   return { success: true, checkoutUrl: resultat.checkoutUrl }
+}
+
+type Offre = { palier: string; dureeMois: number; montantFcfa: number; provider: string }
+
+/**
+ * Paiement en cours de l'entreprise (au plus un, cf. index unique de la migration
+ * « anti doublon ») : même offre et encore récent → renvoyé tel quel ; sinon marqué
+ * abandonné (il reste 'en_attente' : payé plus tard, il sera traité et marqué
+ * doublon si besoin, cf. lib/abonnements/reconcile.ts) pour en laisser créer un neuf.
+ */
+async function paiementEnCoursReutilisable(entrepriseId: string, offre: Offre): Promise<ResultatDemarrage | null> {
+  const supabase = createAdminClient()
+  const { data: enCours } = await supabase
+    .from('abonnements')
+    .select('id, palier, duree_mois, montant_fcfa, provider, checkout_url, created_at')
+    .eq('entreprise_id', entrepriseId)
+    .eq('statut', 'en_attente')
+    .is('abandonne_le', null)
+    .maybeSingle()
+  if (!enCours) return null
+
+  const memeOffre =
+    enCours.palier === offre.palier &&
+    enCours.duree_mois === offre.dureeMois &&
+    Number(enCours.montant_fcfa) === offre.montantFcfa &&
+    enCours.provider === offre.provider
+  if (memeOffre && enCours.checkout_url && estRecent(enCours.created_at)) {
+    return { success: true, checkoutUrl: enCours.checkout_url }
+  }
+
+  await supabase.from('abonnements').update({ abandonne_le: new Date().toISOString() }).eq('id', enCours.id)
+  return null
 }
 
 export type StatutVerification = { statut: 'paye' | 'en_attente' | 'echoue'; error?: string }
