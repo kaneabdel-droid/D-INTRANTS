@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import crypto from 'node:crypto'
 import { createClient } from '@/utils/supabase/server'
 import { requireGerantOuTresorier } from '@/lib/auth/getCurrentUserContext'
 
@@ -116,4 +117,55 @@ export async function deleteEcritureTresorerie(id: string): Promise<ActionResult
 
   revalidatePath('/tresorerie')
   return { success: true }
+}
+
+// Encaissement automatique par monnaie électronique : le fournisseur/relais
+// choisi et le numéro marchand ne sont qu'un pense-bête affiché au gérant —
+// seule la clé de webhook (générée à part, cf. genererCleWebhookMobileMoney)
+// authentifie réellement les appels entrants.
+export async function configurerWebhookMobileMoney(formData: FormData): Promise<ActionResult> {
+  const context = await requireGerantOuTresorier('/tresorerie', 'ecrire')
+  const supabase = await createClient()
+
+  const compteId = formData.get('compte_tresorerie_id') as string
+  const fournisseur = (formData.get('fournisseur_electronique') as string) || null
+  const identifiantMarchand = (formData.get('identifiant_marchand') as string)?.trim() || null
+
+  if (!compteId) return { error: 'Un compte est requis' }
+  if (fournisseur && !['wave', 'orange_money', 'generique'].includes(fournisseur)) {
+    return { error: 'Fournisseur invalide' }
+  }
+
+  const { error } = await supabase
+    .from('comptes_tresorerie')
+    .update({ fournisseur_electronique: fournisseur, identifiant_marchand: identifiantMarchand })
+    .eq('id', compteId)
+    .eq('magasin_id', context.magasinId)
+    .eq('type_compte', 'mobile_money')
+  if (error) return { error: error.message }
+
+  revalidatePath('/tresorerie')
+  return { success: true }
+}
+
+// La clé n'est jamais générée côté client : un secret prévisible ou rejouable
+// permettrait à quiconque le devine d'insérer de fausses écritures de
+// trésorerie sur ce compte.
+export async function genererCleWebhookMobileMoney(compteId: string): Promise<ActionResult & { cle?: string }> {
+  const context = await requireGerantOuTresorier('/tresorerie', 'ecrire')
+  const supabase = await createClient()
+
+  if (!compteId) return { error: 'Un compte est requis' }
+
+  const cle = crypto.randomBytes(24).toString('hex')
+  const { error } = await supabase
+    .from('comptes_tresorerie')
+    .update({ cle_webhook: cle })
+    .eq('id', compteId)
+    .eq('magasin_id', context.magasinId)
+    .eq('type_compte', 'mobile_money')
+  if (error) return { error: error.message }
+
+  revalidatePath('/tresorerie')
+  return { success: true, cle }
 }
