@@ -98,7 +98,7 @@ export default function EcritureRowActions({ ecriture, comptes, dict }: { ecritu
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground">{t.montantLabel}</label>
-                      <input name="montant" type="number" step="0.01" min="0.01" required defaultValue={ecriture.montant} className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2" />
+                      <input name="montant" type="number" step="any" min="0.01" required defaultValue={ecriture.montant} className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2" />
                     </div>
                   </div>
                   <div>

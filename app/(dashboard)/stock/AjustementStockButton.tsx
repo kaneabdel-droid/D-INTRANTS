@@ -62,7 +62,7 @@ export default function AjustementStockButton({ articles, dict }: { articles: Ar
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground">{t.quantiteLabel}</label>
-                      <input name="quantite" type="number" step="0.01" min="0.01" required className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2" />
+                      <input name="quantite" type="number" step="any" min="0.01" required className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2" />
                     </div>
                   </div>
                   <div>

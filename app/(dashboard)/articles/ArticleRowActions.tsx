@@ -102,11 +102,11 @@ export default function ArticleRowActions({ article, categories, dict }: { artic
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground">{t.prixVenteLabel}</label>
-                      <input name="prix_vente" type="number" step="0.01" min="0" defaultValue={article.prix_vente} required className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2" />
+                      <input name="prix_vente" type="number" step="any" min="0" defaultValue={article.prix_vente} required className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground">{t.seuilAlerteLabel}</label>
-                      <input name="seuil_alerte" type="number" step="0.01" min="0" defaultValue={article.seuil_alerte} className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2" />
+                      <input name="seuil_alerte" type="number" step="any" min="0" defaultValue={article.seuil_alerte} className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2" />
                     </div>
                   </div>
                 </form>

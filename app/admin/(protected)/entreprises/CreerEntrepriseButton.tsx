@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import { creerEntreprise } from './actions'
+import { DEVISES, type DeviseCode } from '@/lib/currency'
 
 export default function CreerEntrepriseButton() {
   const router = useRouter()
@@ -123,13 +124,16 @@ export default function CreerEntrepriseButton() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground">Devise</label>
-                      <input
-                        type="text"
+                      <select
                         value={devise}
                         onChange={(e) => setDevise(e.target.value)}
                         disabled={isPending}
                         className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2"
-                      />
+                      >
+                        {(Object.keys(DEVISES) as DeviseCode[]).map((code) => (
+                          <option key={code} value={code}>{DEVISES[code].label}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </form>

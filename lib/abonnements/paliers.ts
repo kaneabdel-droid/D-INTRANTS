@@ -32,3 +32,16 @@ export function calculerMontantFcfa(palier: PalierCode, dureeMois: DureeMois): n
   const brut = PALIERS[palier].prixMensuelFcfa * dureeMois
   return Math.round(brut * (1 - reduction))
 }
+
+// Clients d'un autre pays (lib/pays.ts) : abonnement payé en dollars US, prix FCFA convertis à ce taux fixe et
+// arrondis au dollar. Seule valeur à modifier pour réviser les prix en dollars.
+export const TAUX_FCFA_PAR_USD = 600
+
+export function calculerMontantUsd(palier: PalierCode, dureeMois: DureeMois): number {
+  return Math.max(1, Math.round(calculerMontantFcfa(palier, dureeMois) / TAUX_FCFA_PAR_USD))
+}
+
+/** Équivalent FCFA d'un montant en dollars (statistiques et contrôles exprimés en FCFA). */
+export function equivalentFcfa(montantUsd: number): number {
+  return Math.round(montantUsd * TAUX_FCFA_PAR_USD)
+}

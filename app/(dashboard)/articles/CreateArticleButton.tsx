@@ -69,11 +69,11 @@ export default function CreateArticleButton({ categories, dict }: { categories: 
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground">{t.prixVenteLabel}</label>
-                      <input name="prix_vente" type="number" step="0.01" min="0" required className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2" />
+                      <input name="prix_vente" type="number" step="any" min="0" required className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground">{t.seuilAlerteLabel}</label>
-                      <input name="seuil_alerte" type="number" step="0.01" min="0" defaultValue={0} className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2" />
+                      <input name="seuil_alerte" type="number" step="any" min="0" defaultValue={0} className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2" />
                     </div>
                   </div>
                 </form>

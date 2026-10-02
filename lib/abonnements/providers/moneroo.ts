@@ -36,8 +36,9 @@ export const monerooAdapter: AdaptateurPaiement = {
 
   async initierPaiement(params: InitierPaiementParams): Promise<InitierPaiementResultat> {
     const body = {
-      amount: params.montantFcfa,
-      currency: 'XOF',
+      // Client d'un autre pays : montant en dollars US (carte), sinon en FCFA.
+      amount: params.montantUsd ?? params.montantFcfa,
+      currency: params.montantUsd ? 'USD' : 'XOF',
       description: `Abonnement d-intrants ${params.palier} — ${params.dureeMois} mois (${params.nomEntreprise})`.slice(0, 200),
       return_url: params.retourUrl,
       customer: {

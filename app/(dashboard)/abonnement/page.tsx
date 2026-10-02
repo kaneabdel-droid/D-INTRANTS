@@ -9,7 +9,7 @@ export default async function AbonnementPage() {
 
   const { data: entreprise } = await supabase
     .from('entreprises')
-    .select('palier, abonnement_expire_le, telephone')
+    .select('palier, abonnement_expire_le, telephone, devise')
     .eq('id', context.entrepriseId)
     .single()
 
@@ -21,7 +21,7 @@ export default async function AbonnementPage() {
 
   const { data: historique } = await supabase
     .from('abonnements')
-    .select('id, palier, duree_mois, montant_fcfa, provider, statut, created_at')
+    .select('id, palier, duree_mois, montant_fcfa, devise, montant_devise, provider, statut, created_at')
     .eq('entreprise_id', context.entrepriseId)
     .order('created_at', { ascending: false })
     .limit(10)
@@ -57,7 +57,7 @@ export default async function AbonnementPage() {
 
       <div className="bg-background rounded-xl border border-surface-border p-6">
         <h2 className="font-semibold mb-4">{actif ? 'Changer de palier / renouveler' : "S'abonner"}</h2>
-        <PlanSelector palierActuel={palier} telephoneParDefaut={entreprise?.telephone ?? undefined} />
+        <PlanSelector palierActuel={palier} telephoneParDefaut={entreprise?.telephone ?? undefined} autrePays={entreprise?.devise === 'AUCUNE'} />
       </div>
 
       <div className="bg-background rounded-xl border border-surface-border overflow-hidden">
@@ -80,7 +80,7 @@ export default async function AbonnementPage() {
                   <td className="px-4 py-3 text-foreground-muted">{new Date(h.created_at).toLocaleDateString('fr-FR')}</td>
                   <td className="px-4 py-3">{PALIERS[h.palier as PalierCode]?.nom ?? h.palier}</td>
                   <td className="px-4 py-3">{h.duree_mois} mois</td>
-                  <td className="px-4 py-3">{h.montant_fcfa.toLocaleString('fr-FR')} FCFA</td>
+                  <td className="px-4 py-3">{h.devise === 'USD' ? `${Number(h.montant_devise).toLocaleString('en-US')} $` : `${h.montant_fcfa.toLocaleString('fr-FR')} FCFA`}</td>
                   <td className="px-4 py-3 capitalize">{h.provider}</td>
                   <td className="px-4 py-3">
                     {h.statut === 'paye' && <span className="text-success font-medium">Payé</span>}

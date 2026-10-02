@@ -2,21 +2,25 @@
 
 import { useState, useTransition } from 'react'
 import { Check } from 'lucide-react'
-import { PALIERS, DUREES, calculerMontantFcfa, type PalierCode, type DureeMois } from '@/lib/abonnements/paliers'
-import { PAYS_TELEPHONE_SUPPORTES } from '@/lib/abonnements/telephone'
+import { PALIERS, DUREES, calculerMontantFcfa, calculerMontantUsd, TAUX_FCFA_PAR_USD, type PalierCode, type DureeMois } from '@/lib/abonnements/paliers'
+import { AUTRE_PAYS, PAYS, paieEnDollars } from '@/lib/pays'
 import { demarrerInscription } from './actions'
-
-const NOM_PAYS: Record<string, string> = {
-  SN: 'Sénégal',
-  CI: "Côte d'Ivoire",
-  ML: 'Mali',
-  BJ: 'Bénin',
-  BF: 'Burkina Faso',
-  TG: 'Togo',
-}
 
 function formatFcfa(montant: number): string {
   return `${montant.toLocaleString('fr-FR')} FCFA`
+}
+
+function formatUsd(montant: number): string {
+  return `${montant.toLocaleString('en-US')} $`
+}
+
+/** Pays triés selon leur nom dans la langue du visiteur (noms français si le navigateur ne sait pas traduire). */
+function paysTries(locale: string) {
+  let noms: Intl.DisplayNames | null = null
+  try {
+    noms = new Intl.DisplayNames([locale], { type: 'region' })
+  } catch {}
+  return PAYS.map((p) => ({ code: p.code, nom: noms?.of(p.code) ?? p.nom })).sort((a, b) => a.nom.localeCompare(b.nom, locale))
 }
 
 type Dict = {
@@ -32,11 +36,14 @@ type Dict = {
   payNow: string
   redirecting: string
   storesUpTo: string
+  otherCountry: string
+  otherCountryName: string
+  usdNote: string
   perMonth: string
   afterPaymentNote: string
 }
 
-export default function InscriptionForm({ t }: { t: Dict }) {
+export default function InscriptionForm({ t, locale }: { t: Dict; locale: string }) {
   const [palier, setPalier] = useState<PalierCode>('standard')
   const [dureeMois, setDureeMois] = useState<DureeMois>(1)
   const [nomEntreprise, setNomEntreprise] = useState('')
@@ -44,17 +51,22 @@ export default function InscriptionForm({ t }: { t: Dict }) {
   const [email, setEmail] = useState('')
   const [telephonePays, setTelephonePays] = useState('SN')
   const [telephoneLocal, setTelephoneLocal] = useState('')
+  const [nomPaysAutre, setNomPaysAutre] = useState('')
   const [erreur, setErreur] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  const montant = calculerMontantFcfa(palier, dureeMois)
+  // « Autre pays » : abonnement payé par carte en dollars US
+  const enDollars = paieEnDollars(telephonePays)
+  const prix = (fcfa: number) => (enDollars ? formatUsd(Math.max(1, Math.round(fcfa / TAUX_FCFA_PAR_USD))) : formatFcfa(fcfa))
+  const montant = enDollars ? formatUsd(calculerMontantUsd(palier, dureeMois)) : formatFcfa(calculerMontantFcfa(palier, dureeMois))
 
-  const pretAEnvoyer = nomEntreprise.trim() && contactNom.trim() && email.trim() && telephoneLocal.trim()
+  const pretAEnvoyer =
+    nomEntreprise.trim() && contactNom.trim() && email.trim() && telephoneLocal.trim() && (!enDollars || nomPaysAutre.trim())
 
   const handlePayer = () => {
     setErreur(null)
     startTransition(async () => {
-      const resultat = await demarrerInscription(nomEntreprise, contactNom, email, telephoneLocal, telephonePays, palier, dureeMois)
+      const resultat = await demarrerInscription(nomEntreprise, contactNom, email, telephoneLocal, telephonePays, palier, dureeMois, nomPaysAutre)
       if ('error' in resultat) {
         setErreur(resultat.error)
         return
@@ -82,7 +94,7 @@ export default function InscriptionForm({ t }: { t: Dict }) {
                 <span className="font-bold text-lg">{info.nom}</span>
                 {selectionne && <Check className="h-5 w-5 text-primary" />}
               </div>
-              <p className="text-3xl font-bold font-heading">{formatFcfa(info.prixMensuelFcfa)}</p>
+              <p className="text-3xl font-bold font-heading">{prix(info.prixMensuelFcfa)}</p>
               <p className="text-sm text-foreground-muted mb-3">{t.perMonth}</p>
               <p className="text-sm text-foreground-muted">
                 {t.storesUpTo.replace('{n}', String(info.magasinsMax))}
@@ -148,33 +160,50 @@ export default function InscriptionForm({ t }: { t: Dict }) {
           />
         </div>
 
-        <div className="grid grid-cols-[7rem_1fr] gap-3">
+        <div>
+          <label htmlFor="pays" className="block text-sm font-medium text-foreground mb-1">{t.country}</label>
+          <select
+            id="pays"
+            value={telephonePays}
+            onChange={(e) => setTelephonePays(e.target.value)}
+            disabled={isPending}
+            className="w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2 text-sm"
+          >
+            {paysTries(locale).map((p) => (
+              <option key={p.code} value={p.code}>
+                {p.nom}
+              </option>
+            ))}
+            <option value={AUTRE_PAYS}>{t.otherCountry}</option>
+          </select>
+        </div>
+
+        {enDollars && (
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">{t.country}</label>
-            <select
-              value={telephonePays}
-              onChange={(e) => setTelephonePays(e.target.value)}
-              disabled={isPending}
-              className="w-full rounded-md bg-background border border-surface-border text-foreground px-2 py-2 text-sm"
-            >
-              {PAYS_TELEPHONE_SUPPORTES.map((code) => (
-                <option key={code} value={code}>
-                  {NOM_PAYS[code] ?? code}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">{t.phone}</label>
+            <label htmlFor="nom-pays" className="block text-sm font-medium text-foreground mb-1">{t.otherCountryName}</label>
             <input
-              type="tel"
-              value={telephoneLocal}
-              onChange={(e) => setTelephoneLocal(e.target.value)}
+              id="nom-pays"
+              type="text"
+              value={nomPaysAutre}
+              onChange={(e) => setNomPaysAutre(e.target.value)}
               disabled={isPending}
-              placeholder="77 123 45 67"
               className="w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2 text-sm"
             />
+            <p className="mt-1 text-xs text-foreground-muted">{t.usdNote}</p>
           </div>
+        )}
+
+        <div>
+          <label htmlFor="telephone" className="block text-sm font-medium text-foreground mb-1">{t.phone}</label>
+          <input
+            id="telephone"
+            type="tel"
+            value={telephoneLocal}
+            onChange={(e) => setTelephoneLocal(e.target.value)}
+            disabled={isPending}
+            placeholder={enDollars ? '+44 7700 900123' : '77 123 45 67'}
+            className="w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2 text-sm"
+          />
         </div>
 
         {erreur && <p className="text-sm text-danger">{erreur}</p>}
@@ -182,7 +211,7 @@ export default function InscriptionForm({ t }: { t: Dict }) {
         <div className="flex items-center justify-between rounded-lg bg-background border border-surface-border px-4 py-3">
           <div>
             <p className="text-sm text-foreground-muted">{t.totalToPay}</p>
-            <p className="text-xl font-bold font-heading">{formatFcfa(montant)}</p>
+            <p className="text-xl font-bold font-heading">{montant}</p>
           </div>
           <button
             type="button"

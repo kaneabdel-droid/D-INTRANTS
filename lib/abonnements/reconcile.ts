@@ -19,6 +19,9 @@ type LigneAbonnement = {
   palier: PalierCode
   duree_mois: DureeMois
   montant_fcfa: number
+  // XOF par défaut ; USD pour un client d'un autre pays, montant_devise étant alors le montant en dollars (migration 27)
+  devise: string
+  montant_devise: number | null
   provider: ProviderId
   provider_reference: string | null
   statut: 'en_attente' | 'paye' | 'echoue'
@@ -31,16 +34,23 @@ type ResultatReconciliation =
 
 // Tolérance anti-fraude 5% (fees/arrondis provider), cf. Chariow.md §5 et la
 // skill izisaas — un écart au-delà n'est jamais crédité, seulement journalisé.
-async function appliquerStatut(ligne: LigneAbonnement, statutDistant: StatutProvider, montantDistant?: number, payeLe?: Date): Promise<ResultatReconciliation> {
+async function appliquerStatut(ligne: LigneAbonnement, statutDistant: StatutProvider, montantDistant?: number, payeLe?: Date, deviseDistante?: string): Promise<ResultatReconciliation> {
   if (ligne.statut !== 'en_attente') return { ok: true, credite: ligne.statut === 'paye' }
 
   const supabase = createAdminClient()
 
   if (statutDistant === 'succeeded') {
+    const enDollars = ligne.devise === 'USD'
+    // Un paiement demandé en dollars doit être confirmé en dollars : un montant identique dans une autre devise est une fraude.
+    if (enDollars && deviseDistante && deviseDistante.toUpperCase() !== 'USD') {
+      console.error('[Abonnements] anomalie devise — NON crédité', { abonnementId: ligne.id, attendu: 'USD', recu: deviseDistante })
+      return { ok: false, raison: 'devise_suspecte' }
+    }
+    const attendu = enDollars ? Number(ligne.montant_devise) : ligne.montant_fcfa
     if (montantDistant !== undefined) {
-      const ecart = Math.abs(montantDistant - ligne.montant_fcfa) / ligne.montant_fcfa
+      const ecart = Math.abs(montantDistant - attendu) / attendu
       if (ecart > 0.05) {
-        console.error('[Abonnements] anomalie montant — NON crédité', { abonnementId: ligne.id, attendu: ligne.montant_fcfa, recu: montantDistant })
+        console.error('[Abonnements] anomalie montant — NON crédité', { abonnementId: ligne.id, attendu, recu: montantDistant })
         return { ok: false, raison: 'montant_suspect' }
       }
     }
@@ -125,7 +135,7 @@ export async function reconcilierParReferenceProvider(provider: ProviderId, prov
   const distant = await adaptateurPour(provider).recupererStatut(providerReference)
   if (!distant) return { ok: false, raison: 're_pull_impossible' }
 
-  return appliquerStatut(ligne, distant.statut, distant.montant, distant.payeLe)
+  return appliquerStatut(ligne, distant.statut, distant.montant, distant.payeLe, distant.devise)
 }
 
 export async function reconcilierParAbonnementId(abonnementId: string): Promise<ResultatReconciliation> {
@@ -138,7 +148,7 @@ export async function reconcilierParAbonnementId(abonnementId: string): Promise<
   const distant = await adaptateurPour(ligne.provider).recupererStatut(ligne.provider_reference)
   if (!distant) return { ok: false, raison: 're_pull_impossible' }
 
-  return appliquerStatut(ligne, distant.statut, distant.montant, distant.payeLe)
+  return appliquerStatut(ligne, distant.statut, distant.montant, distant.payeLe, distant.devise)
 }
 
 // Chemin Bictorys UNIQUEMENT : le re-pull serveur est bloqué par leur WAF (cf.

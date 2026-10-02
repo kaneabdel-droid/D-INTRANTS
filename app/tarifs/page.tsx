@@ -35,7 +35,7 @@ export default async function TarifsPage() {
 
         <section className="py-16 bg-background">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl">
-            <InscriptionForm t={t} />
+            <InscriptionForm t={t} locale={locale} />
           </div>
         </section>
       </main>

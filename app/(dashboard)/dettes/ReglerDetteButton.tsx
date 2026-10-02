@@ -60,7 +60,7 @@ export default function ReglerDetteButton({ detteId, montantRestant, comptes, di
                     <label className="block text-sm font-medium text-foreground">{t.montantRegle}</label>
                     <input
                       type="number"
-                      step="0.01"
+                      step="any"
                       min="0.01"
                       max={montantRestant}
                       value={montant}

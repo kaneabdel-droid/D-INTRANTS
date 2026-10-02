@@ -153,14 +153,14 @@ export default function CreateVenteButton({ articles, clients, dict }: { article
                           />
                           <input
                             type="number"
-                            step="0.01"
+                            step="any"
                             placeholder={t.quantitePlaceholder}
                             {...register(`lignes.${index}.quantite`)}
                             className="rounded-md bg-background border border-surface-border text-foreground px-2 py-2 text-sm"
                           />
                           <input
                             type="number"
-                            step="0.01"
+                            step="any"
                             placeholder={t.prixUnitairePlaceholder}
                             {...register(`lignes.${index}.prix_unitaire`)}
                             className="rounded-md bg-background border border-surface-border text-foreground px-2 py-2 text-sm"
@@ -187,7 +187,7 @@ export default function CreateVenteButton({ articles, clients, dict }: { article
                       <label className="block text-sm font-medium text-foreground">{t.montantPayeLabel}</label>
                       <input
                         type="number"
-                        step="0.01"
+                        step="any"
                         {...register('montant_paye')}
                         className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2"
                       />

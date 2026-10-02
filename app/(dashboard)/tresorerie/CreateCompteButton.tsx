@@ -56,7 +56,7 @@ export default function CreateCompteButton({ dict }: { dict: Dictionary }) {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground">{t.soldeInitialLabel}</label>
-                      <input name="solde_initial" type="number" step="0.01" defaultValue={0} className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2" />
+                      <input name="solde_initial" type="number" step="any" defaultValue={0} className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2" />
                     </div>
                   </div>
                 </form>

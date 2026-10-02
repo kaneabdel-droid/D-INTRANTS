@@ -4,21 +4,26 @@ import { PALIERS, type PalierCode } from '@/lib/abonnements/paliers'
 import RattacherDemandeForm from './RattacherDemandeForm'
 import SupprimerAbonnementButton from '../paiements/SupprimerAbonnementButton'
 
-type Metadata = { nomEntreprise?: string; contactNom?: string; contactEmail?: string; contactTelephone?: string }
+type Metadata = { nomEntreprise?: string; contactNom?: string; contactEmail?: string; contactTelephone?: string; paysNom?: string }
+
+// Montant demandé : en dollars pour un client d'un autre pays (migration 27), sinon en FCFA.
+function montant(d: { montant_fcfa: number; devise?: string | null; montant_devise?: number | null }) {
+  return d.devise === 'USD' ? `${Number(d.montant_devise).toLocaleString('en-US')} $` : `${Number(d.montant_fcfa).toLocaleString('fr-FR')} FCFA`
+}
 
 export default async function AdminDemandesPage() {
   const supabase = createAdminClient()
 
   const { data: demandesEnAttente } = await supabase
     .from('abonnements')
-    .select('id, palier, duree_mois, montant_fcfa, provider, metadata, paye_at, created_at')
+    .select('id, palier, duree_mois, montant_fcfa, devise, montant_devise, provider, metadata, paye_at, created_at')
     .is('entreprise_id', null)
     .eq('statut', 'paye')
     .order('paye_at', { ascending: false })
 
   const { data: demandesTraitees } = await supabase
     .from('abonnements')
-    .select('id, palier, duree_mois, montant_fcfa, metadata, paye_at, entreprise_id, entreprises(nom)')
+    .select('id, palier, duree_mois, montant_fcfa, devise, montant_devise, metadata, paye_at, entreprise_id, entreprises(nom)')
     .not('entreprise_id', 'is', null)
     .eq('statut', 'paye')
     .contains('metadata', { demandePublique: true })
@@ -59,11 +64,12 @@ export default async function AdminDemandesPage() {
                   <td className="px-4 py-3 text-foreground-muted">
                     <div>{meta.contactNom}</div>
                     <div className="text-xs">{meta.contactEmail} · {meta.contactTelephone}</div>
+                    {meta.paysNom && <div className="text-xs">{meta.paysNom}</div>}
                   </td>
                   <td className="px-4 py-3">
                     {PALIERS[d.palier as PalierCode]?.nom ?? d.palier} · {d.duree_mois} mois
                   </td>
-                  <td className="px-4 py-3">{Number(d.montant_fcfa).toLocaleString('fr-FR')} FCFA</td>
+                  <td className="px-4 py-3">{montant(d)}</td>
                   <td className="px-4 py-3">
                     <RattacherDemandeForm abonnementId={d.id} entreprises={entreprises ?? []} />
                   </td>
@@ -106,7 +112,7 @@ export default async function AdminDemandesPage() {
                     </Link>
                   </td>
                   <td className="px-4 py-3">{PALIERS[d.palier as PalierCode]?.nom ?? d.palier} · {d.duree_mois} mois</td>
-                  <td className="px-4 py-3">{Number(d.montant_fcfa).toLocaleString('fr-FR')} FCFA</td>
+                  <td className="px-4 py-3">{montant(d)}</td>
                 </tr>
               )
             })}

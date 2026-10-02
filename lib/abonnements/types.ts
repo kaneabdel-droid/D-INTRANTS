@@ -7,11 +7,13 @@ export type InitierPaiementParams = {
   palier: PalierCode
   dureeMois: DureeMois
   montantFcfa: number
+  /** Renseigné pour un client d'un autre pays : paiement en dollars US de ce montant (Moneroo uniquement). */
+  montantUsd?: number
   emailClient: string
   prenomClient: string
   nomClient: string
   telephoneLocal: string
-  /** ISO2 du pays du numéro (SN, CI, ML, BJ, BF, TG...). */
+  /** ISO2 du pays du numéro (cf. lib/pays.ts), ou AUTRE pour un numéro saisi au format international. */
   telephonePays: string
   retourUrl: string
   nomEntreprise: string

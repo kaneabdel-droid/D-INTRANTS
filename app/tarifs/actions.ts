@@ -1,8 +1,10 @@
 'use server'
 
 import { createAdminClient } from '@/utils/supabase/admin'
-import { estPalierValide, estDureeValide, calculerMontantFcfa } from '@/lib/abonnements/paliers'
-import { adaptateurActif, providerActif } from '@/lib/abonnements/registry'
+import { estPalierValide, estDureeValide, calculerMontantFcfa, calculerMontantUsd, equivalentFcfa } from '@/lib/abonnements/paliers'
+import { adaptateurPour, providerActif } from '@/lib/abonnements/registry'
+import { PAYS_TELEPHONE_SUPPORTES } from '@/lib/abonnements/telephone'
+import { nomPays, paieEnDollars } from '@/lib/pays'
 import { reconcilierParAbonnementId } from '@/lib/abonnements/reconcile'
 import { estRecent } from '@/lib/abonnements/antiDoublon'
 
@@ -21,18 +23,26 @@ export async function demarrerInscription(
   telephoneLocal: string,
   telephonePays: string,
   palierBrut: string,
-  dureeMoisBrut: number
+  dureeMoisBrut: number,
+  nomPaysAutre = ''
 ): Promise<ResultatDemarrage> {
   if (!nomEntreprise.trim()) return { error: "Le nom de l'entreprise est requis" }
   if (!contactNom.trim()) return { error: 'Le nom du contact est requis' }
   if (!email.trim()) return { error: 'Une adresse e-mail est requise' }
   if (!telephoneLocal.trim()) return { error: 'Le numéro de téléphone est requis' }
+  if (!PAYS_TELEPHONE_SUPPORTES.includes(telephonePays)) return { error: 'Pays invalide' }
+  // « Autre pays » : paiement en dollars US par carte (Moneroo), quel que soit le prestataire actif.
+  const enDollars = paieEnDollars(telephonePays)
+  if (enDollars && !nomPaysAutre.trim()) return { error: 'Indiquez le nom de votre pays' }
   if (!estPalierValide(palierBrut)) return { error: 'Palier invalide' }
   if (!estDureeValide(dureeMoisBrut)) return { error: 'Durée invalide' }
 
   const palier = palierBrut
   const dureeMois = dureeMoisBrut
-  const montantFcfa = calculerMontantFcfa(palier, dureeMois)
+  const montantUsd = enDollars ? calculerMontantUsd(palier, dureeMois) : undefined
+  const montantFcfa = montantUsd ? equivalentFcfa(montantUsd) : calculerMontantFcfa(palier, dureeMois)
+  const provider = enDollars ? 'moneroo' : providerActif()
+  const pays = { pays: telephonePays, paysNom: nomPays(telephonePays, nomPaysAutre) }
 
   const supabase = createAdminClient()
   const emailNormalise = email.trim().toLowerCase()
@@ -54,7 +64,6 @@ export async function demarrerInscription(
   }
 
   // (2/2) Même offre relancée récemment → même page de paiement (double clic, second onglet...).
-  const provider = providerActif()
   const enCours = (demandes ?? []).find(
     (d) =>
       d.statut === 'en_attente' &&
@@ -75,6 +84,8 @@ export async function demarrerInscription(
       palier,
       duree_mois: dureeMois,
       montant_fcfa: montantFcfa,
+      devise: enDollars ? 'USD' : 'XOF',
+      montant_devise: montantUsd ?? montantFcfa,
       provider,
       statut: 'en_attente',
       metadata: {
@@ -83,6 +94,7 @@ export async function demarrerInscription(
         contactNom: contactNom.trim(),
         contactEmail: emailNormalise,
         contactTelephone: telephoneLocal.trim(),
+        ...pays,
       },
     })
     .select('id')
@@ -91,11 +103,12 @@ export async function demarrerInscription(
   if (insertError || !abonnement) return { error: insertError?.message || 'Impossible de créer la demande' }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-  const resultat = await adaptateurActif().initierPaiement({
+  const resultat = await adaptateurPour(provider).initierPaiement({
     abonnementId: abonnement.id,
     palier,
     dureeMois,
     montantFcfa,
+    montantUsd,
     emailClient: email.trim(),
     prenomClient: contactNom.trim(),
     nomClient: '',
@@ -121,6 +134,7 @@ export async function demarrerInscription(
         contactNom: contactNom.trim(),
         contactEmail: emailNormalise,
         contactTelephone: telephoneLocal.trim(),
+        ...pays,
         ...(resultat.montantFacture ? { montantFacture: resultat.montantFacture, deviseFacturee: resultat.deviseFacturee } : {}),
       },
     })

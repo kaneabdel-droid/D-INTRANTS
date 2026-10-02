@@ -2,21 +2,14 @@
 //
 // Contrairement au modèle BYOK complet documenté dans la skill izisaas
 // (voir __MACOSX/../"izisaas mobile money skills"/references/*.md), qui utilise
-// libphonenumber pour couvrir le monde entier, d-intrants ne cible que le Sénégal
-// et ses voisins UEMOA : un indicatif codé en dur pour cette liste de pays
-// suffit et évite une dépendance supplémentaire (libphonenumber n'est pas dans
-// package.json). Si un pays hors de cette liste est nécessaire un jour,
-// ajouter son indicatif ici plutôt que de réintroduire une dépendance lourde.
-const INDICATIFS: Record<string, string> = {
-  SN: '221',
-  CI: '225',
-  ML: '223',
-  BJ: '229',
-  BF: '226',
-  TG: '228',
-}
+// libphonenumber pour couvrir le monde entier, on se contente des indicatifs des
+// pays listés dans lib/pays.ts (pas de dépendance supplémentaire). Pour « Autre
+// pays », le client saisit son numéro au format international (+…).
+import { AUTRE_PAYS, PAYS } from '@/lib/pays'
 
-export const PAYS_TELEPHONE_SUPPORTES = Object.keys(INDICATIFS) as Array<keyof typeof INDICATIFS>
+const INDICATIFS: Record<string, string> = Object.fromEntries(PAYS.map((p) => [p.code, p.indicatif]))
+
+export const PAYS_TELEPHONE_SUPPORTES = [...PAYS.map((p) => p.code), AUTRE_PAYS]
 
 // Chariow exige { number: national SANS le 0 ni l'indicatif, country_code: ISO2 }
 // (cf. Chariow.md §3bis) — un E.164 brut ou un 0 initial fait échouer le
@@ -34,9 +27,10 @@ export function versNumeroNational(local: string, paysIso2: string): string {
 }
 
 // Moneroo/Bictorys attendent plutôt un numéro complet ; on reconstruit un E.164
-// du mieux possible à partir du même indicatif codé en dur.
+// du mieux possible à partir de l'indicatif du pays (numéro déjà international
+// pour « Autre pays »).
 export function versE164(local: string, paysIso2: string): string {
-  const national = versNumeroNational(local, paysIso2)
   const indicatif = INDICATIFS[paysIso2]
-  return indicatif ? `+${indicatif}${national}` : local.replace(/\D/g, '')
+  if (!indicatif) return `+${local.replace(/\D/g, '').replace(/^00/, '')}`
+  return `+${indicatif}${versNumeroNational(local, paysIso2)}`
 }

@@ -602,7 +602,10 @@
     "redirecting": "Redirecting...",
     "storesUpTo": "Up to {n} store(s)",
     "perMonth": "/ month",
-    "afterPaymentNote": "Once payment is confirmed, your company account is created within 24 business hours and your access details are emailed to you."
+    "afterPaymentNote": "Once payment is confirmed, your company account is created within 24 business hours and your access details are emailed to you.",
+    "otherCountry": "Other country",
+    "otherCountryName": "Your country",
+    "usdNote": "Outside the listed countries, the subscription is paid by bank card in US dollars."
   },
   "guide": {
     "meta": {

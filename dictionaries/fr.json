@@ -602,7 +602,10 @@
     "redirecting": "Redirection...",
     "storesUpTo": "Jusqu'à {n} magasin(s)",
     "perMonth": "/ mois",
-    "afterPaymentNote": "Après confirmation du paiement, votre compte entreprise est créé sous 24h ouvrées et vos accès vous sont envoyés par e-mail."
+    "afterPaymentNote": "Après confirmation du paiement, votre compte entreprise est créé sous 24h ouvrées et vos accès vous sont envoyés par e-mail.",
+    "otherCountry": "Autre pays",
+    "otherCountryName": "Nom de votre pays",
+    "usdNote": "Hors des pays listés, l’abonnement se paie par carte bancaire en dollars US."
   },
   "guide": {
     "meta": {

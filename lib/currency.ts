@@ -4,7 +4,8 @@
 // épars par un formatage qui respecte le nombre de décimales et le symbole de
 // la devise choisie par l'entreprise (cf. /parametres).
 
-export type DeviseCode = 'XOF' | 'XAF' | 'MRU' | 'MAD' | 'GNF' | 'EUR' | 'USD'
+// AUCUNE : entreprise d'un pays dont la devise n'est pas gérée (« Autre pays », lib/pays.ts) — montants affichés sans unité.
+export type DeviseCode = 'XOF' | 'XAF' | 'MRU' | 'MAD' | 'GNF' | 'EUR' | 'USD' | 'AUCUNE'
 
 export const DEVISES: Record<DeviseCode, { label: string; symbole: string; decimales: number }> = {
   XOF: { label: 'Franc CFA — BCEAO (XOF)', symbole: 'FCFA', decimales: 0 },
@@ -14,6 +15,7 @@ export const DEVISES: Record<DeviseCode, { label: string; symbole: string; decim
   GNF: { label: 'Franc guinéen (GNF)', symbole: 'GNF', decimales: 0 },
   EUR: { label: 'Euro (EUR)', symbole: '€', decimales: 2 },
   USD: { label: 'Dollar US (USD)', symbole: '$', decimales: 2 },
+  AUCUNE: { label: 'Sans unité (autre pays)', symbole: '', decimales: 2 },
 }
 
 export const DEVISE_PAR_DEFAUT: DeviseCode = 'XOF'
@@ -29,5 +31,5 @@ export function formatMontant(valeur: number | null | undefined, devise?: string
     minimumFractionDigits: info.decimales,
     maximumFractionDigits: info.decimales,
   })
-  return `${nombre} ${info.symbole}`
+  return info.symbole ? `${nombre} ${info.symbole}` : nombre
 }

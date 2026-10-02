@@ -3,8 +3,10 @@
 import { getCurrentUserContext } from '@/lib/auth/getCurrentUserContext'
 import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
-import { estPalierValide, estDureeValide, calculerMontantFcfa } from '@/lib/abonnements/paliers'
-import { adaptateurActif, providerActif } from '@/lib/abonnements/registry'
+import { estPalierValide, estDureeValide, calculerMontantFcfa, calculerMontantUsd, equivalentFcfa } from '@/lib/abonnements/paliers'
+import { adaptateurPour, providerActif } from '@/lib/abonnements/registry'
+import { PAYS_TELEPHONE_SUPPORTES } from '@/lib/abonnements/telephone'
+import { paieEnDollars } from '@/lib/pays'
 import { reconcilierParAbonnementId } from '@/lib/abonnements/reconcile'
 import { estRecent, refusRenouvellementAnticipe } from '@/lib/abonnements/antiDoublon'
 
@@ -21,10 +23,15 @@ export async function demarrerPaiementAbonnement(
   if (!estPalierValide(palierBrut)) return { error: 'Palier invalide' }
   if (!estDureeValide(dureeMoisBrut)) return { error: 'Durée invalide' }
   if (!telephoneLocal.trim()) return { error: 'Le numéro de téléphone est requis' }
+  if (!PAYS_TELEPHONE_SUPPORTES.includes(telephonePays)) return { error: 'Pays invalide' }
 
   const palier = palierBrut
   const dureeMois = dureeMoisBrut
-  const montantFcfa = calculerMontantFcfa(palier, dureeMois)
+  // « Autre pays » : paiement par carte en dollars US (Moneroo), quel que soit le prestataire actif.
+  const enDollars = paieEnDollars(telephonePays)
+  const montantUsd = enDollars ? calculerMontantUsd(palier, dureeMois) : undefined
+  const montantFcfa = montantUsd ? equivalentFcfa(montantUsd) : calculerMontantFcfa(palier, dureeMois)
+  const provider = enDollars ? 'moneroo' : providerActif()
 
   const supabaseSession = await createClient()
   const { data: { user } } = await supabaseSession.auth.getUser()
@@ -46,7 +53,7 @@ export async function demarrerPaiementAbonnement(
 
   // Anti double paiement (2/2) : relancer la même offre renvoie vers le paiement
   // déjà ouvert au lieu d'en créer un second (double clic, second onglet...).
-  const offre = { palier, dureeMois, montantFcfa, provider: providerActif() }
+  const offre = { palier, dureeMois, montantFcfa, provider }
   const reutilisable = await paiementEnCoursReutilisable(context.entrepriseId, offre)
   if (reutilisable) return reutilisable
 
@@ -57,7 +64,9 @@ export async function demarrerPaiementAbonnement(
       palier,
       duree_mois: dureeMois,
       montant_fcfa: montantFcfa,
-      provider: providerActif(),
+      devise: enDollars ? 'USD' : 'XOF',
+      montant_devise: montantUsd ?? montantFcfa,
+      provider,
       statut: 'en_attente',
     })
     .select('id')
@@ -75,11 +84,12 @@ export async function demarrerPaiementAbonnement(
   }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-  const resultat = await adaptateurActif().initierPaiement({
+  const resultat = await adaptateurPour(provider).initierPaiement({
     abonnementId: abonnement.id,
     palier,
     dureeMois,
     montantFcfa,
+    montantUsd,
     emailClient: user.email,
     prenomClient: profil?.prenom || '',
     nomClient: profil?.nom || '',
