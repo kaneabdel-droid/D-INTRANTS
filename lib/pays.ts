@@ -6,7 +6,7 @@ import type { DeviseCode } from '@/lib/currency'
 
 export type Pays = { code: string; nom: string; indicatif: string; devise: DeviseCode }
 
-export const PAYS: Pays[
+export const PAYS: Pays[] = [
   // Autres pays ajoutés
   { code: 'DZ', nom: 'Algérie', indicatif: '213', devise: 'AUCUNE' },
   { code: 'AO', nom: 'Angola', indicatif: '244', devise: 'AUCUNE' },
