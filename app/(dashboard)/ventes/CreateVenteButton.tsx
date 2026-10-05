@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -48,6 +48,13 @@ export default function CreateVenteButton({ articles, clients, dict }: { article
   const lignes = watch('lignes')
   const modePaiement = watch('mode_paiement')
   const montantTotal = lignes.reduce((sum, l) => sum + (Number(l.quantite) || 0) * (Number(l.prix_unitaire) || 0), 0)
+
+  // Force montant_paye to be equal to montantTotal when mode_paiement is 'comptant'
+  useEffect(() => {
+    if (modePaiement === 'comptant') {
+      setValue('montant_paye', montantTotal, { shouldValidate: true })
+    }
+  }, [modePaiement, montantTotal, setValue])
 
   const close = () => {
     setIsOpen(false)
@@ -189,7 +196,8 @@ export default function CreateVenteButton({ articles, clients, dict }: { article
                         type="number"
                         step="any"
                         {...register('montant_paye')}
-                        className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2"
+                        className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2 disabled:opacity-50"
+                        readOnly={modePaiement === 'comptant'}
                       />
                       {errors.montant_paye && <p className="text-xs text-danger mt-1">{errors.montant_paye.message}</p>}
                     </div>

@@ -8,16 +8,18 @@ import type { AdaptateurPaiement, ProviderId } from './types'
 import { chariowAdapter } from './providers/chariow'
 import { monerooAdapter } from './providers/moneroo'
 import { bictorysAdapter } from './providers/bictorys'
+import { maketouAdapter } from './providers/maketou'
 
 const ADAPTATEURS: Record<ProviderId, AdaptateurPaiement> = {
   chariow: chariowAdapter,
   moneroo: monerooAdapter,
   bictorys: bictorysAdapter,
+  maketou: maketouAdapter,
 }
 
 export function providerActif(): ProviderId {
   const v = process.env.PAYMENT_PROVIDER_ACTIF
-  if (v === 'moneroo' || v === 'bictorys' || v === 'chariow') return v
+  if (v === 'moneroo' || v === 'bictorys' || v === 'chariow' || v === 'maketou') return v
   return 'chariow'
 }
 

@@ -1,6 +1,6 @@
 import type { PalierCode, DureeMois } from './paliers'
 
-export type ProviderId = 'chariow' | 'moneroo' | 'bictorys'
+export type ProviderId = 'chariow' | 'moneroo' | 'bictorys' | 'maketou'
 
 export type InitierPaiementParams = {
   abonnementId: string
