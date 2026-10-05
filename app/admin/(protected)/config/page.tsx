@@ -9,10 +9,10 @@ export default async function AdminConfigPage() {
   const { data: mProduits } = await supabase.from('maketou_produits').select('palier, duree_mois, product_id')
 
   const prestataires = [
-    { nom: 'Bictorys (Wave, Orange Money)', ok: Boolean(process.env.BICTORYS_API_KEY && process.env.BICTORYS_WEBHOOK_SECRET) },
-    { nom: 'Moneroo (Carte bancaire)', ok: Boolean(process.env.MONEROO_API_KEY && process.env.MONEROO_WEBHOOK_SECRET) },
-    { nom: 'Chariow (Mobile Money)', ok: Boolean(process.env.CHARIOW_API_KEY) },
-    { nom: 'Maketou (Mobile Money)', ok: Boolean(process.env.MAKETOU_API_KEY) },
+    { nom: 'Bictorys (Wave, Orange Money, Mobile Money)', ok: Boolean(process.env.BICTORYS_API_KEY && process.env.BICTORYS_WEBHOOK_SECRET) },
+    { nom: 'Moneroo (Mobile Money / carte)', ok: Boolean(process.env.MONEROO_API_KEY && process.env.MONEROO_WEBHOOK_SECRET) },
+    { nom: 'Chariow (Mobile Money / carte)', ok: Boolean(process.env.CHARIOW_API_KEY) },
+    { nom: 'Maketou (Mobile Money / carte)', ok: Boolean(process.env.MAKETOU_API_KEY) },
   ]
 
   return (
