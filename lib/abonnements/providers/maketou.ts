@@ -1,4 +1,5 @@
-import { maketouApiKey, maketouApiUrl } from '../config'
+const maketouApiKey = process.env.MAKETOU_API_KEY
+const maketouApiUrl = process.env.MAKETOU_API_URL || 'https://api.maketou.net'
 
 type InitiateMaketouParams = {
   productId: string
