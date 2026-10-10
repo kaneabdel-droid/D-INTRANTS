@@ -1,8 +1,41 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { isAdminEmail } from '@/lib/admin/auth'
-import { createAdminIdentityMiddlewareClient } from '@/utils/supabase/admin-identity'
 import { withRetry } from '@/utils/supabase/retry'
+
+const ADMIN_COOKIE_OPTIONS = {
+  name: 'sb-demba-admin',
+  domain: '.dembasolution.com',
+  sameSite: 'lax' as const,
+  secure: true,
+}
+
+function createAdminIdentityMiddlewareClient(
+  request: NextRequest,
+  response: NextResponse
+) {
+  if (!process.env.ADMIN_IDENTITY_SUPABASE_URL || !process.env.ADMIN_IDENTITY_SUPABASE_ANON_KEY) {
+    return { auth: { getUser: async () => ({ data: { user: null }, error: null }) } } as any;
+  }
+  return createServerClient(
+    process.env.ADMIN_IDENTITY_SUPABASE_URL!,
+    process.env.ADMIN_IDENTITY_SUPABASE_ANON_KEY!,
+    {
+      cookieOptions: ADMIN_COOKIE_OPTIONS,
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+}
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -63,7 +96,7 @@ export async function updateSession(request: NextRequest) {
     const sharedAdminUser = await withRetry(() =>
       createAdminIdentityMiddlewareClient(request, supabaseResponse)
         .auth.getUser()
-        .then(({ data }) => data.user)
+        .then(({ data }: any) => data.user)
     ).catch(() => null)
 
     if (isAdminEmail(sharedAdminUser?.email) || isAdminEmail(user?.email)) {

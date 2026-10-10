@@ -24,7 +24,8 @@ export async function demarrerInscription(
   telephonePays: string,
   palierBrut: string,
   dureeMoisBrut: number,
-  nomPaysAutre = ''
+  nomPaysAutre = '',
+  moyenPaiement: string = 'maketou'
 ): Promise<ResultatDemarrage> {
   if (!nomEntreprise.trim()) return { error: "Le nom de l'entreprise est requis" }
   if (!contactNom.trim()) return { error: 'Le nom du contact est requis' }
@@ -41,7 +42,7 @@ export async function demarrerInscription(
   const dureeMois = dureeMoisBrut
   const montantUsd = enDollars ? calculerMontantUsd(palier, dureeMois) : undefined
   const montantFcfa = montantUsd ? equivalentFcfa(montantUsd) : calculerMontantFcfa(palier, dureeMois)
-  const provider = enDollars ? 'moneroo' : providerActif()
+  const provider = enDollars ? 'moneroo' : (moyenPaiement === 'chariow' || moyenPaiement === 'maketou') ? moyenPaiement : providerActif()
   const pays = { pays: telephonePays, paysNom: nomPays(telephonePays, nomPaysAutre) }
 
   const supabase = createAdminClient()

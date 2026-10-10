@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Check } from 'lucide-react'
+import { Check, Smartphone } from 'lucide-react'
 import { PALIERS, DUREES, calculerMontantFcfa, calculerMontantUsd, TAUX_FCFA_PAR_USD, type PalierCode, type DureeMois } from '@/lib/abonnements/paliers'
 import { AUTRE_PAYS, PAYS, paieEnDollars } from '@/lib/pays'
 import { demarrerPaiementAbonnement } from './actions'
@@ -32,6 +32,7 @@ export default function PlanSelector({
   const [telephoneLocal, setTelephoneLocal] = useState<string>(telephoneParDefaut ?? '')
   const [erreur, setErreur] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [moyenPaiement, setMoyenPaiement] = useState('maketou')
 
   // « Autre pays » : abonnement payé par carte en dollars US
   const enDollars = paieEnDollars(telephonePays)
@@ -41,7 +42,7 @@ export default function PlanSelector({
   const handlePayer = () => {
     setErreur(null)
     startTransition(async () => {
-      const resultat = await demarrerPaiementAbonnement(palier, dureeMois, telephonePays, telephoneLocal)
+      const resultat = await demarrerPaiementAbonnement(palier, dureeMois, telephonePays, telephoneLocal, moyenPaiement)
       if ('error' in resultat) {
         setErreur(resultat.error)
         return
@@ -133,6 +134,26 @@ export default function PlanSelector({
       {enDollars && (
         <p className="text-xs text-foreground-muted">Hors des pays listés, l’abonnement se paie par carte bancaire en dollars US (numéro au format international).</p>
       )}
+
+      
+      {!enDollars && (
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-foreground mb-3">Moyen de paiement</label>
+          <div className="grid grid-cols-2 gap-3">
+            <label className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all ${moyenPaiement === 'maketou' ? 'border-primary bg-primary/5' : 'border-surface-border bg-surface hover:bg-black/5'}`}>
+              <input type="radio" name="paymentMethod" value="maketou" checked={moyenPaiement === 'maketou'} onChange={() => setMoyenPaiement('maketou')} className="sr-only" />
+              <Smartphone className={`w-6 h-6 mb-2 ${moyenPaiement === 'maketou' ? 'text-primary' : 'text-foreground-muted'}`} />
+              <span className={`font-semibold text-sm ${moyenPaiement === 'maketou' ? 'text-primary' : 'text-foreground'}`}>Maketou</span>
+            </label>
+            <label className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all ${moyenPaiement === 'chariow' ? 'border-primary bg-primary/5' : 'border-surface-border bg-surface hover:bg-black/5'}`}>
+              <input type="radio" name="paymentMethod" value="chariow" checked={moyenPaiement === 'chariow'} onChange={() => setMoyenPaiement('chariow')} className="sr-only" />
+              <Smartphone className={`w-6 h-6 mb-2 ${moyenPaiement === 'chariow' ? 'text-primary' : 'text-foreground-muted'}`} />
+              <span className={`font-semibold text-sm ${moyenPaiement === 'chariow' ? 'text-primary' : 'text-foreground'}`}>Chariow</span>
+            </label>
+          </div>
+        </div>
+      )}
+      
 
       {erreur && <p className="text-sm text-danger">{erreur}</p>}
 

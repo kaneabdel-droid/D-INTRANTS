@@ -81,30 +81,3 @@ export const getLocalUser = cache(async (): Promise<User | null> => {
   }
 })
 
-// Pour le middleware — mêmes options de cookie, branchées sur request/response.
-export function createAdminIdentityMiddlewareClient(
-  request: NextRequest,
-  response: NextResponse
-) {
-  if (!process.env.ADMIN_IDENTITY_SUPABASE_URL || !process.env.ADMIN_IDENTITY_SUPABASE_ANON_KEY) {
-    return { auth: { getUser: async () => ({ data: { user: null }, error: null }) } } as any;
-  }
-  return createServerClient(
-    process.env.ADMIN_IDENTITY_SUPABASE_URL!,
-    process.env.ADMIN_IDENTITY_SUPABASE_ANON_KEY!,
-    {
-      cookieOptions: ADMIN_COOKIE_OPTIONS,
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
-}

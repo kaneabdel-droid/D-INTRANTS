@@ -16,7 +16,8 @@ export async function demarrerPaiementAbonnement(
   palierBrut: string,
   dureeMoisBrut: number,
   telephonePays: string,
-  telephoneLocal: string
+  telephoneLocal: string,
+  moyenPaiement: string = 'maketou'
 ): Promise<ResultatDemarrage> {
   const context = await getCurrentUserContext()
   if (context.role !== 'admin_entreprise') return { error: "Seul l'administrateur de l'entreprise peut gérer l'abonnement" }
@@ -31,7 +32,7 @@ export async function demarrerPaiementAbonnement(
   const enDollars = paieEnDollars(telephonePays)
   const montantUsd = enDollars ? calculerMontantUsd(palier, dureeMois) : undefined
   const montantFcfa = montantUsd ? equivalentFcfa(montantUsd) : calculerMontantFcfa(palier, dureeMois)
-  const provider = enDollars ? 'moneroo' : providerActif()
+  const provider = enDollars ? 'moneroo' : (moyenPaiement === 'chariow' || moyenPaiement === 'maketou') ? moyenPaiement : providerActif()
 
   const supabaseSession = await createClient()
   const { data: { user } } = await supabaseSession.auth.getUser()

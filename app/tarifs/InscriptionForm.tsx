@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Check } from 'lucide-react'
+import { Check, Smartphone } from 'lucide-react'
 import { PALIERS, DUREES, calculerMontantFcfa, calculerMontantUsd, TAUX_FCFA_PAR_USD, type PalierCode, type DureeMois } from '@/lib/abonnements/paliers'
 import { AUTRE_PAYS, PAYS, paieEnDollars } from '@/lib/pays'
 import { demarrerInscription } from './actions'
@@ -54,6 +54,7 @@ export default function InscriptionForm({ t, locale }: { t: Dict; locale: string
   const [nomPaysAutre, setNomPaysAutre] = useState('')
   const [erreur, setErreur] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [moyenPaiement, setMoyenPaiement] = useState('maketou')
 
   // « Autre pays » : abonnement payé par carte en dollars US
   const enDollars = paieEnDollars(telephonePays)
@@ -66,7 +67,7 @@ export default function InscriptionForm({ t, locale }: { t: Dict; locale: string
   const handlePayer = () => {
     setErreur(null)
     startTransition(async () => {
-      const resultat = await demarrerInscription(nomEntreprise, contactNom, email, telephoneLocal, telephonePays, palier, dureeMois, nomPaysAutre)
+      const resultat = await demarrerInscription(nomEntreprise, contactNom, email, telephoneLocal, telephonePays, palier, dureeMois, nomPaysAutre, moyenPaiement)
       if ('error' in resultat) {
         setErreur(resultat.error)
         return
@@ -205,6 +206,26 @@ export default function InscriptionForm({ t, locale }: { t: Dict; locale: string
             className="w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2 text-sm"
           />
         </div>
+
+        
+        {!enDollars && (
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-foreground mb-3">Moyen de paiement</label>
+            <div className="grid grid-cols-2 gap-3">
+              <label className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all ${moyenPaiement === 'maketou' ? 'border-primary bg-primary/5' : 'border-surface-border bg-surface hover:bg-black/5'}`}>
+                <input type="radio" name="paymentMethod" value="maketou" checked={moyenPaiement === 'maketou'} onChange={() => setMoyenPaiement('maketou')} className="sr-only" />
+                <Smartphone className={`w-6 h-6 mb-2 ${moyenPaiement === 'maketou' ? 'text-primary' : 'text-foreground-muted'}`} />
+                <span className={`font-semibold text-sm ${moyenPaiement === 'maketou' ? 'text-primary' : 'text-foreground'}`}>Maketou</span>
+              </label>
+              <label className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all ${moyenPaiement === 'chariow' ? 'border-primary bg-primary/5' : 'border-surface-border bg-surface hover:bg-black/5'}`}>
+                <input type="radio" name="paymentMethod" value="chariow" checked={moyenPaiement === 'chariow'} onChange={() => setMoyenPaiement('chariow')} className="sr-only" />
+                <Smartphone className={`w-6 h-6 mb-2 ${moyenPaiement === 'chariow' ? 'text-primary' : 'text-foreground-muted'}`} />
+                <span className={`font-semibold text-sm ${moyenPaiement === 'chariow' ? 'text-primary' : 'text-foreground'}`}>Chariow</span>
+              </label>
+            </div>
+          </div>
+        )}
+      
 
         {erreur && <p className="text-sm text-danger">{erreur}</p>}
 
