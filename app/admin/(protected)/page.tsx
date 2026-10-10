@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/utils/supabase/admin'
-import { Building2, Store, Users } from 'lucide-react'
+import { Package, Building2, Store, Users } from 'lucide-react'
 
 export default async function AdminDashboardPage() {
   const supabase = createAdminClient()
