@@ -1,20 +1,28 @@
+import type { AdaptateurPaiement, InitierPaiementParams, InitierPaiementResultat, StatutPaiementDistant, StatutProvider } from '../types'
+import type { PalierCode } from '../paliers'
+import type { Pourcentage } from '../plans'
+import { versNumeroNational } from '../telephone'
+import { createAdminClient } from '@/utils/supabase/admin'
 const maketouApiKey = process.env.MAKETOU_API_KEY
 const maketouApiUrl = process.env.MAKETOU_API_URL || 'https://api.maketou.net'
 
-type InitiateMaketouParams = {
-  productId: string
-  reference: string
-  phoneLocal: string
-  countryCode?: string
-  customerEmail: string
-  customerName?: string
-  returnUrl: string
-  montantAttendu?: number
+async function idProduit(palier: PalierCode, pourcentage: Pourcentage): Promise<string | null> {
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from('maketou_produits')
+    .select('product_id')
+    .eq('palier', palier)
+    .eq('pourcentage', pourcentage)
+    .maybeSingle()
+  return data?.product_id || null
 }
 
-export type InitiateMaketouResult =
-  | { ok: true; providerTransactionId: string; checkoutUrl: string }
-  | { ok: false; error: string }
+function mapMaketouStatus(raw: string): StatutProvider {
+  const s = raw.toLowerCase()
+  if (s === 'completed') return 'succeeded'
+  if (s === 'payment_failed' || s === 'abandoned') return 'failed'
+  return 'pending' // waiting_payment
+}
 
 function splitName(full: string | undefined, fallbackEmail: string): { first: string; last: string } {
   const v = (full ?? '').trim()
@@ -22,80 +30,92 @@ function splitName(full: string | undefined, fallbackEmail: string): { first: st
     const local = fallbackEmail.split('@')[0] || 'Client'
     return { first: local, last: '-' }
   }
-  const parts = v.split(/\s+/)
+  const parts = v.split(/\\s+/)
   return { first: parts[0]!, last: parts.slice(1).join(' ') || '-' }
 }
 
-export async function initiateMaketouPayment(params: InitiateMaketouParams): Promise<InitiateMaketouResult> {
-  if (!maketouApiKey) {
-    return { ok: false, error: 'Maketou non configuré (MAKETOU_API_KEY manquant)' }
-  }
+export const maketouAdapter: AdaptateurPaiement = {
+  id: 'maketou',
 
-  const { first, last } = splitName(params.customerName, params.customerEmail)
+  async initierPaiement(params: InitierPaiementParams): Promise<InitierPaiementResultat> {
+    if (!maketouApiKey) {
+      return { ok: false, error: 'Maketou non configuré (MAKETOU_API_KEY manquant)' }
+    }
 
-  const body = {
-    productDocumentId: params.productId,
-    email: params.customerEmail,
-    firstName: first,
-    lastName: last,
-    phone: params.phoneLocal, // Le client doit valider/ajouter l'indicatif si nécessaire ou le passer correctement
-    redirectURL: params.returnUrl,
-    meta: { paymentId: params.reference },
-  }
+    const productId = await idProduit(params.palier, params.pourcentage)
+    if (!productId) {
+      return {
+        ok: false,
+        error: `Aucun produit Maketou configuré pour ${params.palier}/${params.pourcentage}%. Créer le produit dans la boutique Maketou au prix indiqué et renseigner son id.`,
+      }
+    }
 
-  let res: Response
-  try {
-    res = await fetch(`${maketouApiUrl}/api/v1/stores/cart/checkout`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${maketouApiKey}`,
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(15_000),
-    })
-  } catch (err) {
-    return { ok: false, error: `Erreur réseau Maketou : ${(err as Error).message}` }
-  }
+    const { first, last } = splitName(params.nomClient ? `${params.prenomClient} ${params.nomClient}` : params.prenomClient, params.emailClient)
 
-  let parsed: any
-  try {
-    parsed = await res.json()
-  } catch {
-    return { ok: false, error: `Maketou a répondu ${res.status} (réponse non-JSON)` }
-  }
+    const body = {
+      productDocumentId: productId,
+      email: params.emailClient,
+      firstName: first,
+      lastName: last,
+      phone: versNumeroNational(params.telephoneLocal, params.telephonePays),
+      redirectURL: params.retourUrl,
+      meta: { paymentId: params.paiementId },
+    }
 
-  const providerTransactionId = parsed.cart?.id
-  const checkoutUrl = parsed.redirectUrl
+    let res: Response
+    try {
+      res = await fetch(`${maketouApiUrl}/api/v1/stores/cart/checkout`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${maketouApiKey}`,
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(15_000),
+      })
+    } catch (err) {
+      return { ok: false, error: `Erreur réseau Maketou : ${(err as Error).message}` }
+    }
 
-  if (!res.ok || !providerTransactionId || !checkoutUrl) {
-    return { ok: false, error: parsed.message || `Maketou a répondu ${res.status}` }
-  }
+    let parsed: any
+    try {
+      parsed = await res.json()
+    } catch {
+      return { ok: false, error: `Maketou a répondu ${res.status} (réponse non-JSON)` }
+    }
 
-  return { ok: true, providerTransactionId, checkoutUrl }
-}
+    const providerTransactionId = parsed.cart?.id
+    const checkoutUrl = parsed.redirectUrl
 
-export async function fetchMaketouCart(cartId: string): Promise<{ status: string } | null> {
-  if (!maketouApiKey) return null
-  let res: Response
-  try {
-    res = await fetch(`${maketouApiUrl}/api/v1/stores/cart/${encodeURIComponent(cartId)}`, {
-      headers: { Authorization: `Bearer ${maketouApiKey}`, Accept: 'application/json' },
-      signal: AbortSignal.timeout(15_000),
-    })
-  } catch {
-    return null
-  }
-  if (!res.ok) return null
-  const json = (await res.json().catch(() => null)) as any
-  if (!json?.status) return null
-  return { status: json.status }
-}
+    if (!res.ok || !providerTransactionId || !checkoutUrl) {
+      return { ok: false, error: parsed.message || `Maketou a répondu ${res.status}` }
+    }
 
-export function mapMaketouStatus(raw: string): 'completed' | 'failed' | 'pending' {
-  const s = raw.toLowerCase()
-  if (s === 'completed') return 'completed'
-  if (s === 'payment_failed' || s === 'abandoned') return 'failed'
-  return 'pending' // waiting_payment
+    return {
+      ok: true,
+      checkoutUrl,
+      referenceProvider: providerTransactionId,
+    }
+  },
+
+  async recupererStatut(referenceProvider: string): Promise<StatutPaiementDistant | null> {
+    if (!maketouApiKey) return null
+    let res: Response
+    try {
+      res = await fetch(`${maketouApiUrl}/api/v1/stores/cart/${encodeURIComponent(referenceProvider)}`, {
+        headers: { Authorization: `Bearer ${maketouApiKey}`, Accept: 'application/json' },
+        signal: AbortSignal.timeout(15_000),
+      })
+    } catch {
+      return null
+    }
+    if (!res.ok) return null
+    const json = (await res.json().catch(() => null)) as any
+    if (!json?.status) return null
+
+    return {
+      statut: mapMaketouStatus(json.status),
+    }
+  },
 }
