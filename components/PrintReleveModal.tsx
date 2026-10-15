@@ -224,71 +224,93 @@ async function fetchReleveData(supabase: any, type: ReleveType, referenceId: str
   if (type === 'client') {
     // 1. Ventes (ALL)
     const { data: ventes } = await supabase.from('ventes').select('id, date_vente, montant_total, montant_paye').eq('client_id', referenceId)
-    // 2. Créances (ALL)
-    const { data: creances } = await supabase.from('creances').select('id, created_at, montant_initial').eq('client_id', referenceId)
+    // 2. Créances (ALL) - on récupère vente_id pour ne pas doubler les ventes existantes
+    const { data: creances } = await supabase.from('creances').select('id, vente_id, date_echeance, montant_initial').eq('client_id', referenceId)
 
     const venteIds = (ventes || []).map((v: any) => v.id)
     const creanceIds = (creances || []).map((c: any) => c.id)
 
-    // 3. Paiements (Trésorerie)
+    // 3. Paiements (Trésorerie / Caisse)
     const { data: paiementsVentes } = venteIds.length > 0 
-      ? await supabase.from('journal_tresorerie').select('date_mouvement, montant, reference_id, reference_type').eq('reference_type', 'vente').in('reference_id', venteIds)
+      ? await supabase.from('journal_tresorerie').select('date_mouvement, montant, reference_id, reference_type, motif').in('reference_id', venteIds)
       : { data: [] }
       
     const { data: paiementsCreances } = creanceIds.length > 0 
-      ? await supabase.from('journal_tresorerie').select('date_mouvement, montant, reference_id, reference_type').eq('reference_type', 'creance').in('reference_id', creanceIds)
+      ? await supabase.from('journal_tresorerie').select('date_mouvement, montant, reference_id, reference_type, motif').in('reference_id', creanceIds)
       : { data: [] }
 
+    // Ensemble des ventes dont le paiement est déjà enregistré dans journal_tresorerie
+    const ventesPayeesEnTresorerie = new Set((paiementsVentes || []).map((p: any) => String(p.reference_id)))
+
     // Remplir allOperations
+    // A. Débits : Ventes
     ventes?.forEach((v: any) => {
       allOperations.push({ date: v.date_vente, libelle: 'Vente', debit: Number(v.montant_total), credit: 0 })
-      if (Number(v.montant_paye) > 0) {
+      // Éviter le doublon : on ne prend montant_paye de la table ventes QUE si aucun mouvement n'a été inséré dans journal_tresorerie
+      if (Number(v.montant_paye) > 0 && !ventesPayeesEnTresorerie.has(String(v.id))) {
         allOperations.push({ date: v.date_vente, libelle: 'Paiement comptant (Vente)', debit: 0, credit: Number(v.montant_paye) })
       }
     })
+
+    // B. Débits : Créances isolées (solde initial sans vente_id associée, pour ne pas doubler la vente)
     creances?.forEach((c: any) => {
-      allOperations.push({ date: c.created_at, libelle: 'Créance (Solde initial)', debit: Number(c.montant_initial), credit: 0 })
+      if (!c.vente_id) {
+        allOperations.push({ date: c.date_echeance || new Date().toISOString(), libelle: 'Créance (Solde initial)', debit: Number(c.montant_initial), credit: 0 })
+      }
     })
+
+    // C. Crédits : Paiements issus du journal de trésorerie (Caisse)
     paiementsVentes?.forEach((p: any) => {
-      allOperations.push({ date: p.date_mouvement, libelle: 'Règlement Vente', debit: 0, credit: Number(p.montant) })
+      allOperations.push({ date: p.date_mouvement, libelle: p.motif || 'Règlement Vente', debit: 0, credit: Number(p.montant) })
     })
     paiementsCreances?.forEach((p: any) => {
-      allOperations.push({ date: p.date_mouvement, libelle: 'Règlement Créance', debit: 0, credit: Number(p.montant) })
+      allOperations.push({ date: p.date_mouvement, libelle: p.motif || 'Règlement Créance', debit: 0, credit: Number(p.montant) })
     })
 
   } else {
     // 1. Achats (ALL)
     const { data: achats } = await supabase.from('achats').select('id, date_achat, montant_total, montant_paye').eq('fournisseur_id', referenceId)
-    // 2. Dettes (ALL)
-    const { data: dettes } = await supabase.from('dettes').select('id, created_at, montant_initial').eq('fournisseur_id', referenceId)
+    // 2. Dettes (ALL) - on récupère achat_id pour ne pas doubler les achats existants
+    const { data: dettes } = await supabase.from('dettes').select('id, achat_id, date_echeance, montant_initial').eq('fournisseur_id', referenceId)
 
     const achatIds = (achats || []).map((a: any) => a.id)
     const detteIds = (dettes || []).map((d: any) => d.id)
 
-    // 3. Paiements (Trésorerie)
+    // 3. Paiements (Trésorerie / Caisse)
     const { data: paiementsAchats } = achatIds.length > 0 
-      ? await supabase.from('journal_tresorerie').select('date_mouvement, montant, reference_id, reference_type').eq('reference_type', 'achat').in('reference_id', achatIds)
+      ? await supabase.from('journal_tresorerie').select('date_mouvement, montant, reference_id, reference_type, motif').in('reference_id', achatIds)
       : { data: [] }
       
     const { data: paiementsDettes } = detteIds.length > 0 
-      ? await supabase.from('journal_tresorerie').select('date_mouvement, montant, reference_id, reference_type').eq('reference_type', 'dette').in('reference_id', detteIds)
+      ? await supabase.from('journal_tresorerie').select('date_mouvement, montant, reference_id, reference_type, motif').in('reference_id', detteIds)
       : { data: [] }
 
+    // Ensemble des achats dont le paiement est déjà enregistré dans journal_tresorerie
+    const achatsPayesEnTresorerie = new Set((paiementsAchats || []).map((p: any) => String(p.reference_id)))
+
     // Remplir allOperations
+    // A. Crédits : Achats
     achats?.forEach((a: any) => {
       allOperations.push({ date: a.date_achat, libelle: 'Achat', debit: 0, credit: Number(a.montant_total) })
-      if (Number(a.montant_paye) > 0) {
+      // Éviter le doublon : on ne prend montant_paye de la table achats QUE si aucun mouvement n'a été inséré dans journal_tresorerie
+      if (Number(a.montant_paye) > 0 && !achatsPayesEnTresorerie.has(String(a.id))) {
         allOperations.push({ date: a.date_achat, libelle: 'Paiement comptant (Achat)', debit: Number(a.montant_paye), credit: 0 })
       }
     })
+
+    // B. Crédits : Dettes isolées (solde initial sans achat_id associé, pour ne pas doubler l'achat)
     dettes?.forEach((d: any) => {
-      allOperations.push({ date: d.created_at, libelle: 'Dette (Solde initial)', debit: 0, credit: Number(d.montant_initial) })
+      if (!d.achat_id) {
+        allOperations.push({ date: d.date_echeance || new Date().toISOString(), libelle: 'Dette (Solde initial)', debit: 0, credit: Number(d.montant_initial) })
+      }
     })
+
+    // C. Débits : Paiements issus du journal de trésorerie (Caisse)
     paiementsAchats?.forEach((p: any) => {
-      allOperations.push({ date: p.date_mouvement, libelle: 'Règlement Achat', debit: Number(p.montant), credit: 0 })
+      allOperations.push({ date: p.date_mouvement, libelle: p.motif || 'Règlement Achat', debit: Number(p.montant), credit: 0 })
     })
     paiementsDettes?.forEach((p: any) => {
-      allOperations.push({ date: p.date_mouvement, libelle: 'Règlement Dette', debit: Number(p.montant), credit: 0 })
+      allOperations.push({ date: p.date_mouvement, libelle: p.motif || 'Règlement Dette', debit: Number(p.montant), credit: 0 })
     })
   }
 
