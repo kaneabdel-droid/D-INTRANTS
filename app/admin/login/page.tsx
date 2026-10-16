@@ -1,5 +1,6 @@
 import { ShieldCheck } from 'lucide-react'
 import LanguageSelector from '@/components/LanguageSelector'
+import PasswordInput from '@/components/PasswordInput'
 import { getDictionary, getLocale } from '@/dictionaries'
 import { loginAdmin } from './actions'
 
@@ -64,10 +65,9 @@ export default async function AdminLoginPage({
               </a>
             </div>
             <div className="mt-2">
-              <input
+              <PasswordInput
                 id="password"
                 name="password"
-                type="password"
                 autoComplete="current-password"
                 required
                 className="block w-full rounded-md border-0 py-1.5 px-3 bg-surface text-foreground shadow-sm ring-1 ring-inset ring-foreground-muted focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"

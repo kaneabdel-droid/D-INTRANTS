@@ -28,6 +28,7 @@ import {
   X,
   LogOut,
   LifeBuoy,
+  UploadCloud,
 } from 'lucide-react'
 
 type Role = 'admin_entreprise' | 'gerant' | 'tresorier'
@@ -45,6 +46,7 @@ const navGerant = [
   { key: 'dettes', href: '/dettes', icon: Banknote },
   { key: 'tresorerie', href: '/tresorerie', icon: Wallet },
   { key: 'charges', href: '/charges', icon: Receipt },
+  { key: 'import_donnees', href: '/parametres/import', icon: UploadCloud },
 ] as const
 
 // Trésorier : mêmes 4 modules que le gérant peut écrire côté trésorerie (cf.
@@ -66,6 +68,7 @@ const navAdminEntreprise = [
   { key: 'dashboard', href: '/dashboard', icon: LayoutDashboard },
   { key: 'comparatif', href: '/comparatif', icon: BarChart3 },
   { key: 'rentabilite', href: '/rentabilite', icon: TrendingUp },
+  { key: 'import_donnees', href: '/parametres/import', icon: UploadCloud },
   { key: 'abonnement', href: '/abonnement', icon: CreditCard },
   { key: 'parametres', href: '/parametres', icon: Settings },
 ] as const
