@@ -4,6 +4,8 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { getLocale } from "@/dictionaries";
 
+import { RegisterServiceWorker } from "@/components/RegisterServiceWorker";
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -15,8 +17,9 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "d-intrants - Gestion de Boutique d'intrants",
-  description: "SaaS de gestion de Boutique d'intrants en Afrique",
+  title: "D-INTRANTS — Gestion de Boutique d'Intrants",
+  description: "SaaS de gestion de Boutique d'intrants en Afrique avec mode hors-ligne",
+  manifest: "/manifest.json"
 };
 
 export default async function RootLayout({
@@ -30,6 +33,7 @@ export default async function RootLayout({
   return (
     <html lang={locale} dir={dir} className={`${inter.variable} ${outfit.variable} h-full antialiased`}>
       <body className={`min-h-full flex flex-col`}>
+        <RegisterServiceWorker />
         {children}
         <Toaster position="top-right" richColors />
       </body>

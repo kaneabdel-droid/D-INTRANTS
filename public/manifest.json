@@ -1,0 +1,17 @@
+{
+  "name": "D-INTRANTS — Gestion des Intrants Agricoles",
+  "short_name": "D-INTRANTS",
+  "description": "Application de gestion des stocks, distributions et ventes d'intrants avec mode hors-ligne",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0B6E99",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

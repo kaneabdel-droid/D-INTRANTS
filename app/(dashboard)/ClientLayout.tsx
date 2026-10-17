@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 import LanguageSelector from '@/components/LanguageSelector'
+import { OfflineSyncBar } from '@/components/offline/OfflineSyncBar'
 import type { Dictionary } from '@/dictionaries'
 import { permissionModule, type Matrice } from '@/lib/permissions'
 import {
@@ -244,6 +245,7 @@ export default function ClientLayout({
               )}
             </div>
             <div className="flex shrink-0 items-center gap-x-2 sm:gap-x-4 lg:gap-x-6">
+              <OfflineSyncBar />
               <LanguageSelector currentLang={locale} />
               <ThemeSwitcher />
             </div>

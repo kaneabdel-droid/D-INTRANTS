@@ -8,6 +8,7 @@ import { Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Dictionary } from '@/dictionaries'
 import { creerVente } from './actions'
+import { executeOfflineSafe } from '@/lib/offline/offline-action-helper'
 
 type Article = { id: string; designation: string; unite: string; prix_vente: number }
 type Client = { id: string; nom: string }
@@ -65,15 +66,28 @@ export default function CreateVenteButton({ articles, clients, dict }: { article
   const onSubmit = async (values: VenteForm) => {
     setLoading(true)
     setError(null)
-    const res = await creerVente(
-      values.client_id || null,
-      values.mode_paiement,
-      values.montant_paye,
-      values.lignes
-    )
+    const res = await executeOfflineSafe({
+      actionType: 'creer_vente',
+      label: `Vente ${values.mode_paiement} (${montantTotal.toLocaleString('fr-FR')} FCFA)`,
+      payload: {
+        clientId: values.client_id || null,
+        modePaiement: values.mode_paiement,
+        montantPaye: values.montant_paye,
+        lignes: values.lignes
+      },
+      onlineAction: () => creerVente(
+        values.client_id || null,
+        values.mode_paiement,
+        values.montant_paye,
+        values.lignes
+      )
+    })
     setLoading(false)
     if (res?.error) setError(res.error)
-    else {
+    else if (res?.offline) {
+      close()
+      toast.info('💾 Vente d\'intrants enregistrée hors-ligne ! Synchronisation automatique dès le retour du réseau.', { duration: 6000 })
+    } else {
       close()
       toast.success(t.saved)
     }
