@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, BookOpen, Boxes, Receipt, Store, Sprout, FlaskConical, Bug, Wrench } from 'lucide-react'
 import LanguageSelector from '@/components/LanguageSelector'
 import RevealGroup from '@/components/RevealGroup'
+import OfflineLandingBanner from '@/components/offline/OfflineLandingBanner'
 import { getDictionary, getLocale } from '@/dictionaries'
 
 const cardHover =
@@ -20,6 +21,9 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      {/* Bandeau Hors-Ligne automatique */}
+      <OfflineLandingBanner appName="D-INTRANTS" dashboardUrl="/dashboard" loginUrl="/login" />
+
       {/* Navbar */}
       <header className="sticky top-0 z-10 border-b border-surface-border bg-surface">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">

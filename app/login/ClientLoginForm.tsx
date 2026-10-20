@@ -65,6 +65,7 @@ export default function ClientLoginForm({
       startTransition(async () => {
         const offRes = await verifyOfflineCredentials(cleanIdentifier, password)
         if (offRes.success && offRes.session) {
+          document.cookie = 'demba_offline_active=1; path=/; max-age=2592000; SameSite=Lax'
           setSuccessNotice('Connexion locale validée ! Accès à votre espace hors-ligne...')
           setTimeout(() => {
             window.location.href = '/dashboard'
@@ -90,6 +91,7 @@ export default function ClientLoginForm({
           if (res.error.toLowerCase().includes('fetch') || res.error.toLowerCase().includes('réseau') || res.error.toLowerCase().includes('network')) {
             const offRes = await verifyOfflineCredentials(cleanIdentifier, password)
             if (offRes.success) {
+              document.cookie = 'demba_offline_active=1; path=/; max-age=2592000; SameSite=Lax'
               setSuccessNotice('Réseau instable : connexion locale hors-ligne activée !')
               setTimeout(() => {
                 window.location.href = '/dashboard'
@@ -111,6 +113,21 @@ export default function ClientLoginForm({
             }
           }
 
+          document.cookie = 'demba_offline_active=1; path=/; max-age=2592000; SameSite=Lax'
+
+          // Pré-mettre en cache le shell du dashboard en tâche de fond
+          if ('caches' in window) {
+            try {
+              const cache = await caches.open('demba-offline-dintrants-v3')
+              const dashRes = await fetch('/dashboard')
+              if (dashRes && dashRes.ok) {
+                await cache.put('/dashboard', dashRes)
+              }
+            } catch (cacheErr) {
+              console.warn('Erreur pré-mise en cache dashboard shell:', cacheErr)
+            }
+          }
+
           setSuccessNotice('Connexion réussie ! Redirection...')
           window.location.href = res.redirectUrl || '/dashboard'
         }
@@ -118,6 +135,7 @@ export default function ClientLoginForm({
         // En cas d'échec total de communication avec le serveur (coupure brutale)
         const offRes = await verifyOfflineCredentials(cleanIdentifier, password)
         if (offRes.success) {
+          document.cookie = 'demba_offline_active=1; path=/; max-age=2592000; SameSite=Lax'
           setSuccessNotice('Connexion hors-ligne de secours validée !')
           setTimeout(() => {
             window.location.href = '/dashboard'
