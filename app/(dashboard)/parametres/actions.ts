@@ -81,3 +81,183 @@ export async function enregistrerPermissions(matrice: Matrice): Promise<ActionRe
   revalidatePath('/', 'layout')
   return { success: true }
 }
+
+import { createAdminClient } from '@/utils/supabase/admin'
+import { genererEmailSynthetique, normaliserIdentifiant } from '@/lib/auth-identifier'
+
+export async function creerCollaborateur(formData: FormData): Promise<{ success?: boolean; error?: string }> {
+  const context = await requireAdminEntreprise()
+
+  const rawIdentifiant = (formData.get('identifiant') as string)?.trim()
+  const nomComplet = (formData.get('nom_complet') as string)?.trim() || null
+  const telephone = (formData.get('telephone') as string)?.trim() || null
+  const emailInput = (formData.get('email') as string)?.trim() || ''
+  const password = (formData.get('password') as string) || ''
+  const roleInput = ((formData.get('role') as string)?.trim()) || 'gerant'
+  const magasinId = (formData.get('magasin_id') as string)?.trim() || null
+
+  if (!rawIdentifiant) {
+    return { error: "L'identifiant ou numéro de téléphone est obligatoire." }
+  }
+
+  const identifiant = normaliserIdentifiant(rawIdentifiant)
+  if (identifiant.length < 3) {
+    return { error: "L'identifiant doit comporter au moins 3 caractères." }
+  }
+
+  if (!password || password.length < 6) {
+    return { error: 'Le mot de passe doit comporter au moins 6 caractères.' }
+  }
+
+  const authEmail = emailInput ? emailInput.toLowerCase() : genererEmailSynthetique(identifiant)
+
+  const adminSupabase = createAdminClient()
+
+  // 1. Vérification unicité identifiant / téléphone
+  const { data: existant } = await adminSupabase
+    .from('utilisateurs')
+    .select('id')
+    .or(`identifiant.ilike.${identifiant}${telephone ? `,telephone.eq.${telephone}` : ''}`)
+    .maybeSingle()
+
+  if (existant) {
+    return { error: 'Cet identifiant ou numéro de téléphone est déjà utilisé par un autre collaborateur.' }
+  }
+
+  // 2. Création dans auth.users
+  const { data: authCreated, error: authError } = await adminSupabase.auth.admin.createUser({
+    email: authEmail,
+    password,
+    email_confirm: true,
+    user_metadata: {
+      role: roleInput,
+      identifiant,
+      telephone,
+      nom_complet: nomComplet,
+      entreprise_id: context.entrepriseId,
+      magasin_id: roleInput === 'admin_entreprise' ? null : magasinId,
+    },
+  })
+
+  if (authError) {
+    if (authError.message.toLowerCase().includes('already') || authError.message.toLowerCase().includes('registered')) {
+      return {
+        error: `L'identifiant "${rawIdentifiant}" ou cet e-mail est déjà utilisé. Veuillez en choisir un autre.`,
+      }
+    }
+    return { error: `Échec de création du compte : ${authError.message}` }
+  }
+
+  // 3. Mise à jour / insertion dans public.utilisateurs
+  if (authCreated.user) {
+    const { error: userError } = await adminSupabase
+      .from('utilisateurs')
+      .upsert({
+        id: authCreated.user.id,
+        entreprise_id: context.entrepriseId,
+        magasin_id: roleInput === 'admin_entreprise' ? null : magasinId,
+        role: roleInput,
+        identifiant,
+        nom_complet: nomComplet,
+        telephone,
+      })
+
+    if (userError) {
+      return { error: `Compte créé, mais profil incomplet : ${userError.message}` }
+    }
+  }
+
+  revalidatePath('/parametres')
+  return { success: true }
+}
+
+export async function supprimerCollaborateur(collaborateurId: string): Promise<{ success?: boolean; error?: string }> {
+  const context = await requireAdminEntreprise()
+
+  if (collaborateurId === context.userId) {
+    return { error: 'Vous ne pouvez pas supprimer votre propre compte administrateur.' }
+  }
+
+  const adminSupabase = createAdminClient()
+
+  // Vérifier appartenance à la même entreprise
+  const { data: cible } = await adminSupabase
+    .from('utilisateurs')
+    .select('id, role')
+    .eq('id', collaborateurId)
+    .eq('entreprise_id', context.entrepriseId)
+    .maybeSingle()
+
+  if (!cible) {
+    return { error: 'Collaborateur introuvable dans votre entreprise.' }
+  }
+
+  // Supprimer profil utilisateur
+  const { error: delProfileError } = await adminSupabase
+    .from('utilisateurs')
+    .delete()
+    .eq('id', collaborateurId)
+    .eq('entreprise_id', context.entrepriseId)
+
+  if (delProfileError) {
+    return { error: delProfileError.message }
+  }
+
+  // Supprimer de Supabase Auth
+  await adminSupabase.auth.admin.deleteUser(collaborateurId)
+
+  revalidatePath('/parametres')
+  return { success: true }
+}
+
+export async function genererLienResetCollaborateur(collaborateurId: string): Promise<{
+  success?: boolean
+  error?: string
+  link?: string
+  telephone?: string | null
+  identifiant?: string | null
+  nomComplet?: string | null
+}> {
+  const context = await requireAdminEntreprise()
+  const adminSupabase = createAdminClient()
+
+  const { data: cible } = await adminSupabase
+    .from('utilisateurs')
+    .select('id, identifiant, telephone, nom_complet, nom, prenom')
+    .eq('id', collaborateurId)
+    .eq('entreprise_id', context.entrepriseId)
+    .maybeSingle()
+
+  if (!cible) {
+    return { error: 'Collaborateur introuvable.' }
+  }
+
+  const { data: authUser, error: authErr } = await adminSupabase.auth.admin.getUserById(collaborateurId)
+  if (authErr || !authUser?.user?.email) {
+    return { error: 'Compte d’authentification introuvable.' }
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://d-intrants.dembasolution.com'
+  const redirectTo = `${siteUrl}/auth/callback?next=/update-password`
+
+  const { data: linkData, error: linkError } = await adminSupabase.auth.admin.generateLink({
+    type: 'recovery',
+    email: authUser.user.email,
+    options: { redirectTo },
+  })
+
+  if (linkError || !linkData?.properties?.action_link) {
+    return { error: linkError?.message || 'Impossible de générer le lien de récupération.' }
+  }
+
+  const nomComplet = cible.nom_complet || `${cible.prenom || ''} ${cible.nom || ''}`.trim() || cible.identifiant || 'Collaborateur'
+
+  return {
+    success: true,
+    link: linkData.properties.action_link,
+    telephone: cible.telephone,
+    identifiant: cible.identifiant,
+    nomComplet,
+  }
+}
+

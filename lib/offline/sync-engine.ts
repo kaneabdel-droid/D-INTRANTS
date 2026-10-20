@@ -125,7 +125,7 @@ class OfflineSyncEngine {
       if (res.ok) {
         const data = await res.json()
         const syncedIds: string[] = data.syncedIds || []
-        
+
         for (const id of syncedIds) {
           await removeAction(id)
           syncedCount++
@@ -139,7 +139,7 @@ class OfflineSyncEngine {
         }
 
         this.lastSyncTime = Date.now()
-        
+
         window.dispatchEvent(new CustomEvent('demba-offline-synced', {
           detail: { syncedCount, errors }
         }))
