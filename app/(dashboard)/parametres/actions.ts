@@ -140,7 +140,9 @@ export async function creerCollaborateur(formData: FormData): Promise<CreerColla
     return { error: 'Cet identifiant ou numéro de téléphone est déjà utilisé par un autre collaborateur.' }
   }
 
-  // 2. Création dans auth.users
+  // 2. Création ou récupération dans auth.users
+  let authUserId: string | null = null
+
   const { data: authCreated, error: authError } = await adminSupabase.auth.admin.createUser({
     email: authEmail,
     password,
@@ -155,13 +157,55 @@ export async function creerCollaborateur(formData: FormData): Promise<CreerColla
     },
   })
 
-  if (authError) {
+  if (authCreated?.user?.id) {
+    authUserId = authCreated.user.id
+  } else if (authError) {
     if (authError.message.toLowerCase().includes('already') || authError.message.toLowerCase().includes('registered')) {
-      return {
-        error: `L'identifiant "${rawIdentifiant}" ou cet e-mail est déjà utilisé. Veuillez en choisir un autre.`,
+      // Vérifier si un compte auth existe sans profil dans public.utilisateurs ou rattaché à cette même entreprise
+      const { data: { users } } = await adminSupabase.auth.admin.listUsers({ perPage: 1000 })
+      const existingUser = users.find(u => u.email?.toLowerCase() === authEmail.toLowerCase())
+
+      if (existingUser) {
+        const { data: profilExistant } = await adminSupabase
+          .from('utilisateurs')
+          .select('id, entreprise_id')
+          .eq('id', existingUser.id)
+          .maybeSingle()
+
+        // S'il n'a AUCUN profil dans utilisateurs (compte orphelin), ou s'il appartient à la même entreprise
+        if (!profilExistant || profilExistant.entreprise_id === context.entrepriseId) {
+          const { error: updateErr } = await adminSupabase.auth.admin.updateUserById(existingUser.id, {
+            password,
+            user_metadata: {
+              role: roleInput,
+              identifiant,
+              telephone,
+              nom_complet: nomComplet,
+              entreprise_id: context.entrepriseId,
+              magasin_id: roleInput === 'admin_entreprise' ? null : magasinId,
+            },
+          })
+          if (updateErr) {
+            return { error: `Impossible de réinitialiser le compte existant : ${updateErr.message}` }
+          }
+          authUserId = existingUser.id
+        } else {
+          return {
+            error: `L'identifiant "${rawIdentifiant}" ou cet e-mail est déjà utilisé par une autre entreprise. Veuillez en choisir un autre.`,
+          }
+        }
+      } else {
+        return {
+          error: `L'identifiant "${rawIdentifiant}" ou cet e-mail est déjà utilisé. Veuillez en choisir un autre.`,
+        }
       }
+    } else {
+      return { error: `Échec de création du compte : ${authError.message}` }
     }
-    return { error: `Échec de création du compte : ${authError.message}` }
+  }
+
+  if (!authUserId) {
+    return { error: "Échec d'obtention de l'identifiant du compte." }
   }
 
   // 3. Mise à jour / insertion dans public.utilisateurs
@@ -169,24 +213,26 @@ export async function creerCollaborateur(formData: FormData): Promise<CreerColla
   const prenom = parts[0] || null
   const nom = parts.slice(1).join(' ') || null
 
-  if (authCreated.user) {
-    const { error: userError } = await adminSupabase
-      .from('utilisateurs')
-      .upsert({
-        id: authCreated.user.id,
-        entreprise_id: context.entrepriseId,
-        magasin_id: roleInput === 'admin_entreprise' ? null : magasinId,
-        role: roleInput,
-        identifiant,
-        nom_complet: nomComplet,
-        nom,
-        prenom,
-        telephone,
-      })
+  const { error: userError } = await adminSupabase
+    .from('utilisateurs')
+    .upsert({
+      id: authUserId,
+      entreprise_id: context.entrepriseId,
+      magasin_id: roleInput === 'admin_entreprise' ? null : magasinId,
+      role: roleInput,
+      identifiant,
+      nom_complet: nomComplet,
+      nom,
+      prenom,
+      telephone,
+    })
 
-    if (userError) {
-      return { error: `Compte créé, mais profil incomplet : ${userError.message}` }
+  if (userError) {
+    // Si nouvel utilisateur auth créé, le nettoyer pour éviter un orphelin
+    if (authCreated?.user?.id) {
+      await adminSupabase.auth.admin.deleteUser(authCreated.user.id).catch(() => {})
     }
+    return { error: `Échec d'enregistrement du profil : ${userError.message}` }
   }
 
   let magasinNom: string | null = null
@@ -203,7 +249,7 @@ export async function creerCollaborateur(formData: FormData): Promise<CreerColla
   return {
     success: true,
     collaborateur: {
-      id: authCreated.user!.id,
+      id: authUserId,
       role: roleInput,
       identifiant,
       telephone,
