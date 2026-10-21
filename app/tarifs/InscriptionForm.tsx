@@ -62,7 +62,7 @@ export default function InscriptionForm({ t, locale }: { t: Dict; locale: string
   const montant = enDollars ? formatUsd(calculerMontantUsd(palier, dureeMois)) : formatFcfa(calculerMontantFcfa(palier, dureeMois))
 
   const pretAEnvoyer =
-    nomEntreprise.trim() && contactNom.trim() && email.trim() && telephoneLocal.trim() && (!enDollars || nomPaysAutre.trim())
+    nomEntreprise.trim() && contactNom.trim() && telephoneLocal.trim() && (!enDollars || nomPaysAutre.trim())
 
   const handlePayer = () => {
     setErreur(null)
@@ -150,13 +150,15 @@ export default function InscriptionForm({ t, locale }: { t: Dict; locale: string
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">{t.email}</label>
+          <label className="block text-sm font-medium text-foreground mb-1">
+            {t.email} <span className="text-foreground-muted font-normal text-xs">(Optionnel)</span>
+          </label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={isPending}
-            placeholder="vous@exemple.com"
+            placeholder="vous@exemple.com (facultatif)"
             className="w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2 text-sm"
           />
         </div>

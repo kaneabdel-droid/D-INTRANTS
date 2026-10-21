@@ -26,10 +26,10 @@ function mapMaketouStatus(raw: string): StatutProvider {
 function splitName(full: string | undefined, fallbackEmail: string): { first: string; last: string } {
   const v = (full ?? '').trim()
   if (!v) {
-    const local = fallbackEmail.split('@')[0] || 'Client'
+    const local = (fallbackEmail || 'client').split('@')[0] || 'Client'
     return { first: local, last: '-' }
   }
-  const parts = v.split(/\\s+/)
+  const parts = v.split(/\s+/)
   return { first: parts[0]!, last: parts.slice(1).join(' ') || '-' }
 }
 
@@ -49,11 +49,13 @@ export const maketouAdapter: AdaptateurPaiement = {
       }
     }
 
-    const { first, last } = splitName(params.nomClient ? `${params.prenomClient} ${params.nomClient}` : params.prenomClient, params.emailClient)
+    const fallbackEmail = `${versNumeroNational(params.telephoneLocal, params.telephonePays).replace(/[^0-9]/g, '') || 'client'}@client.dembasolution.com`
+    const effectiveEmail = params.emailClient || fallbackEmail
+    const { first, last } = splitName(params.nomClient ? `${params.prenomClient} ${params.nomClient}` : params.prenomClient, effectiveEmail)
 
     const body = {
       productDocumentId: productId,
-      email: params.emailClient,
+      email: effectiveEmail,
       firstName: first,
       lastName: last,
       phone: versNumeroNational(params.telephoneLocal, params.telephonePays),
@@ -77,18 +79,18 @@ export const maketouAdapter: AdaptateurPaiement = {
       return { ok: false, error: `Erreur réseau Maketou : ${(err as Error).message}` }
     }
 
-    let parsed: any
+    let parsed: { cart?: { id?: string }; redirectUrl?: string; message?: string } | null = null
     try {
       parsed = await res.json()
     } catch {
       return { ok: false, error: `Maketou a répondu ${res.status} (réponse non-JSON)` }
     }
 
-    const providerTransactionId = parsed.cart?.id
-    const checkoutUrl = parsed.redirectUrl
+    const providerTransactionId = parsed?.cart?.id
+    const checkoutUrl = parsed?.redirectUrl
 
     if (!res.ok || !providerTransactionId || !checkoutUrl) {
-      return { ok: false, error: parsed.message || `Maketou a répondu ${res.status}` }
+      return { ok: false, error: parsed?.message || `Maketou a répondu ${res.status}` }
     }
 
     return {
@@ -110,7 +112,7 @@ export const maketouAdapter: AdaptateurPaiement = {
       return null
     }
     if (!res.ok) return null
-    const json = (await res.json().catch(() => null)) as any
+    const json = (await res.json().catch(() => null)) as { status?: string } | null
     if (!json?.status) return null
 
     return {

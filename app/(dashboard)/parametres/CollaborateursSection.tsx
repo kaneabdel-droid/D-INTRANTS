@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   UserPlus,
@@ -86,9 +86,14 @@ export default function CollaborateursSection({
   currentUserId: string
 }) {
   const router = useRouter()
+  const [collabList, setCollabList] = useState<CollaborateurItem[]>(collaborateurs)
   const [showAddModal, setShowAddModal] = useState(false)
   const [addRole, setAddRole] = useState('gerant')
   const [selectedMagasinId, setSelectedMagasinId] = useState(magasins[0]?.id || '')
+
+  useEffect(() => {
+    setCollabList(collaborateurs)
+  }, [collaborateurs])
 
   const [activeResetLink, setActiveResetLink] = useState<{
     link: string
@@ -99,12 +104,14 @@ export default function CollaborateursSection({
   const [copied, setCopied] = useState(false)
 
   const [isPending, startTransition] = useTransition()
+  const [modalError, setModalError] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
 
   // Création d'un collaborateur
   async function handleAddCollaborateur(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    setModalError(null)
     setErrorMsg(null)
     setSuccessMsg(null)
 
@@ -114,12 +121,15 @@ export default function CollaborateursSection({
     startTransition(async () => {
       const res = await creerCollaborateur(formData)
       if (res.error) {
-        setErrorMsg(res.error)
+        setModalError(res.error)
       } else {
-        setSuccessMsg('Collaborateur ajouté avec succès !')
         setShowAddModal(false)
+        setSuccessMsg('Collaborateur ajouté avec succès !')
         form.reset()
         setAddRole('gerant')
+        if (res.collaborateur) {
+          setCollabList(prev => [res.collaborateur!, ...prev.filter(c => c.id !== res.collaborateur!.id)])
+        }
         router.refresh()
         setTimeout(() => setSuccessMsg(null), 4000)
       }
@@ -134,8 +144,10 @@ export default function CollaborateursSection({
     setErrorMsg(null)
     startTransition(async () => {
       const res = await supprimerCollaborateur(collab.id)
-      if (res.error) setErrorMsg(res.error)
-      else {
+      if (res.error) {
+        setErrorMsg(res.error)
+      } else {
+        setCollabList(prev => prev.filter(c => c.id !== collab.id))
         setSuccessMsg(`Accès de ${nom} révoqué.`)
         router.refresh()
         setTimeout(() => setSuccessMsg(null), 3000)
@@ -185,6 +197,7 @@ export default function CollaborateursSection({
           type="button"
           onClick={() => {
             setShowAddModal(true)
+            setModalError(null)
             setErrorMsg(null)
           }}
           className="inline-flex items-center gap-2 rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-primary/90 transition-all cursor-pointer"
@@ -210,8 +223,8 @@ export default function CollaborateursSection({
 
       {/* Liste des collaborateurs */}
       <div className="mt-5 divide-y divide-surface-border overflow-hidden rounded-xl border border-surface-border bg-background/40">
-        {collaborateurs.length > 0 ? (
-          collaborateurs.map((collab) => {
+        {collabList.length > 0 ? (
+          collabList.map((collab) => {
             const isMe = collab.id === currentUserId
             const displayName =
               collab.nom_complet ||
@@ -306,6 +319,13 @@ export default function CollaborateursSection({
             <p className="text-xs text-foreground-muted mt-1">
               Renseignez un identifiant ou un numéro de téléphone pour lui créer un accès sécurisé.
             </p>
+
+            {modalError && (
+              <div className="mt-3 p-3 rounded-xl bg-danger/10 border border-danger/20 text-danger text-xs font-medium flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>{modalError}</span>
+              </div>
+            )}
 
             <form onSubmit={handleAddCollaborateur} className="mt-5 space-y-4">
               <div>

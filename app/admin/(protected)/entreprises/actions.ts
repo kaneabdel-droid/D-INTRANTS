@@ -6,6 +6,7 @@ import { getSharedAdminUser, getLocalUser } from '@/utils/supabase/admin-identit
 import { withRetry, withRetryResult } from '@/utils/supabase/retry'
 import { isAdminEmail } from '@/lib/admin/auth'
 import { PALIERS, type PalierCode } from '@/lib/abonnements/paliers'
+import { genererEmailSynthetique } from '@/lib/auth-identifier'
 
 type ActionResult = { success?: true; error?: string }
 
@@ -127,24 +128,37 @@ export async function creerUtilisateur(
   role: 'admin_entreprise' | 'gerant' | 'tresorier',
   magasinId: string | null,
   nom: string,
-  prenom: string
+  prenom: string,
+  telephone?: string | null,
+  identifiant?: string | null
 ): Promise<ActionResult> {
   const authError = await checkAdmin()
   if (authError) return { error: authError }
-  if (!email.trim()) return { error: "L'email est requis" }
+
+  const emailClean = email?.trim() || ''
+  const telClean = telephone?.trim() || null
+  const identifiantClean = identifiant?.trim() || null
+
+  if (!emailClean && !telClean && !identifiantClean) {
+    return { error: 'Un e-mail, un numéro de téléphone ou un identifiant est requis' }
+  }
   if (!password || password.length < 6) return { error: 'Le mot de passe doit contenir au moins 6 caractères' }
   if ((role === 'gerant' || role === 'tresorier') && !magasinId) return { error: 'Un magasin est requis pour un gérant ou un trésorier' }
   if (role === 'admin_entreprise' && magasinId) return { error: "Un admin entreprise n'est rattaché à aucun magasin" }
 
+  const authEmail = emailClean ? emailClean.toLowerCase() : genererEmailSynthetique((telClean || identifiantClean)!)
+
   const supabase = createAdminClient()
   const { data: created, error: createError } = await withRetryResult(() =>
     supabase.auth.admin.createUser({
-      email: email.trim(),
+      email: authEmail,
       password,
       email_confirm: true,
     })
   )
   if (createError || !created?.user) return { error: createError?.message ?? 'Échec de la création du compte' }
+
+  const nomComplet = `${prenom.trim()} ${nom.trim()}`.trim() || null
 
   const { error: insertError } = await withRetryResult(() =>
     supabase.from('utilisateurs').insert({
@@ -154,6 +168,9 @@ export async function creerUtilisateur(
       role,
       nom: nom.trim() || null,
       prenom: prenom.trim() || null,
+      nom_complet: nomComplet,
+      telephone: telClean,
+      identifiant: identifiantClean || (telClean ? telClean.replace(/[^0-9]/g, '') : null),
     })
   )
   if (insertError) {

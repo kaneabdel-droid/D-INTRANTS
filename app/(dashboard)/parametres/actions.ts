@@ -85,7 +85,23 @@ export async function enregistrerPermissions(matrice: Matrice): Promise<ActionRe
 import { createAdminClient } from '@/utils/supabase/admin'
 import { genererEmailSynthetique, normaliserIdentifiant } from '@/lib/auth-identifier'
 
-export async function creerCollaborateur(formData: FormData): Promise<{ success?: boolean; error?: string }> {
+export type CreerCollaborateurResult = {
+  success?: boolean
+  error?: string
+  collaborateur?: {
+    id: string
+    role: string | null
+    identifiant: string | null
+    telephone: string | null
+    nom: string | null
+    prenom: string | null
+    nom_complet: string | null
+    magasin_id?: string | null
+    magasin_nom?: string | null
+  }
+}
+
+export async function creerCollaborateur(formData: FormData): Promise<CreerCollaborateurResult> {
   const context = await requireAdminEntreprise()
 
   const rawIdentifiant = (formData.get('identifiant') as string)?.trim()
@@ -149,6 +165,10 @@ export async function creerCollaborateur(formData: FormData): Promise<{ success?
   }
 
   // 3. Mise à jour / insertion dans public.utilisateurs
+  const parts = (nomComplet || '').trim().split(/\s+/)
+  const prenom = parts[0] || null
+  const nom = parts.slice(1).join(' ') || null
+
   if (authCreated.user) {
     const { error: userError } = await adminSupabase
       .from('utilisateurs')
@@ -159,6 +179,8 @@ export async function creerCollaborateur(formData: FormData): Promise<{ success?
         role: roleInput,
         identifiant,
         nom_complet: nomComplet,
+        nom,
+        prenom,
         telephone,
       })
 
@@ -167,8 +189,31 @@ export async function creerCollaborateur(formData: FormData): Promise<{ success?
     }
   }
 
+  let magasinNom: string | null = null
+  if (magasinId) {
+    const { data: mag } = await adminSupabase
+      .from('magasins')
+      .select('nom')
+      .eq('id', magasinId)
+      .maybeSingle()
+    magasinNom = mag?.nom || null
+  }
+
   revalidatePath('/parametres')
-  return { success: true }
+  return {
+    success: true,
+    collaborateur: {
+      id: authCreated.user!.id,
+      role: roleInput,
+      identifiant,
+      telephone,
+      nom,
+      prenom,
+      nom_complet: nomComplet,
+      magasin_id: roleInput === 'admin_entreprise' ? null : magasinId,
+      magasin_nom: magasinNom,
+    },
+  }
 }
 
 export async function supprimerCollaborateur(collaborateurId: string): Promise<{ success?: boolean; error?: string }> {

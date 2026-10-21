@@ -29,7 +29,6 @@ export async function demarrerInscription(
 ): Promise<ResultatDemarrage> {
   if (!nomEntreprise.trim()) return { error: "Le nom de l'entreprise est requis" }
   if (!contactNom.trim()) return { error: 'Le nom du contact est requis' }
-  if (!email.trim()) return { error: 'Une adresse e-mail est requise' }
   if (!telephoneLocal.trim()) return { error: 'Le numéro de téléphone est requis' }
   if (!PAYS_TELEPHONE_SUPPORTES.includes(telephonePays)) return { error: 'Pays invalide' }
   // « Autre pays » : paiement en dollars US par carte (Moneroo), quel que soit le prestataire actif.
@@ -46,22 +45,32 @@ export async function demarrerInscription(
   const pays = { pays: telephonePays, paysNom: nomPays(telephonePays, nomPaysAutre) }
 
   const supabase = createAdminClient()
-  const emailNormalise = email.trim().toLowerCase()
+  const emailFourni = email.trim()
+  const telephonePropre = telephoneLocal.trim()
+  const emailNormalise = emailFourni ? emailFourni.toLowerCase() : null
+  const emailTechnique = emailNormalise || `${telephonePropre.replace(/[^0-9]/g, '') || 'client'}@client.dembasolution.com`
 
   // Anti double paiement : une demande publique n'a pas encore d'entreprise, le
-  // dédoublonnage se fait donc sur l'e-mail du contact.
-  const { data: demandes } = await supabase
+  // dédoublonnage se fait sur l'e-mail ou le téléphone du contact.
+  let queryDemandes = supabase
     .from('abonnements')
     .select('id, palier, duree_mois, montant_fcfa, provider, statut, checkout_url, created_at, abandonne_le')
     .is('entreprise_id', null)
     .in('statut', ['en_attente', 'paye'])
-    .ilike('metadata->>contactEmail', emailNormalise.replace(/[\\%_]/g, (c) => `\\${c}`)) // insensible à la casse, jokers LIKE échappés
-    .order('created_at', { ascending: false })
-    .limit(10)
+
+  if (emailNormalise) {
+    queryDemandes = queryDemandes.ilike('metadata->>contactEmail', emailNormalise.replace(/[\\%_]/g, (c) => `\\${c}`))
+  } else {
+    queryDemandes = queryDemandes.ilike('metadata->>contactTelephone', `%${telephonePropre.replace(/[^0-9]/g, '').slice(-9)}%`)
+  }
+
+  const { data: demandes } = await queryDemandes.order('created_at', { ascending: false }).limit(10)
 
   // (1/2) Déjà payée et pas encore transformée en compte : l'équipe doit simplement la traiter.
   if ((demandes ?? []).some((d) => d.statut === 'paye')) {
-    return { error: 'Une demande payée existe déjà pour cette adresse e-mail : notre équipe vous contacte pour créer votre compte. Aucun nouveau paiement n’est nécessaire.' }
+    return {
+      error: `Une demande payée existe déjà pour ${emailNormalise ? 'cette adresse e-mail' : 'ce numéro de téléphone'} : notre équipe vous contacte pour créer votre compte. Aucun nouveau paiement n’est nécessaire.`
+    }
   }
 
   // (2/2) Même offre relancée récemment → même page de paiement (double clic, second onglet...).
@@ -94,7 +103,7 @@ export async function demarrerInscription(
         nomEntreprise: nomEntreprise.trim(),
         contactNom: contactNom.trim(),
         contactEmail: emailNormalise,
-        contactTelephone: telephoneLocal.trim(),
+        contactTelephone: telephonePropre,
         ...pays,
       },
     })
@@ -110,10 +119,10 @@ export async function demarrerInscription(
     dureeMois,
     montantFcfa,
     montantUsd,
-    emailClient: email.trim(),
+    emailClient: emailNormalise || emailTechnique,
     prenomClient: contactNom.trim(),
     nomClient: '',
-    telephoneLocal,
+    telephoneLocal: telephonePropre,
     telephonePays,
     retourUrl: `${siteUrl}/tarifs/retour?id=${abonnement.id}`,
     nomEntreprise: nomEntreprise.trim(),
@@ -134,7 +143,7 @@ export async function demarrerInscription(
         nomEntreprise: nomEntreprise.trim(),
         contactNom: contactNom.trim(),
         contactEmail: emailNormalise,
-        contactTelephone: telephoneLocal.trim(),
+        contactTelephone: telephonePropre,
         ...pays,
         ...(resultat.montantFacture ? { montantFacture: resultat.montantFacture, deviseFacturee: resultat.deviseFacturee } : {}),
       },

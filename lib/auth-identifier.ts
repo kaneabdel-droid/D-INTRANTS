@@ -45,13 +45,32 @@ export async function resoudreAuthEmail(
   }
 
   const cleanIdentifiant = normaliserIdentifiant(rawInput)
+  const digitsOnly = rawInput.replace(/[^0-9]/g, '')
+  const last9 = digitsOnly.length >= 9 ? digitsOnly.slice(-9) : digitsOnly
 
   // 2. Recherche par identifiant ou par numéro de téléphone dans public.utilisateurs
-  const { data: userRow } = await supabaseAdmin
+  let userRow: { id: string } | null = null
+
+  const { data: directMatch } = await supabaseAdmin
     .from('utilisateurs')
     .select('id, identifiant, telephone')
     .or(`identifiant.ilike.${cleanIdentifiant},telephone.eq.${cleanIdentifiant}`)
     .maybeSingle()
+
+  userRow = directMatch
+
+  // Si pas trouvé directement et que l'entrée ressemble à un numéro de téléphone
+  if (!userRow && last9.length >= 8) {
+    const { data: telMatches } = await supabaseAdmin
+      .from('utilisateurs')
+      .select('id, identifiant, telephone')
+      .or(`telephone.ilike.%${last9}%,identifiant.ilike.%${last9}%`)
+      .limit(1)
+
+    if (telMatches && telMatches[0]) {
+      userRow = telMatches[0]
+    }
+  }
 
   if (userRow?.id) {
     // Récupérer le compte auth associé
@@ -66,8 +85,9 @@ export async function resoudreAuthEmail(
   }
 
   // 3. Fallback : si l'identifiant n'est pas encore trouvé en table, on teste l'alias synthétique
+  const fallbackKey = digitsOnly.length >= 8 ? digitsOnly : cleanIdentifiant
   return {
-    email: genererEmailSynthetique(cleanIdentifiant),
+    email: genererEmailSynthetique(fallbackKey),
     isSynthetic: true,
   }
 }

@@ -18,6 +18,7 @@ export default function AjouterUtilisateurButton({ entrepriseId, magasins }: { e
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [email, setEmail] = useState('')
+  const [telephone, setTelephone] = useState('')
   const [password, setPassword] = useState('')
   const [nom, setNom] = useState('')
   const [prenom, setPrenom] = useState('')
@@ -30,6 +31,7 @@ export default function AjouterUtilisateurButton({ entrepriseId, magasins }: { e
   const close = () => {
     setIsOpen(false)
     setEmail('')
+    setTelephone('')
     setPassword('')
     setNom('')
     setPrenom('')
@@ -51,13 +53,15 @@ export default function AjouterUtilisateurButton({ entrepriseId, magasins }: { e
           role,
           role === 'gerant' || role === 'tresorier' ? magasinId : null,
           nom,
-          prenom
+          prenom,
+          telephone
         )
         if (result.error) {
           setMessage(`Erreur : ${result.error}`)
         } else {
-          setSuccess(`Compte créé pour ${email}. Mot de passe : ${password} (à transmettre à l'utilisateur, il ne sera plus affiché).`)
+          setSuccess(`Compte créé pour ${nom} ${prenom} (${telephone || email}). Mot de passe : ${password} (à transmettre à l'utilisateur, il ne sera plus affiché).`)
           setEmail('')
+          setTelephone('')
           setPassword('')
           router.refresh()
         }
@@ -116,12 +120,25 @@ export default function AjouterUtilisateurButton({ entrepriseId, magasins }: { e
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-foreground">Email</label>
+                      <label className="block text-sm font-medium text-foreground">Numéro de téléphone <span className="text-danger">*</span></label>
+                      <input
+                        type="tel"
+                        value={telephone}
+                        onChange={(e) => setTelephone(e.target.value)}
+                        placeholder="ex: +221 77 123 45 67"
+                        disabled={isPending}
+                        className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground">
+                        Email <span className="text-foreground-muted font-normal text-xs">(Optionnel)</span>
+                      </label>
                       <input
                         type="email"
-                        required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        placeholder="vous@exemple.com (facultatif)"
                         disabled={isPending}
                         className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2"
                       />
