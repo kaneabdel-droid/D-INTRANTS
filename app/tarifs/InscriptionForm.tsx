@@ -69,7 +69,7 @@ export default function InscriptionForm({ t, locale }: { t: Dict; locale: string
     startTransition(async () => {
       const resultat = await demarrerInscription(nomEntreprise, contactNom, email, telephoneLocal, telephonePays, palier, dureeMois, nomPaysAutre, moyenPaiement)
       if ('error' in resultat) {
-        setErreur(resultat.error)
+        setErreur(typeof resultat.error === 'string' ? resultat.error : JSON.stringify(resultat.error))
         return
       }
       window.location.href = resultat.checkoutUrl

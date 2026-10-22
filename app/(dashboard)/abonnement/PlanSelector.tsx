@@ -44,7 +44,7 @@ export default function PlanSelector({
     startTransition(async () => {
       const resultat = await demarrerPaiementAbonnement(palier, dureeMois, telephonePays, telephoneLocal, moyenPaiement)
       if ('error' in resultat) {
-        setErreur(resultat.error)
+        setErreur(typeof resultat.error === 'string' ? resultat.error : JSON.stringify(resultat.error))
         return
       }
       window.location.href = resultat.checkoutUrl

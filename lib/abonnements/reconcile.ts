@@ -7,6 +7,7 @@
 import { addMonths } from 'date-fns'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { adaptateurPour } from './registry'
+import { envoyerEmailsConfirmationAbonnement } from './emails'
 import type { ProviderId, StatutProvider } from './types'
 import type { DureeMois, PalierCode } from './paliers'
 
@@ -26,6 +27,7 @@ type LigneAbonnement = {
   provider_reference: string | null
   statut: 'en_attente' | 'paye' | 'echoue'
   created_at: string
+  metadata?: Record<string, any> | null
 }
 
 type ResultatReconciliation =
@@ -73,7 +75,21 @@ async function appliquerStatut(ligne: LigneAbonnement, statutDistant: StatutProv
     // Demande publique (pas encore d'entreprise, cf. app/tarifs/actions.ts) :
     // on s'arrête ici, la ligne payée attend d'être traitée depuis
     // /admin/demandes — pas d'entreprise à créditer pour l'instant.
-    if (!ligne.entreprise_id) return { ok: true, credite: true }
+    if (!ligne.entreprise_id) {
+      envoyerEmailsConfirmationAbonnement({
+        abonnementId: ligne.id,
+        entrepriseId: null,
+        palier: ligne.palier,
+        dureeMois: ligne.duree_mois,
+        montant: ligne.montant_fcfa,
+        devise: ligne.devise,
+        provider: ligne.provider,
+        providerReference: ligne.provider_reference,
+        metadata: ligne.metadata,
+      }, 'D-INTRANTS').catch((e) => console.error('[Emails] Erreur envoi confirmation abonnement public:', e))
+
+      return { ok: true, credite: true }
+    }
 
     // Filet anti double paiement : une autre tentative pour le même palier a été
     // payée entre la création de celle-ci et son paiement (le client a réglé deux
@@ -112,6 +128,19 @@ async function appliquerStatut(ligne: LigneAbonnement, statutDistant: StatutProv
 
     await supabase.from('abonnements').update({ periode_debut: base.toISOString(), periode_fin: nouvelleExpiration.toISOString() }).eq('id', ligne.id)
     await supabase.from('entreprises').update({ palier: ligne.palier, abonnement_expire_le: nouvelleExpiration.toISOString(), statut: 'actif' }).eq('id', ligne.entreprise_id)
+
+    envoyerEmailsConfirmationAbonnement({
+      abonnementId: ligne.id,
+      entrepriseId: ligne.entreprise_id,
+      palier: ligne.palier,
+      dureeMois: ligne.duree_mois,
+      montant: ligne.montant_fcfa,
+      devise: ligne.devise,
+      provider: ligne.provider,
+      providerReference: ligne.provider_reference,
+      metadata: ligne.metadata,
+      dateFin: nouvelleExpiration.toISOString(),
+    }, 'D-INTRANTS').catch((e) => console.error('[Emails] Erreur envoi confirmation abonnement:', e))
 
     return { ok: true, credite: true }
   }
@@ -178,7 +207,7 @@ export async function reconcilierPaiementsEnAttente(): Promise<{ traites: number
     .from('abonnements')
     .select('*')
     .eq('statut', 'en_attente')
-    .in('provider', ['chariow', 'moneroo'])
+    .in('provider', ['chariow', 'moneroo', 'maketou'])
     .not('provider_reference', 'is', null)
     .returns<LigneAbonnement[]>()
 

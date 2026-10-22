@@ -1,6 +1,6 @@
 import type { AdaptateurPaiement, InitierPaiementParams, InitierPaiementResultat, StatutPaiementDistant, StatutProvider } from '../types'
 import type { PalierCode, DureeMois } from '../paliers'
-import { versNumeroNational } from '../telephone'
+import { versE164, versNumeroNational } from '../telephone'
 import { createAdminClient } from '@/utils/supabase/admin'
 const maketouApiKey = process.env.MAKETOU_API_KEY
 const maketouApiUrl = process.env.MAKETOU_API_URL || 'https://api.maketou.net'
@@ -49,18 +49,24 @@ export const maketouAdapter: AdaptateurPaiement = {
       }
     }
 
-    const fallbackEmail = `${versNumeroNational(params.telephoneLocal, params.telephonePays).replace(/[^0-9]/g, '') || 'client'}@client.dembasolution.com`
+    const nationalPhone = versNumeroNational(params.telephoneLocal || '', params.telephonePays)
+    const fallbackEmail = `${nationalPhone.replace(/[^0-9]/g, '') || 'client'}@client.dembasolution.com`
     const effectiveEmail = params.emailClient || fallbackEmail
     const { first, last } = splitName(params.nomClient ? `${params.prenomClient} ${params.nomClient}` : params.prenomClient, effectiveEmail)
 
-    const body = {
+    const e164Phone = nationalPhone && nationalPhone.length >= 6 ? versE164(params.telephoneLocal, params.telephonePays) : undefined
+
+    const body: Record<string, any> = {
       productDocumentId: productId,
       email: effectiveEmail,
       firstName: first,
       lastName: last,
-      phone: versNumeroNational(params.telephoneLocal, params.telephonePays),
       redirectURL: params.retourUrl,
       meta: { paymentId: params.abonnementId },
+    }
+
+    if (e164Phone) {
+      body.phone = e164Phone
     }
 
     let res: Response
@@ -79,7 +85,7 @@ export const maketouAdapter: AdaptateurPaiement = {
       return { ok: false, error: `Erreur réseau Maketou : ${(err as Error).message}` }
     }
 
-    let parsed: { cart?: { id?: string }; redirectUrl?: string; message?: string } | null = null
+    let parsed: any = null
     try {
       parsed = await res.json()
     } catch {
@@ -90,7 +96,23 @@ export const maketouAdapter: AdaptateurPaiement = {
     const checkoutUrl = parsed?.redirectUrl
 
     if (!res.ok || !providerTransactionId || !checkoutUrl) {
-      return { ok: false, error: parsed?.message || `Maketou a répondu ${res.status}` }
+      let errorMessage = `Maketou a répondu ${res.status}`
+      if (typeof parsed?.message === 'string') {
+        errorMessage = parsed.message
+      } else if (Array.isArray(parsed?.message)) {
+        const details = parsed.message
+          .map((m: any) => {
+            if (typeof m === 'string') return m
+            if (m?.constraints) return Object.values(m.constraints).join(', ')
+            return m?.property ? `Erreur sur le champ ${m.property}` : null
+          })
+          .filter(Boolean)
+          .join(' ; ')
+        if (details) errorMessage = `Erreur de validation : ${details}`
+      } else if (parsed?.error && typeof parsed.error === 'string') {
+        errorMessage = parsed.error
+      }
+      return { ok: false, error: errorMessage }
     }
 
     return {
