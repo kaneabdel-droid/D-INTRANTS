@@ -14,26 +14,50 @@ type Ecriture = {
   montant: number
   categorie: string | null
   motif: string | null
+  reference_id?: string | null
 }
 
-export default function EcritureRowActions({ ecriture, comptes, dict }: { ecriture: Ecriture; comptes: Compte[]; dict: Dictionary }) {
+export default function EcritureRowActions({
+  ecriture,
+  comptes,
+  compteContrepartieId,
+  dict,
+}: {
+  ecriture: Ecriture
+  comptes: Compte[]
+  compteContrepartieId?: string | null
+  dict: Dictionary
+}) {
   const t = dict.tresorerie
   const c = dict.common
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [compteId, setCompteId] = useState(ecriture.compte_tresorerie_id)
   const [categorie, setCategorie] = useState(ecriture.categorie ?? 'autre')
-  const sensForce = categorie === 'autres_produits' ? 'entree' : categorie === 'autres_charges' ? 'sortie' : null
+  const sensForce =
+    categorie === 'autres_produits'
+      ? 'entree'
+      : categorie === 'autres_charges'
+        ? 'sortie'
+        : categorie === 'virement'
+          ? ecriture.categorie === 'virement'
+            ? ecriture.type_mouvement
+            : 'sortie'
+          : null
+
+  const autresComptes = comptes.filter((cpt) => cpt.id !== compteId)
 
   async function handleUpdate(formData: FormData) {
     setLoading(true)
     setError(null)
-    const compteId = formData.get('compte_tresorerie_id') as string
+    const cId = formData.get('compte_tresorerie_id') as string
     const typeMouvement = formData.get('type_mouvement') as string
     const montant = parseFloat(formData.get('montant') as string) || 0
-    const categorie = (formData.get('categorie') as string) || 'autre'
+    const cat = (formData.get('categorie') as string) || 'autre'
     const motif = (formData.get('motif') as string) ?? ''
-    const res = await updateEcritureTresorerie(ecriture.id, compteId, typeMouvement, montant, categorie, motif)
+    const compteDestinationId = (formData.get('compte_destination_id') as string) || undefined
+    const res = await updateEcritureTresorerie(ecriture.id, cId, typeMouvement, montant, cat, motif, compteDestinationId)
     setLoading(false)
     if (res?.error) setError(res.error)
     else {
@@ -72,7 +96,13 @@ export default function EcritureRowActions({ ecriture, comptes, dict }: { ecritu
                   {error && <p className="text-xs text-danger">{error}</p>}
                   <div>
                     <label className="block text-sm font-medium text-foreground">{t.compteLabel}</label>
-                    <select name="compte_tresorerie_id" defaultValue={ecriture.compte_tresorerie_id} required className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2">
+                    <select
+                      name="compte_tresorerie_id"
+                      value={compteId}
+                      onChange={(e) => setCompteId(e.target.value)}
+                      required
+                      className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2"
+                    >
                       {comptes.map((cpt) => (
                         <option key={cpt.id} value={cpt.id}>{cpt.nom}</option>
                       ))}
@@ -91,9 +121,9 @@ export default function EcritureRowActions({ ecriture, comptes, dict }: { ecritu
                         </>
                       ) : (
                         <select name="type_mouvement" defaultValue={ecriture.type_mouvement} required className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2">
-                        <option value="entree">{t.senseEntree}</option>
-                        <option value="sortie">{t.senseSortie}</option>
-                      </select>
+                          <option value="entree">{t.senseEntree}</option>
+                          <option value="sortie">{t.senseSortie}</option>
+                        </select>
                       )}
                     </div>
                     <div>
@@ -112,6 +142,28 @@ export default function EcritureRowActions({ ecriture, comptes, dict }: { ecritu
                       <option value="autre">{t.categorieAutre}</option>
                     </select>
                   </div>
+
+                  {categorie === 'virement' && (
+                    <div className="space-y-1 rounded-lg border border-primary/30 bg-primary/5 p-3">
+                      <label className="block text-sm font-medium text-foreground">
+                        {ecriture.categorie === 'virement' && ecriture.type_mouvement === 'entree'
+                          ? 'Compte source (débité)'
+                          : 'Compte de destination (crédité)'}
+                      </label>
+                      <select
+                        name="compte_destination_id"
+                        required
+                        defaultValue={compteContrepartieId ?? ''}
+                        className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2"
+                      >
+                        <option value="">{c.select}</option>
+                        {autresComptes.map((cpt) => (
+                          <option key={cpt.id} value={cpt.id}>{cpt.nom}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
                   <div>
                     <label className="block text-sm font-medium text-foreground">{t.motifLabel}</label>
                     <input name="motif" type="text" defaultValue={ecriture.motif ?? ''} className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2" />

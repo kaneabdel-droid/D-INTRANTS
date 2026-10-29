@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, ArrowRightLeft } from 'lucide-react'
 import type { Dictionary } from '@/dictionaries'
 import { addEcritureTresorerie } from './actions'
 
@@ -13,8 +13,16 @@ export default function AddEcritureButton({ comptes, dict }: { comptes: Compte[]
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [compteId, setCompteId] = useState('')
   const [categorie, setCategorie] = useState('autres_produits')
-  const sensForce = categorie === 'autres_produits' ? 'entree' : categorie === 'autres_charges' ? 'sortie' : null
+  const sensForce =
+    categorie === 'autres_produits'
+      ? 'entree'
+      : categorie === 'autres_charges' || categorie === 'virement'
+        ? 'sortie'
+        : null
+
+  const autresComptes = comptes.filter((cpt) => cpt.id !== compteId)
 
   async function handleSubmit(formData: FormData) {
     setLoading(true)
@@ -46,8 +54,16 @@ export default function AddEcritureButton({ comptes, dict }: { comptes: Compte[]
                 <form action={handleSubmit} id="add-ecriture-form" className="space-y-4">
                   {error && <p className="text-xs text-danger">{error}</p>}
                   <div>
-                    <label className="block text-sm font-medium text-foreground">{t.compteLabel}</label>
-                    <select name="compte_tresorerie_id" required className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2">
+                    <label className="block text-sm font-medium text-foreground">
+                      {categorie === 'virement' ? `${t.compteLabel} source (débité)` : t.compteLabel}
+                    </label>
+                    <select
+                      name="compte_tresorerie_id"
+                      value={compteId}
+                      onChange={(e) => setCompteId(e.target.value)}
+                      required
+                      className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2"
+                    >
                       <option value="">{c.select}</option>
                       {comptes.map((cpt) => (
                         <option key={cpt.id} value={cpt.id}>{cpt.nom}</option>
@@ -67,9 +83,9 @@ export default function AddEcritureButton({ comptes, dict }: { comptes: Compte[]
                         </>
                       ) : (
                         <select name="type_mouvement" required className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2">
-                        <option value="entree">{t.senseEntree}</option>
-                        <option value="sortie">{t.senseSortie}</option>
-                      </select>
+                          <option value="entree">{t.senseEntree}</option>
+                          <option value="sortie">{t.senseSortie}</option>
+                        </select>
                       )}
                     </div>
                     <div>
@@ -88,6 +104,32 @@ export default function AddEcritureButton({ comptes, dict }: { comptes: Compte[]
                       <option value="autre">{t.categorieAutre}</option>
                     </select>
                   </div>
+
+                  {categorie === 'virement' && (
+                    <div className="space-y-2 rounded-lg border border-primary/30 bg-primary/5 p-3">
+                      <label className="block text-sm font-medium text-foreground">
+                        Compte de destination (crédité)
+                      </label>
+                      <select
+                        name="compte_destination_id"
+                        required
+                        defaultValue=""
+                        className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2"
+                      >
+                        <option value="">{c.select}</option>
+                        {autresComptes.map((cpt) => (
+                          <option key={cpt.id} value={cpt.id}>{cpt.nom}</option>
+                        ))}
+                      </select>
+                      <p className="flex items-start gap-1.5 text-xs text-primary">
+                        <ArrowRightLeft className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                        <span>
+                          Équilibrage automatique : une sortie sera enregistrée sur le compte source et une entrée du même montant sera passée automatiquement sur le compte de destination.
+                        </span>
+                      </p>
+                    </div>
+                  )}
+
                   <div>
                     <label className="block text-sm font-medium text-foreground">{t.motifLabel}</label>
                     <input name="motif" type="text" className="mt-1 block w-full rounded-md bg-background border border-surface-border text-foreground px-3 py-2" />
@@ -98,7 +140,7 @@ export default function AddEcritureButton({ comptes, dict }: { comptes: Compte[]
                 <button
                   type="submit"
                   form="add-ecriture-form"
-                  disabled={loading || comptes.length === 0}
+                  disabled={loading || comptes.length === 0 || (categorie === 'virement' && autresComptes.length === 0)}
                   className="inline-flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-hover sm:ml-3 sm:w-auto disabled:opacity-50"
                 >
                   {loading ? c.saving : c.save}

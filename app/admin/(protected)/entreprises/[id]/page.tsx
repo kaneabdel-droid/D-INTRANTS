@@ -8,7 +8,9 @@ import MagasinRow from './MagasinRow'
 import AjouterUtilisateurButton from './AjouterUtilisateurButton'
 import UtilisateurRow from './UtilisateurRow'
 import SupprimerEntrepriseButton from './SupprimerEntrepriseButton'
+import ConfirmerPaiementButton from '../../paiements/ConfirmerPaiementButton'
 import { PALIERS, type PalierCode } from '@/lib/abonnements/paliers'
+import { libelleMoyenPaiement } from '@/lib/abonnements/types'
 
 export default async function AdminEntrepriseDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -34,6 +36,13 @@ export default async function AdminEntrepriseDetailPage({ params }: { params: Pr
     .from('utilisateurs')
     .select('id, role, nom, prenom, magasin_id')
     .eq('entreprise_id', id)
+
+  const { data: abonnements } = await supabase
+    .from('abonnements')
+    .select('id, palier, duree_mois, montant_fcfa, provider, metadata, statut, created_at, paye_at, periode_fin')
+    .eq('entreprise_id', id)
+    .order('created_at', { ascending: false })
+    .limit(20)
 
   // Les emails (et le statut désactivé) vivent dans auth.users, pas dans public.utilisateurs.
   const { data: authUsers } = await supabase.auth.admin.listUsers({ perPage: 1000 })
@@ -106,7 +115,59 @@ export default async function AdminEntrepriseDetailPage({ params }: { params: Pr
         </div>
       </div>
 
-      <EntrepriseActions entrepriseId={entreprise.id} statut={entreprise.statut} />
+      <EntrepriseActions entrepriseId={entreprise.id} statut={entreprise.statut} palierActuel={entreprise.palier} />
+
+      <div className="bg-background rounded-xl p-5 border border-surface-border mb-6">
+        <h2 className="font-semibold mb-4">Paiements d&apos;abonnement</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-surface text-foreground-muted text-left">
+              <tr>
+                <th className="px-3 py-2 font-medium">Date</th>
+                <th className="px-3 py-2 font-medium">Palier</th>
+                <th className="px-3 py-2 font-medium">Durée</th>
+                <th className="px-3 py-2 font-medium">Montant</th>
+                <th className="px-3 py-2 font-medium">Moyen</th>
+                <th className="px-3 py-2 font-medium">Statut</th>
+                <th className="px-3 py-2 font-medium text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-surface-border">
+              {(abonnements ?? []).map((a) => (
+                <tr key={a.id}>
+                  <td className="px-3 py-2 text-foreground-muted">
+                    {(a.paye_at ?? a.created_at) ? new Date(a.paye_at ?? a.created_at).toLocaleDateString('fr-FR') : '-'}
+                  </td>
+                  <td className="px-3 py-2">{PALIERS[a.palier as PalierCode]?.nom ?? a.palier}</td>
+                  <td className="px-3 py-2">{a.duree_mois} mois</td>
+                  <td className="px-3 py-2">{Number(a.montant_fcfa).toLocaleString('fr-FR')} FCFA</td>
+                  <td className="px-3 py-2">{libelleMoyenPaiement(a.provider, a.metadata as Record<string, unknown> | null)}</td>
+                  <td className="px-3 py-2">
+                    <span className={a.statut === 'paye' ? 'text-success font-medium' : a.statut === 'echoue' ? 'text-danger' : 'text-primary'}>
+                      {a.statut}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    {a.statut !== 'paye' && (
+                      <ConfirmerPaiementButton
+                        abonnementId={a.id}
+                        moyenParDefaut={((a.metadata as Record<string, unknown> | null)?.moyenPaiementReel as string) || a.provider}
+                      />
+                    )}
+                  </td>
+                </tr>
+              ))}
+              {(abonnements ?? []).length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-3 py-4 text-center text-foreground-muted">
+                    Aucun paiement enregistré
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       <SupprimerEntrepriseButton entrepriseId={entreprise.id} nomEntreprise={entreprise.nom} />
     </div>

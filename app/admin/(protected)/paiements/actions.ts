@@ -5,12 +5,66 @@ import { createAdminClient } from '@/utils/supabase/admin'
 import { getSharedAdminUser, getLocalUser } from '@/utils/supabase/admin-identity'
 import { withRetryResult } from '@/utils/supabase/retry'
 import { isAdminEmail } from '@/lib/admin/auth'
+import { estPalierValide, estDureeValide } from '@/lib/abonnements/paliers'
+import { estMoyenPaiementManuel } from '@/lib/abonnements/types'
+import { crediterAbonnementManuel, creerEtActiverAbonnementManuel } from '@/lib/abonnements/reconcile'
 
 type ActionResult = { success?: true; error?: string }
 
 async function checkAdmin(): Promise<string | null> {
   const [sharedUser, localUser] = await Promise.all([getSharedAdminUser(), getLocalUser()])
   return isAdminEmail(sharedUser?.email) || isAdminEmail(localUser?.email) ? null : 'Non autorisé'
+}
+
+/**
+ * Confirme et active directement un abonnement en attente (ex. paiement Caisse ou Virement)
+ * en tant que superadmin.
+ */
+export async function confirmerPaiementAbonnement(
+  abonnementId: string,
+  moyenBrut?: string
+): Promise<ActionResult> {
+  const authError = await checkAdmin()
+  if (authError) return { error: authError }
+
+  const moyen = moyenBrut && estMoyenPaiementManuel(moyenBrut) ? moyenBrut : undefined
+  const res = await crediterAbonnementManuel(abonnementId, moyen)
+  if (!res.ok) return { error: res.raison }
+
+  revalidatePath('/admin/paiements')
+  revalidatePath('/admin/demandes')
+  revalidatePath('/admin/entreprises')
+  return { success: true }
+}
+
+/**
+ * Crée et active immédiatement un abonnement payé (Caisse ou Virement) pour une entreprise.
+ */
+export async function activerAbonnementEntreprise(
+  entrepriseId: string,
+  palierBrut: string,
+  dureeMoisBrut: number,
+  moyenBrut: string
+): Promise<ActionResult> {
+  const authError = await checkAdmin()
+  if (authError) return { error: authError }
+  if (!entrepriseId) return { error: 'Entreprise requise' }
+  if (!estPalierValide(palierBrut)) return { error: 'Palier invalide' }
+  if (!estDureeValide(dureeMoisBrut)) return { error: 'Durée invalide' }
+  if (!estMoyenPaiementManuel(moyenBrut)) return { error: 'Moyen de paiement invalide (Caisse ou Virement requis)' }
+
+  const res = await creerEtActiverAbonnementManuel({
+    entrepriseId,
+    palier: palierBrut,
+    dureeMois: dureeMoisBrut,
+    moyen: moyenBrut,
+  })
+  if (!res.ok) return { error: res.error }
+
+  revalidatePath(`/admin/entreprises/${entrepriseId}`)
+  revalidatePath('/admin/entreprises')
+  revalidatePath('/admin/paiements')
+  return { success: true }
 }
 
 // Supprime un paiement échoué, ou une demande publique jamais rattachée à une

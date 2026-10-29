@@ -1,6 +1,7 @@
 import { requireAdminEntreprise } from '@/lib/auth/getCurrentUserContext'
 import { createClient } from '@/utils/supabase/server'
 import { PALIERS, type PalierCode } from '@/lib/abonnements/paliers'
+import { libelleMoyenPaiement } from '@/lib/abonnements/types'
 import PlanSelector from './PlanSelector'
 
 export default async function AbonnementPage() {
@@ -21,7 +22,7 @@ export default async function AbonnementPage() {
 
   const { data: historique } = await supabase
     .from('abonnements')
-    .select('id, palier, duree_mois, montant_fcfa, devise, montant_devise, provider, statut, created_at')
+    .select('id, palier, duree_mois, montant_fcfa, devise, montant_devise, provider, statut, metadata, created_at')
     .eq('entreprise_id', context.entrepriseId)
     .order('created_at', { ascending: false })
     .limit(10)
@@ -81,7 +82,7 @@ export default async function AbonnementPage() {
                   <td className="px-4 py-3">{PALIERS[h.palier as PalierCode]?.nom ?? h.palier}</td>
                   <td className="px-4 py-3">{h.duree_mois} mois</td>
                   <td className="px-4 py-3">{h.devise === 'USD' ? `${Number(h.montant_devise).toLocaleString('en-US')} $` : `${h.montant_fcfa.toLocaleString('fr-FR')} FCFA`}</td>
-                  <td className="px-4 py-3 capitalize">{h.provider}</td>
+                  <td className="px-4 py-3">{libelleMoyenPaiement(h.provider, h.metadata as Record<string, any> | null)}</td>
                   <td className="px-4 py-3">
                     {h.statut === 'paye' && <span className="text-success font-medium">Payé</span>}
                     {h.statut === 'en_attente' && <span className="text-warning font-medium">En attente</span>}

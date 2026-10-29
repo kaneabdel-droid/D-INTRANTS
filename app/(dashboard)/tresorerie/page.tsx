@@ -75,19 +75,28 @@ export default async function TresoreriePage({ searchParams }: { searchParams: P
   const venteIds = (mouvements ?? []).filter(m => m.reference_type === 'vente').map(m => m.reference_id).filter(Boolean) as string[]
   const creanceIds = (mouvements ?? []).filter(m => m.reference_type === 'creance').map(m => m.reference_id).filter(Boolean) as string[]
   const detteIds = (mouvements ?? []).filter(m => m.reference_type === 'dette').map(m => m.reference_id).filter(Boolean) as string[]
+  const virementRefIds = (mouvements ?? []).filter(m => m.categorie === 'virement' && !m.reference_type && m.reference_id).map(m => m.reference_id) as string[]
 
-  const [achatsRes, ventesRes, creancesRes, dettesRes] = await Promise.all([
+  const [achatsRes, ventesRes, creancesRes, dettesRes, virementsLiesRes] = await Promise.all([
     achatIds.length > 0 ? supabase.from('achats').select('id, fournisseurs(nom)').in('id', achatIds) : Promise.resolve({ data: [] }),
     venteIds.length > 0 ? supabase.from('ventes').select('id, clients(nom)').in('id', venteIds) : Promise.resolve({ data: [] }),
     creanceIds.length > 0 ? supabase.from('creances').select('id, clients(nom)').in('id', creanceIds) : Promise.resolve({ data: [] }),
     detteIds.length > 0 ? supabase.from('dettes').select('id, fournisseurs(nom)').in('id', detteIds) : Promise.resolve({ data: [] }),
+    virementRefIds.length > 0 ? supabase.from('journal_tresorerie').select('id, compte_tresorerie_id').in('id', virementRefIds) : Promise.resolve({ data: [] as { id: string; compte_tresorerie_id: string }[] }),
   ])
+
+  const compteParEcritureVirementId = new Map<string, string>()
+  virementsLiesRes.data?.forEach((v) => compteParEcritureVirementId.set(v.id, v.compte_tresorerie_id))
 
   const tiersMap = new Map<string, string>()
   achatsRes.data?.forEach(a => tiersMap.set(a.id, (a.fournisseurs as any)?.nom))
   ventesRes.data?.forEach(v => tiersMap.set(v.id, (v.clients as any)?.nom))
   creancesRes.data?.forEach(c => tiersMap.set(c.id, (c.clients as any)?.nom))
   dettesRes.data?.forEach(d => tiersMap.set(d.id, (d.fournisseurs as any)?.nom))
+  virementsLiesRes.data?.forEach(v => {
+    const nomAutreCompte = compteParId.get(v.compte_tresorerie_id)?.nom
+    if (nomAutreCompte) tiersMap.set(v.id, nomAutreCompte)
+  })
 
   return (
     <div>
@@ -187,7 +196,12 @@ export default async function TresoreriePage({ searchParams }: { searchParams: P
                   {m.reference_type ? (
                     <span className="text-xs text-foreground-muted capitalize">{m.reference_type.replace('_', ' ')}</span>
                   ) : (
-                    <EcritureRowActions ecriture={m} comptes={comptes ?? []} dict={dict} />
+                    <EcritureRowActions
+                      ecriture={m}
+                      comptes={comptes ?? []}
+                      compteContrepartieId={m.reference_id ? compteParEcritureVirementId.get(m.reference_id) ?? null : null}
+                      dict={dict}
+                    />
                   )}
                 </td>
               </tr>

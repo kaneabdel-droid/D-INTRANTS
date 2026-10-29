@@ -8,8 +8,8 @@ import { addMonths } from 'date-fns'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { adaptateurPour } from './registry'
 import { envoyerEmailsConfirmationAbonnement } from './emails'
-import type { ProviderId, StatutProvider } from './types'
-import type { DureeMois, PalierCode } from './paliers'
+import { calculerMontantFcfa, calculerMontantUsd, equivalentFcfa, type DureeMois, type PalierCode } from './paliers'
+import { estMoyenPaiementManuel, type MoyenPaiementAbonnement, type MoyenPaiementManuel, type ProviderId, type StatutProvider } from './types'
 
 type LigneAbonnement = {
   id: string
@@ -23,7 +23,7 @@ type LigneAbonnement = {
   // XOF par défaut ; USD pour un client d'un autre pays, montant_devise étant alors le montant en dollars (migration 27)
   devise: string
   montant_devise: number | null
-  provider: ProviderId
+  provider: MoyenPaiementAbonnement
   provider_reference: string | null
   statut: 'en_attente' | 'paye' | 'echoue'
   created_at: string
@@ -33,6 +33,8 @@ type LigneAbonnement = {
 type ResultatReconciliation =
   | { ok: true; credite: boolean }
   | { ok: false; raison: string }
+
+const PRODUIT_NOM = 'D-INTRANTS'
 
 // Tolérance anti-fraude 5% (fees/arrondis provider), cf. Chariow.md §5 et la
 // skill izisaas — un écart au-delà n'est jamais crédité, seulement journalisé.
@@ -83,10 +85,10 @@ async function appliquerStatut(ligne: LigneAbonnement, statutDistant: StatutProv
         dureeMois: ligne.duree_mois,
         montant: ligne.montant_fcfa,
         devise: ligne.devise,
-        provider: ligne.provider,
+        provider: (ligne.metadata?.moyenPaiementReel as string | undefined) || ligne.provider,
         providerReference: ligne.provider_reference,
         metadata: ligne.metadata,
-      }, 'D-INTRANTS').catch((e) => console.error('[Emails] Erreur envoi confirmation abonnement public:', e))
+      }, PRODUIT_NOM).catch((e) => console.error('[Emails] Erreur envoi confirmation abonnement public:', e))
 
       return { ok: true, credite: true }
     }
@@ -136,11 +138,11 @@ async function appliquerStatut(ligne: LigneAbonnement, statutDistant: StatutProv
       dureeMois: ligne.duree_mois,
       montant: ligne.montant_fcfa,
       devise: ligne.devise,
-      provider: ligne.provider,
+      provider: (ligne.metadata?.moyenPaiementReel as string | undefined) || ligne.provider,
       providerReference: ligne.provider_reference,
       metadata: ligne.metadata,
       dateFin: nouvelleExpiration.toISOString(),
-    }, 'D-INTRANTS').catch((e) => console.error('[Emails] Erreur envoi confirmation abonnement:', e))
+    }, PRODUIT_NOM).catch((e) => console.error('[Emails] Erreur envoi confirmation abonnement:', e))
 
     return { ok: true, credite: true }
   }
@@ -172,9 +174,12 @@ export async function reconcilierParAbonnementId(abonnementId: string): Promise<
   const { data: ligne } = await supabase.from('abonnements').select('*').eq('id', abonnementId).maybeSingle<LigneAbonnement>()
   if (!ligne) return { ok: false, raison: 'abonnement_introuvable' }
   if (ligne.statut !== 'en_attente') return { ok: true, credite: ligne.statut === 'paye' }
+  if (estMoyenPaiementManuel(ligne.provider) || estMoyenPaiementManuel(String(ligne.metadata?.moyenPaiementReel ?? ''))) {
+    return { ok: true, credite: false }
+  }
   if (!ligne.provider_reference) return { ok: false, raison: 'pas_encore_de_reference_provider' }
 
-  const distant = await adaptateurPour(ligne.provider).recupererStatut(ligne.provider_reference)
+  const distant = await adaptateurPour(ligne.provider as ProviderId).recupererStatut(ligne.provider_reference)
   if (!distant) return { ok: false, raison: 're_pull_impossible' }
 
   return appliquerStatut(ligne, distant.statut, distant.montant, distant.payeLe, distant.devise)
@@ -198,6 +203,171 @@ export async function appliquerEvenementBictorysVerifie(providerReference: strin
   return appliquerStatut(ligne, statutDistant, montantDistant)
 }
 
+/**
+ * Confirmation / activation directe d'un abonnement existant par le super-admin
+ * (paiement reçu en caisse ou par virement bancaire).
+ */
+export async function crediterAbonnementManuel(abonnementId: string, moyenOverride?: MoyenPaiementManuel): Promise<ResultatReconciliation> {
+  const supabase = createAdminClient()
+  const { data: ligne } = await supabase.from('abonnements').select('*').eq('id', abonnementId).maybeSingle<LigneAbonnement>()
+  if (!ligne) return { ok: false, raison: 'abonnement_introuvable' }
+  if (ligne.statut === 'paye') return { ok: true, credite: true }
+
+  const moyenEffectif = moyenOverride || (estMoyenPaiementManuel(ligne.provider) ? ligne.provider : (ligne.metadata?.moyenPaiementReel as MoyenPaiementManuel | undefined) || 'caisse')
+  const metadataMaj = {
+    ...(ligne.metadata ?? {}),
+    moyenPaiementReel: moyenEffectif,
+    valideParSuperadmin: true,
+    valideLe: new Date().toISOString(),
+  }
+
+  const { error: errUpdateProvider } = await supabase
+    .from('abonnements')
+    .update({ statut: 'en_attente', provider: moyenEffectif, metadata: metadataMaj })
+    .eq('id', abonnementId)
+
+  if (errUpdateProvider) {
+    await supabase
+      .from('abonnements')
+      .update({ statut: 'en_attente', metadata: metadataMaj })
+      .eq('id', abonnementId)
+  }
+
+  const lignePreparee: LigneAbonnement = {
+    ...ligne,
+    statut: 'en_attente',
+    provider: errUpdateProvider ? ligne.provider : moyenEffectif,
+    metadata: metadataMaj,
+  }
+
+  return appliquerStatut(lignePreparee, 'succeeded', undefined, new Date(), ligne.devise)
+}
+
+/**
+ * Création et activation immédiate d'un abonnement par le super-admin (Caisse ou Virement)
+ * pour une entreprise donnée, sans passer par un prestataire de paiement en ligne.
+ */
+export async function creerEtActiverAbonnementManuel(params: {
+  entrepriseId: string
+  palier: PalierCode
+  dureeMois: DureeMois
+  moyen: MoyenPaiementManuel
+}): Promise<{ ok: true; abonnementId: string; expireLe: string } | { ok: false; error: string }> {
+  const supabase = createAdminClient()
+
+  const { data: entreprise, error: entErr } = await supabase
+    .from('entreprises')
+    .select('id, nom, palier, abonnement_expire_le, devise')
+    .eq('id', params.entrepriseId)
+    .maybeSingle()
+
+  if (entErr || !entreprise) {
+    return { ok: false, error: entErr?.message || 'Entreprise introuvable' }
+  }
+
+  await supabase
+    .from('abonnements')
+    .update({ abandonne_le: new Date().toISOString() })
+    .eq('entreprise_id', params.entrepriseId)
+    .eq('statut', 'en_attente')
+    .is('abandonne_le', null)
+
+  const enDollars = entreprise.devise === 'AUCUNE'
+  const montantUsd = enDollars ? calculerMontantUsd(params.palier, params.dureeMois) : undefined
+  const montantFcfa = montantUsd ? equivalentFcfa(montantUsd) : calculerMontantFcfa(params.palier, params.dureeMois)
+  const devise = enDollars ? 'USD' : 'XOF'
+  const montantDevise = montantUsd ?? montantFcfa
+
+  const maintenant = new Date()
+  const encoreActif =
+    Boolean(entreprise.abonnement_expire_le) &&
+    new Date(entreprise.abonnement_expire_le!) > maintenant &&
+    entreprise.palier === params.palier
+  const base = encoreActif ? new Date(entreprise.abonnement_expire_le!) : maintenant
+  const nouvelleExpiration = addMonths(base, params.dureeMois)
+
+  const metadata = {
+    moyenPaiementReel: params.moyen,
+    activeParSuperadmin: true,
+    activeLe: maintenant.toISOString(),
+  }
+
+  let insertRes = await supabase
+    .from('abonnements')
+    .insert({
+      entreprise_id: params.entrepriseId,
+      palier: params.palier,
+      duree_mois: params.dureeMois,
+      montant_fcfa: montantFcfa,
+      devise,
+      montant_devise: montantDevise,
+      provider: params.moyen,
+      statut: 'paye',
+      paye_at: maintenant.toISOString(),
+      periode_debut: base.toISOString(),
+      periode_fin: nouvelleExpiration.toISOString(),
+      metadata,
+    })
+    .select('id')
+    .single()
+
+  if (insertRes.error && (insertRes.error.code === '23514' || insertRes.error.message.includes('abonnements_provider_check'))) {
+    insertRes = await supabase
+      .from('abonnements')
+      .insert({
+        entreprise_id: params.entrepriseId,
+        palier: params.palier,
+        duree_mois: params.dureeMois,
+        montant_fcfa: montantFcfa,
+        devise,
+        montant_devise: montantDevise,
+        provider: 'chariow',
+        statut: 'paye',
+        paye_at: maintenant.toISOString(),
+        periode_debut: base.toISOString(),
+        periode_fin: nouvelleExpiration.toISOString(),
+        metadata,
+      })
+      .select('id')
+      .single()
+  }
+
+  if (insertRes.error || !insertRes.data) {
+    return { ok: false, error: insertRes.error?.message || "Impossible d'enregistrer le paiement d'abonnement" }
+  }
+
+  const { error: majErr } = await supabase
+    .from('entreprises')
+    .update({
+      palier: params.palier,
+      abonnement_expire_le: nouvelleExpiration.toISOString(),
+      statut: 'actif',
+    })
+    .eq('id', params.entrepriseId)
+
+  if (majErr) {
+    return { ok: false, error: majErr.message }
+  }
+
+  envoyerEmailsConfirmationAbonnement(
+    {
+      abonnementId: insertRes.data.id,
+      entrepriseId: params.entrepriseId,
+      palier: params.palier,
+      dureeMois: params.dureeMois,
+      montant: montantFcfa,
+      devise,
+      provider: params.moyen,
+      providerReference: insertRes.data.id,
+      metadata,
+      dateFin: nouvelleExpiration.toISOString(),
+    },
+    PRODUIT_NOM
+  ).catch((e) => console.error('[Emails] Erreur envoi confirmation abonnement manuel:', e))
+
+  return { ok: true, abonnementId: insertRes.data.id, expireLe: nouvelleExpiration.toISOString() }
+}
+
 // Tâche planifiée (voir app/api/cron/abonnements/route.ts) : rattrape les
 // paiements Chariow/Moneroo en attente (un webhook manqué, un retour
 // utilisateur interrompu...) et referme ceux restés bloqués trop longtemps.
@@ -217,10 +387,14 @@ export async function reconcilierPaiementsEnAttente(): Promise<{ traites: number
     if (resultat.ok && resultat.credite) credites++
   }
 
-  // Un paiement en_attente vieux de plus de 48h sans confirmation provider est
-  // considéré abandonné — l'entreprise peut relancer un nouveau paiement.
   const seuil = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
-  await supabase.from('abonnements').update({ statut: 'echoue' }).eq('statut', 'en_attente').lt('created_at', seuil)
+  await supabase
+    .from('abonnements')
+    .update({ statut: 'echoue' })
+    .eq('statut', 'en_attente')
+    .in('provider', ['chariow', 'moneroo', 'bictorys', 'maketou'])
+    .not('provider_reference', 'is', null)
+    .lt('created_at', seuil)
 
   return { traites: lignes?.length ?? 0, credites }
 }

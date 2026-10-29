@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Check, Smartphone } from 'lucide-react'
+import { Check, Smartphone, Banknote, Landmark, CheckCircle2 } from 'lucide-react'
 import { PALIERS, DUREES, calculerMontantFcfa, calculerMontantUsd, TAUX_FCFA_PAR_USD, type PalierCode, type DureeMois } from '@/lib/abonnements/paliers'
 import { AUTRE_PAYS, PAYS, paieEnDollars } from '@/lib/pays'
 import { demarrerInscription } from './actions'
@@ -19,7 +19,7 @@ function paysTries(locale: string) {
   let noms: Intl.DisplayNames | null = null
   try {
     noms = new Intl.DisplayNames([locale], { type: 'region' })
-  } catch {}
+  } catch { }
   return PAYS.map((p) => ({ code: p.code, nom: noms?.of(p.code) ?? p.nom })).sort((a, b) => a.nom.localeCompare(b.nom, locale))
 }
 
@@ -53,11 +53,13 @@ export default function InscriptionForm({ t, locale }: { t: Dict; locale: string
   const [telephoneLocal, setTelephoneLocal] = useState('')
   const [nomPaysAutre, setNomPaysAutre] = useState('')
   const [erreur, setErreur] = useState<string | null>(null)
+  const [confirmationManuelle, setConfirmationManuelle] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const [moyenPaiement, setMoyenPaiement] = useState('maketou')
 
   // « Autre pays » : abonnement payé par carte en dollars US
   const enDollars = paieEnDollars(telephonePays)
+  const estManuel = !enDollars && (moyenPaiement === 'caisse' || moyenPaiement === 'virement')
   const prix = (fcfa: number) => (enDollars ? formatUsd(Math.max(1, Math.round(fcfa / TAUX_FCFA_PAR_USD))) : formatFcfa(fcfa))
   const montant = enDollars ? formatUsd(calculerMontantUsd(palier, dureeMois)) : formatFcfa(calculerMontantFcfa(palier, dureeMois))
 
@@ -66,10 +68,19 @@ export default function InscriptionForm({ t, locale }: { t: Dict; locale: string
 
   const handlePayer = () => {
     setErreur(null)
+    setConfirmationManuelle(null)
     startTransition(async () => {
       const resultat = await demarrerInscription(nomEntreprise, contactNom, email, telephoneLocal, telephonePays, palier, dureeMois, nomPaysAutre, moyenPaiement)
       if ('error' in resultat) {
         setErreur(typeof resultat.error === 'string' ? resultat.error : JSON.stringify(resultat.error))
+        return
+      }
+      if ('modeManuel' in resultat) {
+        setConfirmationManuelle(
+          resultat.modeManuel === 'caisse'
+            ? "Demande enregistrée (Paiement en Caisse). Un administrateur activera votre abonnement dès réception du règlement en espèces."
+            : "Demande enregistrée (Virement bancaire). Un administrateur activera votre abonnement dès réception du virement."
+        )
         return
       }
       window.location.href = resultat.checkoutUrl
@@ -87,9 +98,8 @@ export default function InscriptionForm({ t, locale }: { t: Dict; locale: string
               key={code}
               type="button"
               onClick={() => setPalier(code)}
-              className={`text-left rounded-2xl border p-6 transition-all ${
-                selectionne ? 'border-primary bg-primary/5 shadow-md' : 'border-surface-border bg-surface hover:border-primary/50'
-              }`}
+              className={`text-left rounded-2xl border p-6 transition-all ${selectionne ? 'border-primary bg-primary/5 shadow-md' : 'border-surface-border bg-surface hover:border-primary/50'
+                }`}
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="font-bold text-lg">{info.nom}</span>
@@ -114,9 +124,8 @@ export default function InscriptionForm({ t, locale }: { t: Dict; locale: string
                 key={d.mois}
                 type="button"
                 onClick={() => setDureeMois(d.mois)}
-                className={`flex-1 rounded-md border px-3 py-2 text-sm ${
-                  dureeMois === d.mois ? 'border-primary bg-primary text-white' : 'border-surface-border bg-background text-foreground hover:border-primary/50'
-                }`}
+                className={`flex-1 rounded-md border px-3 py-2 text-sm ${dureeMois === d.mois ? 'border-primary bg-primary text-white' : 'border-surface-border bg-background text-foreground hover:border-primary/50'
+                  }`}
               >
                 {d.label}
                 {d.reduction > 0 && <span className="block text-xs opacity-80">-{Math.round(d.reduction * 100)}%</span>}
@@ -209,7 +218,7 @@ export default function InscriptionForm({ t, locale }: { t: Dict; locale: string
           />
         </div>
 
-        
+
         {!enDollars && (
           <div className="mt-4">
             <label className="block text-sm font-medium text-foreground mb-3">Moyen de paiement</label>
@@ -224,12 +233,41 @@ export default function InscriptionForm({ t, locale }: { t: Dict; locale: string
                 <Smartphone className={`w-6 h-6 mb-2 ${moyenPaiement === 'chariow' ? 'text-primary' : 'text-foreground-muted'}`} />
                 <span className={`font-semibold text-sm ${moyenPaiement === 'chariow' ? 'text-primary' : 'text-foreground'}`}>Chariow</span>
               </label>
+              <label className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all ${moyenPaiement === 'caisse' ? 'border-primary bg-primary/5' : 'border-surface-border bg-surface hover:bg-black/5'}`}>
+                <input type="radio" name="paymentMethod" value="caisse" checked={moyenPaiement === 'caisse'} onChange={() => setMoyenPaiement('caisse')} className="sr-only" />
+                <Banknote className={`w-6 h-6 mb-2 ${moyenPaiement === 'caisse' ? 'text-primary' : 'text-foreground-muted'}`} />
+                <span className={`font-semibold text-sm ${moyenPaiement === 'caisse' ? 'text-primary' : 'text-foreground'}`}>Caisse (Espèces)</span>
+              </label>
+              <label className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all ${moyenPaiement === 'virement' ? 'border-primary bg-primary/5' : 'border-surface-border bg-surface hover:bg-black/5'}`}>
+                <input type="radio" name="paymentMethod" value="virement" checked={moyenPaiement === 'virement'} onChange={() => setMoyenPaiement('virement')} className="sr-only" />
+                <Landmark className={`w-6 h-6 mb-2 ${moyenPaiement === 'virement' ? 'text-primary' : 'text-foreground-muted'}`} />
+                <span className={`font-semibold text-sm ${moyenPaiement === 'virement' ? 'text-primary' : 'text-foreground'}`}>Virement</span>
+              </label>
             </div>
+
+            {moyenPaiement === 'virement' && (
+              <div className="mt-3 rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs text-foreground space-y-1">
+                <p className="font-semibold text-primary">Coordonnées pour le virement bancaire :</p>
+                <p>RIB / Compte : <span className="font-mono font-bold select-all">SN048 08002 01057183001 43</span></p>
+                <p className="text-foreground-muted">Votre abonnement sera activé par l&apos;administrateur dès réception du virement.</p>
+              </div>
+            )}
+            {moyenPaiement === 'caisse' && (
+              <div className="mt-3 rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs text-foreground">
+                <p className="font-semibold text-primary">Paiement en Caisse (Espèces) :</p>
+                <p className="text-foreground-muted mt-0.5">Enregistrez votre demande puis réglez le montant en caisse. L&apos;administrateur activera immédiatement votre abonnement.</p>
+              </div>
+            )}
           </div>
         )}
-      
 
         {erreur && <p className="text-sm text-danger">{erreur}</p>}
+        {confirmationManuelle && (
+          <div className="flex items-start gap-2 rounded-lg border border-success/30 bg-success/10 p-3 text-sm text-success">
+            <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />
+            <span>{confirmationManuelle}</span>
+          </div>
+        )}
 
         <div className="flex items-center justify-between rounded-lg bg-background border border-surface-border px-4 py-3">
           <div>
@@ -242,7 +280,7 @@ export default function InscriptionForm({ t, locale }: { t: Dict; locale: string
             disabled={isPending || !pretAEnvoyer}
             className="rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-50"
           >
-            {isPending ? t.redirecting : t.payNow}
+            {isPending ? t.redirecting : estManuel ? 'Enregistrer la demande' : t.payNow}
           </button>
         </div>
         <p className="text-xs text-foreground-muted text-center">

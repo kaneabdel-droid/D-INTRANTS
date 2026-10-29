@@ -1,16 +1,21 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { getCurrentUserContext } from '@/lib/auth/getCurrentUserContext'
 import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { estPalierValide, estDureeValide, calculerMontantFcfa, calculerMontantUsd, equivalentFcfa } from '@/lib/abonnements/paliers'
 import { adaptateurPour, providerActif } from '@/lib/abonnements/registry'
+import { estMoyenPaiementManuel, type MoyenPaiementManuel, type ProviderId } from '@/lib/abonnements/types'
 import { PAYS_TELEPHONE_SUPPORTES } from '@/lib/abonnements/telephone'
 import { paieEnDollars } from '@/lib/pays'
 import { reconcilierParAbonnementId } from '@/lib/abonnements/reconcile'
 import { estRecent, refusRenouvellementAnticipe } from '@/lib/abonnements/antiDoublon'
 
-type ResultatDemarrage = { success: true; checkoutUrl: string } | { error: string }
+export type ResultatDemarrage =
+  | { success: true; checkoutUrl: string }
+  | { success: true; modeManuel: MoyenPaiementManuel; abonnementId: string }
+  | { error: string }
 
 export async function demarrerPaiementAbonnement(
   palierBrut: string,
@@ -23,16 +28,22 @@ export async function demarrerPaiementAbonnement(
   if (context.role !== 'admin_entreprise') return { error: "Seul l'administrateur de l'entreprise peut gérer l'abonnement" }
   if (!estPalierValide(palierBrut)) return { error: 'Palier invalide' }
   if (!estDureeValide(dureeMoisBrut)) return { error: 'Durée invalide' }
-  if (!telephoneLocal.trim()) return { error: 'Le numéro de téléphone est requis' }
+
+  const manuel = estMoyenPaiementManuel(moyenPaiement)
+  if (!manuel && !telephoneLocal.trim()) return { error: 'Le numéro de téléphone est requis' }
   if (!PAYS_TELEPHONE_SUPPORTES.includes(telephonePays)) return { error: 'Pays invalide' }
 
   const palier = palierBrut
   const dureeMois = dureeMoisBrut
-  // « Autre pays » : paiement par carte en dollars US (Moneroo), quel que soit le prestataire actif.
   const enDollars = paieEnDollars(telephonePays)
   const montantUsd = enDollars ? calculerMontantUsd(palier, dureeMois) : undefined
   const montantFcfa = montantUsd ? equivalentFcfa(montantUsd) : calculerMontantFcfa(palier, dureeMois)
-  const provider = enDollars ? 'moneroo' : (moyenPaiement === 'chariow' || moyenPaiement === 'maketou') ? moyenPaiement : providerActif()
+  const providerOnline: ProviderId = enDollars
+    ? 'moneroo'
+    : moyenPaiement === 'chariow' || moyenPaiement === 'maketou'
+      ? moyenPaiement
+      : providerActif()
+  const provider = manuel ? moyenPaiement : providerOnline
 
   const supabaseSession = await createClient()
   const { data: { user } } = await supabaseSession.auth.getUser()
@@ -42,8 +53,6 @@ export async function demarrerPaiementAbonnement(
 
   const supabase = createAdminClient()
 
-  // Anti double paiement (1/2) : une période déjà réglée pour ce palier ne se
-  // rachète pas tant qu'elle n'approche pas de son échéance.
   const { data: entreprise } = await supabase
     .from('entreprises')
     .select('palier, abonnement_expire_le')
@@ -52,13 +61,19 @@ export async function demarrerPaiementAbonnement(
   const refus = refusRenouvellementAnticipe(entreprise?.palier, entreprise?.abonnement_expire_le, palier)
   if (refus) return { error: refus }
 
-  // Anti double paiement (2/2) : relancer la même offre renvoie vers le paiement
-  // déjà ouvert au lieu d'en créer un second (double clic, second onglet...).
   const offre = { palier, dureeMois, montantFcfa, provider }
   const reutilisable = await paiementEnCoursReutilisable(context.entrepriseId, offre)
   if (reutilisable) return reutilisable
 
-  const { data: abonnement, error: insertError } = await supabase
+  const metadataManuel = manuel
+    ? {
+        moyenPaiementReel: moyenPaiement,
+        contactEmail: user.email,
+        contactTelephone: telephoneLocal.trim() || null,
+      }
+    : null
+
+  let insertRes = await supabase
     .from('abonnements')
     .insert({
       entreprise_id: context.entrepriseId,
@@ -69,13 +84,32 @@ export async function demarrerPaiementAbonnement(
       montant_devise: montantUsd ?? montantFcfa,
       provider,
       statut: 'en_attente',
+      metadata: metadataManuel,
     })
     .select('id')
     .single()
 
+  if (manuel && insertRes.error && (insertRes.error.code === '23514' || insertRes.error.message.includes('abonnements_provider_check'))) {
+    insertRes = await supabase
+      .from('abonnements')
+      .insert({
+        entreprise_id: context.entrepriseId,
+        palier,
+        duree_mois: dureeMois,
+        montant_fcfa: montantFcfa,
+        devise: enDollars ? 'USD' : 'XOF',
+        montant_devise: montantUsd ?? montantFcfa,
+        provider: 'chariow',
+        statut: 'en_attente',
+        metadata: metadataManuel,
+      })
+      .select('id')
+      .single()
+  }
+
+  const { data: abonnement, error: insertError } = insertRes
+
   if (insertError || !abonnement) {
-    // 23505 = index unique « un paiement en cours par entreprise » : une requête
-    // concurrente (double clic) vient d'en créer un — on renvoie celui-là.
     if (insertError?.code === '23505') {
       const concurrent = await paiementEnCoursReutilisable(context.entrepriseId, offre)
       if (concurrent) return concurrent
@@ -84,8 +118,13 @@ export async function demarrerPaiementAbonnement(
     return { error: insertError?.message || "Impossible de créer l'abonnement" }
   }
 
+  if (manuel) {
+    revalidatePath('/abonnement')
+    return { success: true, modeManuel: moyenPaiement, abonnementId: abonnement.id }
+  }
+
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-  const resultat = await adaptateurPour(provider).initierPaiement({
+  const resultat = await adaptateurPour(providerOnline).initierPaiement({
     abonnementId: abonnement.id,
     palier,
     dureeMois,
@@ -119,28 +158,27 @@ export async function demarrerPaiementAbonnement(
 
 type Offre = { palier: string; dureeMois: number; montantFcfa: number; provider: string }
 
-/**
- * Paiement en cours de l'entreprise (au plus un, cf. index unique de la migration
- * « anti doublon ») : même offre et encore récent → renvoyé tel quel ; sinon marqué
- * abandonné (il reste 'en_attente' : payé plus tard, il sera traité et marqué
- * doublon si besoin, cf. lib/abonnements/reconcile.ts) pour en laisser créer un neuf.
- */
 async function paiementEnCoursReutilisable(entrepriseId: string, offre: Offre): Promise<ResultatDemarrage | null> {
   const supabase = createAdminClient()
   const { data: enCours } = await supabase
     .from('abonnements')
-    .select('id, palier, duree_mois, montant_fcfa, provider, checkout_url, created_at')
+    .select('id, palier, duree_mois, montant_fcfa, provider, checkout_url, created_at, metadata')
     .eq('entreprise_id', entrepriseId)
     .eq('statut', 'en_attente')
     .is('abandonne_le', null)
     .maybeSingle()
   if (!enCours) return null
 
+  const providerEnCours = ((enCours.metadata as Record<string, any> | null)?.moyenPaiementReel as string | undefined) || enCours.provider
   const memeOffre =
     enCours.palier === offre.palier &&
     enCours.duree_mois === offre.dureeMois &&
     Number(enCours.montant_fcfa) === offre.montantFcfa &&
-    enCours.provider === offre.provider
+    providerEnCours === offre.provider
+
+  if (memeOffre && estMoyenPaiementManuel(offre.provider)) {
+    return { success: true, modeManuel: offre.provider, abonnementId: enCours.id }
+  }
   if (memeOffre && enCours.checkout_url && estRecent(enCours.created_at)) {
     return { success: true, checkoutUrl: enCours.checkout_url }
   }
@@ -151,20 +189,16 @@ async function paiementEnCoursReutilisable(entrepriseId: string, offre: Offre): 
 
 export type StatutVerification = { statut: 'paye' | 'en_attente' | 'echoue'; error?: string }
 
-// Poll depuis /abonnement/retour après un redirect Chariow/Moneroo/Bictorys —
-// ne conclut JAMAIS depuis les seuls paramètres d'URL (cf. Chariow.md §8) :
-// on redemande l'état réel, avec re-pull provider quand c'est possible.
 export async function verifierPaiementAbonnement(abonnementId: string): Promise<StatutVerification> {
   const context = await getCurrentUserContext()
 
   const supabase = createAdminClient()
-  const { data: ligne } = await supabase.from('abonnements').select('id, entreprise_id, statut, provider').eq('id', abonnementId).maybeSingle()
+  const { data: ligne } = await supabase.from('abonnements').select('id, entreprise_id, statut, provider, metadata').eq('id', abonnementId).maybeSingle()
   if (!ligne || ligne.entreprise_id !== context.entrepriseId) return { statut: 'echoue', error: 'Abonnement introuvable' }
   if (ligne.statut !== 'en_attente') return { statut: ligne.statut }
 
-  // Bictorys ne peut pas être re-vérifié depuis le serveur (WAF) : on attend
-  // le webhook ou le cron, on se contente de relire l'état actuel en base.
-  if (ligne.provider !== 'bictorys') {
+  const moyenEffectif = ((ligne.metadata as Record<string, any> | null)?.moyenPaiementReel as string | undefined) || ligne.provider
+  if (ligne.provider !== 'bictorys' && !estMoyenPaiementManuel(moyenEffectif)) {
     await reconcilierParAbonnementId(abonnementId)
   }
 

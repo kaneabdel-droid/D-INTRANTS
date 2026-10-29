@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Check, Smartphone } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Check, Smartphone, Banknote, Landmark, CheckCircle2 } from 'lucide-react'
 import { PALIERS, DUREES, calculerMontantFcfa, calculerMontantUsd, TAUX_FCFA_PAR_USD, type PalierCode, type DureeMois } from '@/lib/abonnements/paliers'
 import { AUTRE_PAYS, PAYS, paieEnDollars } from '@/lib/pays'
 import { demarrerPaiementAbonnement } from './actions'
@@ -26,25 +27,33 @@ export default function PlanSelector({
   /** Entreprise « sans unité » (pays dont la devise n'est pas gérée) : « Autre pays » présélectionné, paiement en dollars. */
   autrePays?: boolean
 }) {
+  const router = useRouter()
   const [palier, setPalier] = useState<PalierCode>(palierActuel ?? 'standard')
   const [dureeMois, setDureeMois] = useState<DureeMois>(1)
   const [telephonePays, setTelephonePays] = useState<string>(autrePays ? AUTRE_PAYS : 'SN')
   const [telephoneLocal, setTelephoneLocal] = useState<string>(telephoneParDefaut ?? '')
   const [erreur, setErreur] = useState<string | null>(null)
+  const [confirmationManuelle, setConfirmationManuelle] = useState<'caisse' | 'virement' | null>(null)
   const [isPending, startTransition] = useTransition()
   const [moyenPaiement, setMoyenPaiement] = useState('maketou')
 
-  // « Autre pays » : abonnement payé par carte en dollars US
   const enDollars = paieEnDollars(telephonePays)
+  const estManuel = !enDollars && (moyenPaiement === 'caisse' || moyenPaiement === 'virement')
   const prix = (fcfa: number) => (enDollars ? formatUsd(Math.max(1, Math.round(fcfa / TAUX_FCFA_PAR_USD))) : formatFcfa(fcfa))
   const montant = enDollars ? formatUsd(calculerMontantUsd(palier, dureeMois)) : formatFcfa(calculerMontantFcfa(palier, dureeMois))
 
   const handlePayer = () => {
     setErreur(null)
+    setConfirmationManuelle(null)
     startTransition(async () => {
       const resultat = await demarrerPaiementAbonnement(palier, dureeMois, telephonePays, telephoneLocal, moyenPaiement)
       if ('error' in resultat) {
         setErreur(typeof resultat.error === 'string' ? resultat.error : JSON.stringify(resultat.error))
+        return
+      }
+      if ('modeManuel' in resultat) {
+        setConfirmationManuelle(resultat.modeManuel)
+        router.refresh()
         return
       }
       window.location.href = resultat.checkoutUrl
@@ -119,7 +128,9 @@ export default function PlanSelector({
           </select>
         </div>
         <div>
-          <label htmlFor="telephone" className="block text-sm font-medium text-foreground mb-1">Numéro de téléphone</label>
+          <label htmlFor="telephone" className="block text-sm font-medium text-foreground mb-1">
+            Numéro de téléphone {estManuel && <span className="text-foreground-muted font-normal">(optionnel)</span>}
+          </label>
           <input
             id="telephone"
             type="tel"
@@ -135,11 +146,10 @@ export default function PlanSelector({
         <p className="text-xs text-foreground-muted">Hors des pays listés, l’abonnement se paie par carte bancaire en dollars US (numéro au format international).</p>
       )}
 
-      
       {!enDollars && (
         <div className="mt-4">
           <label className="block text-sm font-medium text-foreground mb-3">Moyen de paiement</label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <label className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all ${moyenPaiement === 'maketou' ? 'border-primary bg-primary/5' : 'border-surface-border bg-surface hover:bg-black/5'}`}>
               <input type="radio" name="paymentMethod" value="maketou" checked={moyenPaiement === 'maketou'} onChange={() => setMoyenPaiement('maketou')} className="sr-only" />
               <Smartphone className={`w-6 h-6 mb-2 ${moyenPaiement === 'maketou' ? 'text-primary' : 'text-foreground-muted'}`} />
@@ -150,10 +160,52 @@ export default function PlanSelector({
               <Smartphone className={`w-6 h-6 mb-2 ${moyenPaiement === 'chariow' ? 'text-primary' : 'text-foreground-muted'}`} />
               <span className={`font-semibold text-sm ${moyenPaiement === 'chariow' ? 'text-primary' : 'text-foreground'}`}>Chariow</span>
             </label>
+            <label className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all ${moyenPaiement === 'caisse' ? 'border-primary bg-primary/5' : 'border-surface-border bg-surface hover:bg-black/5'}`}>
+              <input type="radio" name="paymentMethod" value="caisse" checked={moyenPaiement === 'caisse'} onChange={() => setMoyenPaiement('caisse')} className="sr-only" />
+              <Banknote className={`w-6 h-6 mb-2 ${moyenPaiement === 'caisse' ? 'text-primary' : 'text-foreground-muted'}`} />
+              <span className={`font-semibold text-sm ${moyenPaiement === 'caisse' ? 'text-primary' : 'text-foreground'}`}>Caisse (Espèces)</span>
+            </label>
+            <label className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all ${moyenPaiement === 'virement' ? 'border-primary bg-primary/5' : 'border-surface-border bg-surface hover:bg-black/5'}`}>
+              <input type="radio" name="paymentMethod" value="virement" checked={moyenPaiement === 'virement'} onChange={() => setMoyenPaiement('virement')} className="sr-only" />
+              <Landmark className={`w-6 h-6 mb-2 ${moyenPaiement === 'virement' ? 'text-primary' : 'text-foreground-muted'}`} />
+              <span className={`font-semibold text-sm ${moyenPaiement === 'virement' ? 'text-primary' : 'text-foreground'}`}>Virement</span>
+            </label>
           </div>
         </div>
       )}
-      
+
+      {!enDollars && moyenPaiement === 'virement' && (
+        <div className="rounded-lg bg-surface border border-surface-border p-4 text-sm space-y-1">
+          <p className="font-medium text-foreground">Instructions de virement bancaire</p>
+          <p className="font-mono text-primary font-semibold">SN048 08002 01057183001 43</p>
+          <p className="text-xs text-foreground-muted">
+            Effectuez le virement en indiquant le nom de votre entreprise en motif. Votre abonnement sera activé dès validation par l&apos;administrateur.
+          </p>
+        </div>
+      )}
+
+      {!enDollars && moyenPaiement === 'caisse' && (
+        <div className="rounded-lg bg-surface border border-surface-border p-4 text-sm space-y-1">
+          <p className="font-medium text-foreground">Paiement en espèces à la caisse</p>
+          <p className="text-xs text-foreground-muted">
+            Enregistrez votre demande ci-dessous : votre abonnement sera activé directement dès réception du règlement en caisse par l&apos;administrateur.
+          </p>
+        </div>
+      )}
+
+      {confirmationManuelle && (
+        <div className="flex items-start gap-3 rounded-lg bg-success/10 border border-success/20 p-4 text-sm text-success">
+          <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold">
+              Demande de paiement par {confirmationManuelle === 'caisse' ? 'caisse (espèces)' : 'virement bancaire'} enregistrée !
+            </p>
+            <p className="text-xs mt-1 text-foreground-muted">
+              Votre abonnement sera activé dès validation du règlement par le super-administrateur.
+            </p>
+          </div>
+        </div>
+      )}
 
       {erreur && <p className="text-sm text-danger">{erreur}</p>}
 
@@ -165,10 +217,16 @@ export default function PlanSelector({
         <button
           type="button"
           onClick={handlePayer}
-          disabled={isPending || !telephoneLocal.trim()}
+          disabled={isPending || (!estManuel && !telephoneLocal.trim())}
           className="rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-50"
         >
-          {isPending ? 'Redirection...' : 'Payer maintenant'}
+          {isPending
+            ? estManuel
+              ? 'Enregistrement...'
+              : 'Redirection...'
+            : estManuel
+              ? `Valider (${moyenPaiement === 'caisse' ? 'Caisse' : 'Virement'})`
+              : 'Payer maintenant'}
         </button>
       </div>
     </div>

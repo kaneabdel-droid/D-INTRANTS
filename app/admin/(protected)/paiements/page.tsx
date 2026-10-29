@@ -1,7 +1,10 @@
 import Link from 'next/link'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { PALIERS, type PalierCode } from '@/lib/abonnements/paliers'
+import { libelleMoyenPaiement } from '@/lib/abonnements/types'
 import SupprimerAbonnementButton from './SupprimerAbonnementButton'
+import ConfirmerPaiementButton from './ConfirmerPaiementButton'
+import ActiverPaiementDirectForm from './ActiverPaiementDirectForm'
 
 export default async function AdminPaiementsPage({
   searchParams,
@@ -13,13 +16,16 @@ export default async function AdminPaiementsPage({
 
   let query = supabase
     .from('abonnements')
-    .select('id, entreprise_id, palier, duree_mois, montant_fcfa, provider, statut, doublon, created_at, paye_at, entreprises(nom)')
+    .select('id, entreprise_id, palier, duree_mois, montant_fcfa, provider, metadata, statut, doublon, created_at, paye_at, entreprises(nom)')
     .order('created_at', { ascending: false })
     .limit(200)
 
   if (statut) query = query.eq('statut', statut)
 
-  const { data: paiements } = await query
+  const [{ data: paiements }, { data: entreprises }] = await Promise.all([
+    query,
+    supabase.from('entreprises').select('id, nom, palier').order('nom'),
+  ])
 
   const filtres = [
     { label: 'Tous', value: undefined },
@@ -31,6 +37,8 @@ export default async function AdminPaiementsPage({
   return (
     <div>
       <h1 className="text-2xl font-bold font-heading mb-6">Paiements</h1>
+
+      <ActiverPaiementDirectForm entreprises={entreprises ?? []} />
 
       <div className="flex flex-wrap gap-2 mb-6">
         {filtres.map((f) => (
@@ -80,7 +88,7 @@ export default async function AdminPaiementsPage({
                   <td className="px-4 py-3 capitalize">{PALIERS[p.palier as PalierCode]?.nom ?? p.palier}</td>
                   <td className="px-4 py-3">{p.duree_mois} mois</td>
                   <td className="px-4 py-3">{Number(p.montant_fcfa).toLocaleString('fr-FR')} FCFA</td>
-                  <td className="px-4 py-3 capitalize">{p.provider}</td>
+                  <td className="px-4 py-3">{libelleMoyenPaiement(p.provider, p.metadata as Record<string, unknown> | null)}</td>
                   <td className="px-4 py-3">
                     <span className={p.statut === 'paye' ? 'text-success' : p.statut === 'echoue' ? 'text-danger' : 'text-primary'}>
                       {p.statut}
@@ -90,16 +98,24 @@ export default async function AdminPaiementsPage({
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    {(p.statut === 'echoue' || !p.entreprise_id) && (
-                      <SupprimerAbonnementButton
-                        abonnementId={p.id}
-                        confirmation={
-                          p.statut === 'paye'
-                            ? 'Cette demande a DÉJÀ été payée et n’est rattachée à aucune entreprise. La supprimer efface définitivement la trace de ce paiement. Continuer ?'
-                            : 'Supprimer définitivement cette ligne ?'
-                        }
-                      />
-                    )}
+                    <div className="inline-flex items-center justify-end gap-2">
+                      {p.statut !== 'paye' && (
+                        <ConfirmerPaiementButton
+                          abonnementId={p.id}
+                          moyenParDefaut={((p.metadata as Record<string, unknown> | null)?.moyenPaiementReel as string) || p.provider}
+                        />
+                      )}
+                      {(p.statut === 'echoue' || !p.entreprise_id) && (
+                        <SupprimerAbonnementButton
+                          abonnementId={p.id}
+                          confirmation={
+                            p.statut === 'paye'
+                              ? 'Cette demande a DÉJÀ été payée et n’est rattachée à aucune entreprise. La supprimer efface définitivement la trace de ce paiement. Continuer ?'
+                              : 'Supprimer définitivement cette ligne ?'
+                          }
+                        />
+                      )}
+                    </div>
                   </td>
                 </tr>
               )

@@ -1,10 +1,12 @@
 import Link from 'next/link'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { PALIERS, type PalierCode } from '@/lib/abonnements/paliers'
+import { libelleMoyenPaiement } from '@/lib/abonnements/types'
 import RattacherDemandeForm from './RattacherDemandeForm'
 import SupprimerAbonnementButton from '../paiements/SupprimerAbonnementButton'
+import ConfirmerPaiementButton from '../paiements/ConfirmerPaiementButton'
 
-type Metadata = { nomEntreprise?: string; contactNom?: string; contactEmail?: string; contactTelephone?: string; paysNom?: string }
+type Metadata = { nomEntreprise?: string; contactNom?: string; contactEmail?: string; contactTelephone?: string; paysNom?: string; moyenPaiementReel?: string }
 
 // Montant demandé : en dollars pour un client d'un autre pays (migration 27), sinon en FCFA.
 function montant(d: { montant_fcfa: number; devise?: string | null; montant_devise?: number | null }) {
@@ -13,6 +15,13 @@ function montant(d: { montant_fcfa: number; devise?: string | null; montant_devi
 
 export default async function AdminDemandesPage() {
   const supabase = createAdminClient()
+
+  const { data: demandesAPayer } = await supabase
+    .from('abonnements')
+    .select('id, palier, duree_mois, montant_fcfa, devise, montant_devise, provider, metadata, created_at')
+    .is('entreprise_id', null)
+    .eq('statut', 'en_attente')
+    .order('created_at', { ascending: false })
 
   const { data: demandesEnAttente } = await supabase
     .from('abonnements')
@@ -40,7 +49,55 @@ export default async function AdminDemandesPage() {
         Créez l&apos;entreprise (et son admin) via <Link href="/admin/entreprises" className="text-primary hover:text-primary-hover">Entreprises</Link>, puis rattachez-la ici.
       </p>
 
-      <h2 className="font-semibold mb-3">En attente ({demandesEnAttente?.length ?? 0})</h2>
+      {(demandesAPayer?.length ?? 0) > 0 && (
+        <>
+          <h2 className="font-semibold mb-3">En attente de règlement Caisse / Virement ({demandesAPayer?.length ?? 0})</h2>
+          <div className="bg-background rounded-xl border border-surface-border overflow-hidden overflow-x-auto mb-8">
+            <table className="w-full text-sm">
+              <thead className="bg-surface text-foreground-muted text-left">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Demandé le</th>
+                  <th className="px-4 py-3 font-medium">Entreprise demandée</th>
+                  <th className="px-4 py-3 font-medium">Contact</th>
+                  <th className="px-4 py-3 font-medium">Palier</th>
+                  <th className="px-4 py-3 font-medium">Montant</th>
+                  <th className="px-4 py-3 font-medium">Moyen</th>
+                  <th className="px-4 py-3 font-medium text-right">Activer / Supprimer</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-surface-border">
+                {(demandesAPayer ?? []).map((d) => {
+                  const meta = (d.metadata ?? {}) as Metadata
+                  return (
+                    <tr key={d.id}>
+                      <td className="px-4 py-3 text-foreground-muted">{d.created_at ? new Date(d.created_at).toLocaleString('fr-FR') : '-'}</td>
+                      <td className="px-4 py-3 font-medium">{meta.nomEntreprise ?? '-'}</td>
+                      <td className="px-4 py-3 text-foreground-muted">
+                        <div>{meta.contactNom}</div>
+                        <div className="text-xs">{meta.contactEmail} · {meta.contactTelephone}</div>
+                        {meta.paysNom && <div className="text-xs">{meta.paysNom}</div>}
+                      </td>
+                      <td className="px-4 py-3">
+                        {PALIERS[d.palier as PalierCode]?.nom ?? d.palier} · {d.duree_mois} mois
+                      </td>
+                      <td className="px-4 py-3">{montant(d)}</td>
+                      <td className="px-4 py-3">{libelleMoyenPaiement(d.provider, d.metadata as Record<string, unknown> | null)}</td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="inline-flex items-center justify-end gap-2">
+                          <ConfirmerPaiementButton abonnementId={d.id} moyenParDefaut={meta.moyenPaiementReel || d.provider} />
+                          <SupprimerAbonnementButton abonnementId={d.id} confirmation="Supprimer définitivement cette demande non payée ?" />
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      <h2 className="font-semibold mb-3">Payées — à rattacher ({demandesEnAttente?.length ?? 0})</h2>
       <div className="bg-background rounded-xl border border-surface-border overflow-hidden overflow-x-auto mb-8">
         <table className="w-full text-sm">
           <thead className="bg-surface text-foreground-muted text-left">

@@ -1,6 +1,24 @@
 import type { PalierCode, DureeMois } from './paliers'
 
 export type ProviderId = 'chariow' | 'moneroo' | 'bictorys' | 'maketou'
+export type MoyenPaiementManuel = 'caisse' | 'virement'
+export type MoyenPaiementAbonnement = ProviderId | MoyenPaiementManuel
+
+export function estMoyenPaiementManuel(v: string): v is MoyenPaiementManuel {
+  return v === 'caisse' || v === 'virement'
+}
+
+export function libelleMoyenPaiement(provider: string, metadata?: Record<string, any> | null): string {
+  const effectif = (metadata?.moyenPaiementReel as string | undefined) || provider
+  if (effectif === 'caisse') return 'Caisse (Espèces)'
+  if (effectif === 'virement') return 'Virement bancaire'
+  if (effectif === 'maketou') return 'Maketou'
+  if (effectif === 'chariow') return 'Chariow'
+  if (effectif === 'moneroo') return 'Carte bancaire (Moneroo)'
+  if (effectif === 'bictorys') return 'Bictorys'
+  if (effectif === 'manuel') return 'Manuel'
+  return effectif
+}
 
 export type InitierPaiementParams = {
   abonnementId: string
