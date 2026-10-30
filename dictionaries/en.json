@@ -224,7 +224,26 @@
       "password": "Password",
       "forgotPassword": "Forgot your password?",
       "submit": "Sign in",
-      "noAccount": "Account not recognized? Contact your administrator — d-intrants accounts are created exclusively by the Demba Solution team."
+      "noAccount": "Don't have an account yet? Create your company account directly."
+    },
+    "signup": {
+      "title": "Create a d-intrants account",
+      "desc": "Register your company to manage your agricultural inputs, seeds, fertilizers and stock.",
+      "company_name": "Company name",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "phone": "Phone number",
+      "store_name": "Initial store name",
+      "store_placeholder": "Ex: Main Store",
+      "email": "Email address (login)",
+      "password": "Password (6 characters min)",
+      "btn": "Create company account",
+      "has_account": "Already have an account?",
+      "login": "Sign in",
+      "country": "Country",
+      "other_country": "Other country",
+      "other_country_name": "Name of your country",
+      "usd_note": "Outside listed countries, subscriptions are billed in USD."
     },
     "adminLogin": {
       "title": "d-intrants Administration",

@@ -224,7 +224,26 @@
       "password": "Mot de passe",
       "forgotPassword": "Mot de passe oublié ?",
       "submit": "Se connecter",
-      "noAccount": "Compte non reconnu ? Contactez votre administrateur — les comptes d-intrants sont créés exclusivement par l'équipe Demba Solution."
+      "noAccount": "Pas encore de compte ? Créez directement votre compte entreprise."
+    },
+    "signup": {
+      "title": "Créer un compte d-intrants",
+      "desc": "Inscrivez votre entreprise pour gérer vos boutiques d'intrants, semences, engrais et stocks.",
+      "company_name": "Nom de l'entreprise",
+      "first_name": "Prénom",
+      "last_name": "Nom",
+      "phone": "Numéro de téléphone",
+      "store_name": "Point de vente initial",
+      "store_placeholder": "Ex: Boutique Principale",
+      "email": "Adresse e-mail (connexion)",
+      "password": "Mot de passe (6 caractères min)",
+      "btn": "Créer mon compte entreprise",
+      "has_account": "Vous avez déjà un compte ?",
+      "login": "Connectez-vous",
+      "country": "Pays",
+      "other_country": "Autre pays",
+      "other_country_name": "Nom de votre pays",
+      "usd_note": "Hors des pays listés, l’abonnement se règle en dollars US."
     },
     "adminLogin": {
       "title": "Administration d-intrants",

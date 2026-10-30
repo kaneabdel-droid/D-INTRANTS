@@ -113,6 +113,7 @@ export const PAYS: Pays[] = [
 
 /** Code du choix « Autre pays » : pas d'indicatif connu, paiement en dollars US. */
 export const AUTRE_PAYS = 'AUTRE'
+export const PAYS_PAR_DEFAUT = 'SN'
 
 export function trouverPays(code: string | null | undefined): Pays | undefined {
   return PAYS.find((p) => p.code === code)

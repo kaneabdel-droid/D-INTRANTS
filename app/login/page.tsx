@@ -1,5 +1,6 @@
 import LanguageSelector from '@/components/LanguageSelector'
 import { getDictionary, getLocale } from '@/dictionaries'
+import Link from 'next/link'
 import ClientLoginForm from './ClientLoginForm'
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ message?: string }> }) {
@@ -25,9 +26,17 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
         <ClientLoginForm dict={dict} initialMessage={message} />
 
-        <p className="mt-8 text-center text-xs text-foreground-muted">
-          {t.noAccount}
-        </p>
+        <div className="mt-8 text-center text-sm border-t border-surface-border pt-4">
+          <p className="text-foreground-muted text-xs mb-2">
+            Pas encore de compte entreprise ?
+          </p>
+          <Link
+            href="/signup"
+            className="inline-flex items-center justify-center font-semibold text-sm text-primary hover:text-primary-hover underline"
+          >
+            Créer un compte entreprise →
+          </Link>
+        </div>
       </div>
     </div>
   )
