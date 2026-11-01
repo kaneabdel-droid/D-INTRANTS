@@ -36,9 +36,12 @@ export default function OfflineLandingBanner({
         // Redirection automatique vers le dashboard si hors-ligne
         if (offline) {
           if (mounted) setRedirecting(true)
+          if (typeof navigator !== 'undefined' && navigator.serviceWorker?.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: 'SET_OFFLINE_SESSION', active: true })
+          }
           setTimeout(() => {
             window.location.href = dashboardUrl
-          }, 600)
+          }, 400)
           return
         }
       }

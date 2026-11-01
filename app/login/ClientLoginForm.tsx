@@ -66,10 +66,13 @@ export default function ClientLoginForm({
         const offRes = await verifyOfflineCredentials(cleanIdentifier, password)
         if (offRes.success && offRes.session) {
           document.cookie = 'demba_offline_active=1; path=/; max-age=2592000; SameSite=Lax'
+          if (typeof navigator !== 'undefined' && navigator.serviceWorker?.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: 'SET_OFFLINE_SESSION', active: true })
+          }
           setSuccessNotice('Connexion locale validée ! Accès à votre espace hors-ligne...')
           setTimeout(() => {
             window.location.href = '/dashboard'
-          }, 600)
+          }, 400)
         } else {
           setMessage(offRes.error || 'Identifiant ou mot de passe incorrect en mode hors-ligne.')
         }
@@ -92,10 +95,13 @@ export default function ClientLoginForm({
             const offRes = await verifyOfflineCredentials(cleanIdentifier, password)
             if (offRes.success) {
               document.cookie = 'demba_offline_active=1; path=/; max-age=2592000; SameSite=Lax'
+              if (typeof navigator !== 'undefined' && navigator.serviceWorker?.controller) {
+                navigator.serviceWorker.controller.postMessage({ type: 'SET_OFFLINE_SESSION', active: true })
+              }
               setSuccessNotice('Réseau instable : connexion locale hors-ligne activée !')
               setTimeout(() => {
                 window.location.href = '/dashboard'
-              }, 600)
+              }, 400)
               return
             }
           }
@@ -114,11 +120,14 @@ export default function ClientLoginForm({
           }
 
           document.cookie = 'demba_offline_active=1; path=/; max-age=2592000; SameSite=Lax'
+          if (typeof navigator !== 'undefined' && navigator.serviceWorker?.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: 'SET_OFFLINE_SESSION', active: true })
+          }
 
           // Pré-mettre en cache le shell du dashboard en tâche de fond
           if ('caches' in window) {
             try {
-              const cache = await caches.open('demba-offline-dintrants-v3')
+              const cache = await caches.open('demba-offline-dintrants-v4')
               const dashRes = await fetch('/dashboard')
               if (dashRes && dashRes.ok) {
                 await cache.put('/dashboard', dashRes)

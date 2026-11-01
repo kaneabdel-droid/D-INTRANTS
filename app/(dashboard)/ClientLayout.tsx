@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 import LanguageSelector from '@/components/LanguageSelector'
 import { OfflineSyncBar } from '@/components/offline/OfflineSyncBar'
+import { warmAppOfflineCache } from '@/lib/offline/warmer'
 import type { Dictionary } from '@/dictionaries'
 import { permissionModule, type Matrice } from '@/lib/permissions'
 import {
@@ -111,16 +112,29 @@ export default function ClientLayout({
   }
 
   useEffect(() => {
-    // S'assurer que le cookie hors-ligne est actif pour le Service Worker
     document.cookie = 'demba_offline_active=1; path=/; max-age=2592000; SameSite=Lax'
 
-    // Si en ligne, rafraîchir en tâche de fond le shell du dashboard
-    if (typeof navigator !== 'undefined' && navigator.onLine && 'caches' in window) {
-      caches.open('demba-offline-dintrants-v3').then((cache) => {
-        fetch('/dashboard').then((res) => {
-          if (res && res.ok) cache.put('/dashboard', res)
-        }).catch(() => {})
-      }).catch(() => {})
+    if (typeof navigator !== 'undefined' && navigator.serviceWorker?.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'SET_OFFLINE_SESSION', active: true })
+    }
+
+    if (typeof navigator !== 'undefined' && navigator.onLine) {
+      const routesToWarm = [
+        '/dashboard',
+        '/ventes',
+        '/achats',
+        '/stock',
+        '/articles',
+        '/categories',
+        '/clients',
+        '/fournisseurs',
+        '/creances',
+        '/dettes',
+        '/tresorerie',
+        '/charges',
+        '/parametres',
+      ]
+      warmAppOfflineCache(routesToWarm, 'demba-offline-dintrants-v4')
     }
   }, [])
 
