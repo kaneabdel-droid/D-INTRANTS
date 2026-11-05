@@ -2,13 +2,14 @@
 // paliers_abonnement en base (13_abonnements.sql), qui n'est là que comme garde-fou
 // lisible en SQL. Toute évolution de prix/limite doit être répercutée aux deux endroits.
 
-export type PalierCode = 'standard' | 'medium' | 'premium'
+export type PalierCode = 'standard' | 'medium' | 'premium' | 'premium_plus'
 export type DureeMois = 1 | 6 | 12
 
 export const PALIERS: Record<PalierCode, { nom: string; magasinsMax: number; prixMensuelFcfa: number }> = {
   standard: { nom: 'Standard', magasinsMax: 1, prixMensuelFcfa: 5000 },
   medium: { nom: 'Médium', magasinsMax: 2, prixMensuelFcfa: 7500 },
   premium: { nom: 'Premium', magasinsMax: 3, prixMensuelFcfa: 10000 },
+  premium_plus: { nom: 'Premium Plus', magasinsMax: 5, prixMensuelFcfa: 15000 },
 }
 
 export const DUREES: { mois: DureeMois; label: string; reduction: number }[] = [
@@ -18,7 +19,7 @@ export const DUREES: { mois: DureeMois; label: string; reduction: number }[] = [
 ]
 
 export function estPalierValide(v: string): v is PalierCode {
-  return v === 'standard' || v === 'medium' || v === 'premium'
+  return v === 'standard' || v === 'medium' || v === 'premium' || v === 'premium_plus'
 }
 
 export function estDureeValide(v: number): v is DureeMois {

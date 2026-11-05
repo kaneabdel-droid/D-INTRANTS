@@ -2,6 +2,7 @@ import { cache } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { permissionModule, type ActionPermission, type Matrice } from '@/lib/permissions'
+import { type PalierCode } from '@/lib/abonnements/paliers'
 
 export type UserContext = {
   userId: string
@@ -10,6 +11,7 @@ export type UserContext = {
   entrepriseNom: string
   entrepriseStatut: 'actif' | 'suspendu'
   entrepriseDevise: string
+  entreprisePalier: PalierCode
   entrepriseLogoUrl: string | null
   role: 'admin_entreprise' | 'gerant' | 'tresorier'
   magasinId: string | null
@@ -36,7 +38,7 @@ export const getCurrentUserContext = cache(async (): Promise<UserContext> => {
       // dashboard (via le layout), donc une seule colonne manquante ici casserait
       // l'app entière tant que la migration n'a pas tourné — /parametres, elle,
       // n'affecte qu'elle-même si elle échoue avant la migration.
-      .select('entreprise_id, role, magasin_id, entreprises(nom, statut, devise), magasins(nom)')
+      .select('entreprise_id, role, magasin_id, entreprises(nom, statut, devise, palier), magasins(nom)')
       .eq('id', user.id)
       .single(),
     // current_entreprise_id() résout l'entreprise côté serveur depuis auth.uid() : peut être lancée en parallèle.
@@ -55,6 +57,7 @@ export const getCurrentUserContext = cache(async (): Promise<UserContext> => {
     entrepriseNom: entreprise?.nom ?? '',
     entrepriseStatut: entreprise?.statut ?? 'actif',
     entrepriseDevise: entreprise?.devise ?? 'XOF',
+    entreprisePalier: (entreprise?.palier as PalierCode) ?? 'standard',
     // Volontairement non sélectionné ci-dessus (cf. commentaire sur le select) —
     // toujours null tant que la migration 16 n'a pas tourné ; à relier après.
     entrepriseLogoUrl: null,

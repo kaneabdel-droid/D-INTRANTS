@@ -62,29 +62,59 @@ export default function PlanSelector({
 
   return (
     <div className="space-y-6">
-      <div className="grid sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {(Object.keys(PALIERS) as PalierCode[]).map((code) => {
           const info = PALIERS[code]
           const selectionne = palier === code
+          const isPremiumPlus = code === 'premium_plus'
           return (
             <button
               key={code}
               type="button"
               onClick={() => setPalier(code)}
-              className={`text-left rounded-xl border p-4 transition-colors ${
-                selectionne ? 'border-primary bg-primary/5' : 'border-surface-border bg-background hover:border-primary/50'
+              className={`text-left rounded-xl border p-4 transition-colors relative flex flex-col justify-between ${
+                selectionne
+                  ? isPremiumPlus
+                    ? 'border-amber-500 bg-amber-500/5 ring-1 ring-amber-500'
+                    : 'border-primary bg-primary/5 ring-1 ring-primary'
+                  : 'border-surface-border bg-background hover:border-primary/50'
               }`}
             >
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold">{info.nom}</span>
-                {selectionne && <Check className="h-4 w-4 text-primary" />}
-                {palierActuel === code && !selectionne && <span className="text-xs text-foreground-muted">Actuel</span>}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold flex items-center gap-1.5 text-sm">
+                    {info.nom}
+                    {isPremiumPlus && (
+                      <span className="text-[10px] bg-amber-500/20 text-amber-600 px-1.5 py-0.5 rounded font-bold">
+                        EXCLUSIF
+                      </span>
+                    )}
+                  </span>
+                  {selectionne && (
+                    <Check className={`h-4 w-4 ${isPremiumPlus ? 'text-amber-600' : 'text-primary'}`} />
+                  )}
+                  {palierActuel === code && !selectionne && (
+                    <span className="text-xs text-foreground-muted">Actuel</span>
+                  )}
+                </div>
+                <p className="text-2xl font-bold font-heading">{prix(info.prixMensuelFcfa)}</p>
+                <p className="text-xs text-foreground-muted">/ mois</p>
+                <p className="text-xs text-foreground-muted mt-2">
+                  Jusqu'à {info.magasinsMax} magasin{info.magasinsMax > 1 ? 's' : ''}
+                </p>
               </div>
-              <p className="text-2xl font-bold font-heading">{prix(info.prixMensuelFcfa)}</p>
-              <p className="text-xs text-foreground-muted">/ mois</p>
-              <p className="text-sm text-foreground-muted mt-2">
-                {info.magasinsMax} magasin{info.magasinsMax > 1 ? 's' : ''}
-              </p>
+
+              <div className="mt-3 pt-2.5 border-t border-surface-border text-xs">
+                {isPremiumPlus ? (
+                  <span className="text-amber-600 font-semibold block leading-tight">
+                    ✨ Comptabilité complète & États financiers SYSCOHADA inclus
+                  </span>
+                ) : (
+                  <span className="text-foreground-muted block leading-tight">
+                    Gestion commerciale, stocks & trésorerie
+                  </span>
+                )}
+              </div>
             </button>
           )
         })}

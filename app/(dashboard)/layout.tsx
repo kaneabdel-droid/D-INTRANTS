@@ -25,6 +25,7 @@ export default async function DashboardLayout({
     <ClientLayout
       role={context.role}
       entrepriseNom={context.entrepriseNom}
+      entreprisePalier={context.entreprisePalier}
       magasinNom={context.magasinNom}
       permissions={context.permissions}
       locale={locale}

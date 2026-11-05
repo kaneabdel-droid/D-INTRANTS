@@ -31,6 +31,8 @@ import {
   LogOut,
   LifeBuoy,
   UploadCloud,
+  BookOpen,
+  Crown,
 } from 'lucide-react'
 
 type Role = 'admin_entreprise' | 'gerant' | 'tresorier'
@@ -48,6 +50,7 @@ const navGerant = [
   { key: 'dettes', href: '/dettes', icon: Banknote },
   { key: 'tresorerie', href: '/tresorerie', icon: Wallet },
   { key: 'charges', href: '/charges', icon: Receipt },
+  { key: 'comptabilite', href: '/comptabilite', icon: BookOpen },
   { key: 'import_donnees', href: '/parametres/import', icon: UploadCloud },
 ] as const
 
@@ -60,6 +63,7 @@ const navTresorier = [
   { key: 'dettes', href: '/dettes', icon: Banknote },
   { key: 'tresorerie', href: '/tresorerie', icon: Wallet },
   { key: 'charges', href: '/charges', icon: Receipt },
+  { key: 'comptabilite', href: '/comptabilite', icon: BookOpen },
 ] as const
 
 // Vue consolidée, lecture seule : pas d'accès aux modules opérationnels (cf.
@@ -70,6 +74,7 @@ const navAdminEntreprise = [
   { key: 'dashboard', href: '/dashboard', icon: LayoutDashboard },
   { key: 'comparatif', href: '/comparatif', icon: BarChart3 },
   { key: 'rentabilite', href: '/rentabilite', icon: TrendingUp },
+  { key: 'comptabilite', href: '/comptabilite', icon: BookOpen },
   { key: 'import_donnees', href: '/parametres/import', icon: UploadCloud },
   { key: 'abonnement', href: '/abonnement', icon: CreditCard },
   { key: 'parametres', href: '/parametres', icon: Settings },
@@ -79,6 +84,7 @@ export default function ClientLayout({
   children,
   role,
   entrepriseNom,
+  entreprisePalier = 'standard',
   magasinNom,
   permissions,
   locale,
@@ -87,6 +93,7 @@ export default function ClientLayout({
   children: React.ReactNode
   role: Role
   entrepriseNom: string
+  entreprisePalier?: string
   magasinNom: string | null
   permissions: Matrice
   locale: string
@@ -95,7 +102,7 @@ export default function ClientLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
   const [pathnamePrecedent, setPathnamePrecedent] = useState(pathname)
-  const nav = dict.nav
+  const nav = dict.nav as any
 
   // Le tableau de bord reste toujours accessible (page d'atterrissage) ; les autres modules du gérant
   // peuvent être masqués par la matrice de permissions (Paramètres → Permissions, admin_entreprise seul).
@@ -171,7 +178,13 @@ export default function ClientLayout({
                         }`}
                       >
                         <item.icon className={`h-6 w-6 shrink-0 ${pathname === item.href ? 'text-white' : 'text-foreground-muted group-hover:text-foreground'}`} aria-hidden="true" />
-                        <span className="truncate">{nav[item.key]}</span>
+                        <span className="truncate">{nav[item.key] || (item.key === 'comptabilite' ? 'Comptabilité' : item.key)}</span>
+                        {item.key === 'comptabilite' && (
+                          <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded font-bold flex items-center gap-1 bg-amber-500/20 text-amber-600">
+                            <Crown className="w-3 h-3 text-amber-500" />
+                            {entreprisePalier === 'premium_plus' ? 'Plus' : 'Pro'}
+                          </span>
+                        )}
                       </Link>
                     </li>
                   ))}
@@ -224,7 +237,13 @@ export default function ClientLayout({
                         }`}
                       >
                         <item.icon className={`h-6 w-6 shrink-0 ${pathname === item.href ? 'text-white' : 'text-foreground-muted group-hover:text-foreground'}`} aria-hidden="true" />
-                        <span className="truncate">{nav[item.key]}</span>
+                        <span className="truncate">{nav[item.key] || (item.key === 'comptabilite' ? 'Comptabilité' : item.key)}</span>
+                        {item.key === 'comptabilite' && (
+                          <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded font-bold flex items-center gap-1 bg-amber-500/20 text-amber-600">
+                            <Crown className="w-3 h-3 text-amber-500" />
+                            {entreprisePalier === 'premium_plus' ? 'Plus' : 'Pro'}
+                          </span>
+                        )}
                       </Link>
                     </li>
                   ))}

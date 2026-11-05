@@ -38,6 +38,11 @@ const VARIABLES_PRODUIT: Record<PalierCode, Record<DureeMois, string>> = {
     6: 'CHARIOW_PRODUCT_PREMIUM_6',
     12: 'CHARIOW_PRODUCT_PREMIUM_12',
   },
+  premium_plus: {
+    1: 'CHARIOW_PRODUCT_PREMIUM_PLUS_1',
+    6: 'CHARIOW_PRODUCT_PREMIUM_PLUS_6',
+    12: 'CHARIOW_PRODUCT_PREMIUM_PLUS_12',
+  },
 }
 
 // Table admin-éditable (chariow_produits) en priorité — permet à l'admin système
