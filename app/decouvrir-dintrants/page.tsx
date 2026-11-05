@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, Building2, LayoutDashboard, Boxes, ShoppingCart, HandCoins, Wallet } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Building2, LayoutDashboard, Boxes, ShoppingCart, HandCoins, Wallet, BookOpen } from 'lucide-react'
 import LanguageSelector from '@/components/LanguageSelector'
 import { getDictionary, getLocale } from '@/dictionaries'
 import { loginDemo } from './actions'
@@ -24,6 +24,7 @@ export default async function DecouvrirDintrantsPage({
     { icon: ShoppingCart, title: d.moduleVentes.title, desc: d.moduleVentes.desc },
     { icon: HandCoins, title: d.moduleCreances.title, desc: d.moduleCreances.desc },
     { icon: Wallet, title: d.moduleTresorerie.title, desc: d.moduleTresorerie.desc },
+    { icon: BookOpen, title: (d as any).moduleComptabilite?.title || 'Comptabilité & États SYSCOHADA', desc: (d as any).moduleComptabilite?.desc || 'Livre-journal, Grand Livre, Balance 6 colonnes, Bilan, Compte de Résultat et Liasse Fiscale certifiée.' },
   ]
 
   return (
@@ -87,11 +88,11 @@ export default async function DecouvrirDintrantsPage({
 
         {/* Modules */}
         <section className="py-20 bg-background">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
             <h2 className="text-3xl font-bold font-heading text-center mb-12">{d.modulesTitle}</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {modules.map((m, i) => (
-                <div key={i} className="rounded-2xl border border-surface-border bg-surface p-8">
+                <div key={i} className={`rounded-2xl border border-surface-border bg-surface p-8 ${i === 4 ? 'sm:col-span-2 lg:col-span-1 border-primary/30 shadow-sm' : ''}`}>
                   <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
                     <m.icon className="w-6 h-6" />
                   </div>

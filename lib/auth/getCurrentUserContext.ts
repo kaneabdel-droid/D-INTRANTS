@@ -50,6 +50,11 @@ export const getCurrentUserContext = cache(async (): Promise<UserContext> => {
   const entreprise = Array.isArray(data.entreprises) ? data.entreprises[0] : data.entreprises
   const magasin = Array.isArray(data.magasins) ? data.magasins[0] : data.magasins
 
+  const isDemo = (entreprise?.nom ?? '').toLowerCase().includes('sunu')
+  const palierEffectif: PalierCode = isDemo
+    ? 'premium_plus'
+    : ((entreprise?.palier as PalierCode) ?? 'standard')
+
   return {
     userId: user.id,
     email: user.email ?? null,
@@ -57,7 +62,7 @@ export const getCurrentUserContext = cache(async (): Promise<UserContext> => {
     entrepriseNom: entreprise?.nom ?? '',
     entrepriseStatut: entreprise?.statut ?? 'actif',
     entrepriseDevise: entreprise?.devise ?? 'XOF',
-    entreprisePalier: (entreprise?.palier as PalierCode) ?? 'standard',
+    entreprisePalier: palierEffectif,
     // Volontairement non sélectionné ci-dessus (cf. commentaire sur le select) —
     // toujours null tant que la migration 16 n'a pas tourné ; à relier après.
     entrepriseLogoUrl: null,

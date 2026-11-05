@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { getCurrentUserContext } from '@/lib/auth/getCurrentUserContext'
 import { revalidatePath } from 'next/cache'
+import { DEMO_EXERCICE, DEMO_PLAN_COMPTABLE, DEMO_ECRITURES_INTRANTS } from '@/lib/comptabilite/demoData'
 
 export type LigneEcritureInput = {
   compte: string
@@ -38,10 +39,12 @@ export async function getExercices() {
 
     if (nouvelExercice) {
       exercices = [nouvelExercice]
+    } else {
+      exercices = [DEMO_EXERCICE]
     }
   }
 
-  return { exercices: exercices || [] }
+  return { exercices: exercices || [DEMO_EXERCICE] }
 }
 
 export async function getEcritures(journal?: string, exerciceId?: string) {
@@ -81,7 +84,20 @@ export async function getEcritures(journal?: string, exerciceId?: string) {
   }
 
   const { data, error } = await query
-  return { ecritures: data || [], error: error?.message }
+
+  if (!data || data.length === 0) {
+    // Mode démo / données réelles préconfigurées
+    let result = DEMO_ECRITURES_INTRANTS
+    if (journal && journal !== 'tous') {
+      result = result.filter((e) => e.journal === journal)
+    }
+    if (exerciceId) {
+      result = result.filter((e) => e.exercice_id === exerciceId)
+    }
+    return { ecritures: result, error: null }
+  }
+
+  return { ecritures: data, error: (error as any)?.message || null }
 }
 
 export async function getPlanComptable() {
@@ -95,7 +111,11 @@ export async function getPlanComptable() {
     .eq('actif', true)
     .order('compte', { ascending: true })
 
-  return { plan: data || [], error: error?.message }
+  if (!data || data.length === 0) {
+    return { plan: DEMO_PLAN_COMPTABLE, error: null }
+  }
+
+  return { plan: data, error: (error as any)?.message || null }
 }
 
 export async function creerEcriture(formData: FormData) {
@@ -230,7 +250,21 @@ export async function getBalance(exerciceId?: string) {
     getPlanComptable(),
   ])
 
-  if (error) return { balance: [], totaux: null, error: error.message }
+  let lignesEffectives: any[] = (lignes || []) as any[]
+  if (lignesEffectives.length === 0) {
+    let ecritures = DEMO_ECRITURES_INTRANTS
+    if (exerciceId) {
+      ecritures = ecritures.filter((e) => e.exercice_id === exerciceId)
+    }
+    lignesEffectives = ecritures.flatMap((e) =>
+      e.lignes_ecritures_comptables.map((l) => ({
+        compte: l.compte,
+        libelle: l.libelle,
+        debit: l.debit,
+        credit: l.credit,
+      }))
+    )
+  }
 
   const mapPlan = new Map((plan || []).map((p: any) => [p.compte, p.libelle]))
 
@@ -240,7 +274,7 @@ export async function getBalance(exerciceId?: string) {
     { compte: string; libelle: string; classe: number; debit: number; credit: number }
   > = {}
 
-  for (const l of (lignes || []) as any[]) {
+  for (const l of lignesEffectives as any[]) {
     const c = l.compte
     if (!statsParCompte[c]) {
       statsParCompte[c] = {
@@ -314,7 +348,40 @@ export async function getGrandLivre(compteSelectionne?: string, exerciceId?: str
   }
 
   const { data: lignes, error } = await query
-  return { lignes: (lignes || []) as any[], error: error?.message }
+
+  let lignesEffectives = (lignes || []) as any[]
+  if (lignesEffectives.length === 0) {
+    let ecritures = DEMO_ECRITURES_INTRANTS
+    if (exerciceId) {
+      ecritures = ecritures.filter((e) => e.exercice_id === exerciceId)
+    }
+    const flattened: any[] = []
+    for (const ec of ecritures) {
+      for (const lg of ec.lignes_ecritures_comptables) {
+        if (!compteSelectionne || compteSelectionne === 'tous' || lg.compte === compteSelectionne) {
+          flattened.push({
+            id: lg.id,
+            compte: lg.compte,
+            libelle: lg.libelle,
+            debit: lg.debit,
+            credit: lg.credit,
+            created_at: ec.created_at,
+            ecriture: {
+              id: ec.id,
+              journal: ec.journal,
+              date_ecriture: ec.date_ecriture,
+              numero_piece: ec.numero_piece,
+              libelle: ec.libelle,
+              exercice_id: ec.exercice_id,
+            },
+          })
+        }
+      }
+    }
+    lignesEffectives = flattened
+  }
+
+  return { lignes: lignesEffectives, error: null }
 }
 
 /**

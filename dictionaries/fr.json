@@ -189,15 +189,15 @@
     "heroTitleSuffix": "?",
     "heroSubtitle": "Stock, ventes, achats, créances/dettes et trésorerie — un ou plusieurs magasins, un seul tableau de bord.",
     "demoTitle": "Essayez la démo en un clic",
-    "demoDesc": "Entreprise de démonstration SUNUIntrants (2 magasins, données réelles d'achats, ventes et stock) — choisissez un point de vue.",
+    "demoDesc": "Entreprise de démonstration SUNUIntrants (2 magasins, données réelles d'achats, ventes, trésorerie et comptabilité complète SYSCOHADA) — choisissez un point de vue.",
     "demoError": "Connexion démo indisponible pour le moment. Réessayez dans un instant.",
     "demoAdmin": "Vue consolidée",
-    "demoAdminRole": "Administrateur entreprise",
+    "demoAdminRole": "Administrateur entreprise (Premium Plus)",
     "demoGerant1": "SUNUIntrants1",
     "demoGerant1Role": "Gérant, Dakar",
     "demoGerant2": "SUNUIntrants2",
     "demoGerant2Role": "Gérant, Bamako",
-    "demoNote": "Cet espace est partagé entre tous les visiteurs — évitez d'y saisir des informations réelles.",
+    "demoNote": "Cet espace de démonstration intègre la comptabilité complète en partie double et les états financiers SYSCOHADA (Forfait Premium Plus).",
     "modulesTitle": "Un circuit complet, magasin par magasin",
     "moduleStock": {
       "title": "Stock en temps réel",
@@ -214,6 +214,10 @@
     "moduleTresorerie": {
       "title": "Trésorerie",
       "desc": "Caisse, mobile money, banque — journal complet des mouvements."
+    },
+    "moduleComptabilite": {
+      "title": "Comptabilité & États SYSCOHADA",
+      "desc": "Livre-journal, Grand Livre, Balance 6 colonnes, Bilan, Compte de Résultat et Liasse Fiscale certifiée (Forfait Premium Plus)."
     },
     "cta": "S'abonner"
   },
@@ -1010,13 +1014,174 @@
             ]
           }
         ]
+      },
+      {
+        "id": "partie-comptabilite",
+        "label": "Partie 4",
+        "title": "La Comptabilité & les États Financiers SYSCOHADA (Forfait Premium Plus)",
+        "text": "Disponible exclusivement avec le forfait Premium Plus (15 000 FCFA/mois) : tenue comptable complète en partie double, révision des comptes, Balance générale et liasse fiscale officielle conforme au Système Comptable OHADA (SYSCOHADA révisé).",
+        "sections": [
+          {
+            "id": "c-journal",
+            "title": "Le Livre-Journal et les pièces comptables",
+            "menu": "Comptabilité → Journal",
+            "blocks": [
+              {
+                "p": "Le Livre-Journal enregistre de façon chronologique et infalsifiable toutes les opérations financières de votre entreprise, réparties dans des journaux auxiliaires dédiés :"
+              },
+              {
+                "cards": [
+                  {
+                    "t": "Journal des Ventes (VTE)",
+                    "x": "Factures clients, créances et chiffre d'affaires (Comptes 411, 701, 443)."
+                  },
+                  {
+                    "t": "Journal des Achats (ACH)",
+                    "x": "Factures fournisseurs, approvisionnements d'intrants et dettes (Comptes 601, 401, 445)."
+                  },
+                  {
+                    "t": "Journal de Caisse (CAI)",
+                    "x": "Encaissements et décaissements en espèces au comptoir (Compte 531)."
+                  },
+                  {
+                    "t": "Journal de Banque (BNQ)",
+                    "x": "Virements bancaires, chèques et opérations sur compte bancaire (Compte 521)."
+                  },
+                  {
+                    "t": "Journal Mobile Money (MOB)",
+                    "x": "Paiements électroniques Wave, Orange Money et Free Money (Compte 571 / 531)."
+                  },
+                  {
+                    "t": "Opérations Diverses (OD)",
+                    "x": "Salaires, loyers, amortissements, régularisations et clôture (Comptes 6, 28, 101)."
+                  }
+                ]
+              },
+              {
+                "p": "Chaque écriture respecte obligatoirement le principe de la partie double : le montant total au Débit doit être rigoureusement égal au montant total au Crédit avant validation. Vous pouvez également importer des journaux externes (CSV/Excel) ou imprimer le livre-journal en un clic."
+              }
+            ]
+          },
+          {
+            "id": "c-sync",
+            "title": "La Synchronisation automatique des flux",
+            "menu": "Comptabilité → Journal (Bouton « Synchroniser les flux »)",
+            "blocks": [
+              {
+                "p": "Grâce au moteur de synchronisation automatique en un clic, vous n'avez pas besoin d'être comptable pour tenir vos livres :"
+              },
+              {
+                "ol": [
+                  {
+                    "t": "Génération automatique depuis les ventes :",
+                    "x": "Chaque vente validée génère l'écriture de chiffre d'affaires et la contrepartie en caisse ou créance client."
+                  },
+                  {
+                    "t": "Génération automatique depuis les achats :",
+                    "x": "Chaque réception d'intrants crée l'écriture d'achat de marchandises et la dette fournisseur correspondante."
+                  },
+                  {
+                    "t": "Génération automatique depuis la trésorerie :",
+                    "x": "Les encaissements de créances, décaissements de dettes et charges de fonctionnement s'intègrent instantanément dans vos journaux de trésorerie."
+                  }
+                ]
+              },
+              {
+                "p": "Le système contrôle les doublons : aucune opération déjà comptabilisée n'est réinsérée une seconde fois."
+              }
+            ]
+          },
+          {
+            "id": "c-grand-livre",
+            "title": "Le Grand Livre des comptes",
+            "menu": "Comptabilité → Grand Livre",
+            "blocks": [
+              {
+                "p": "Le Grand Livre regroupe l'ensemble des mouvements comptables classés compte par compte, selon l'arborescence du SYSCOHADA (Classes 1 à 8). Pour chaque compte, vous visualisez la date de chaque écriture, le journal d'origine, le libellé, le débit, le crédit et le solde progressif débiteur ou créditeur. La recherche instantanée vous permet de retrouver n'importe quel compte ou libellé en une seconde."
+              }
+            ]
+          },
+          {
+            "id": "c-balance",
+            "title": "La Balance Générale OHADA à 6 colonnes",
+            "menu": "Comptabilité → Balance",
+            "blocks": [
+              {
+                "p": "La Balance Générale présente la synthèse comptable obligatoire conforme aux normes OHADA sur 6 colonnes :"
+              },
+              {
+                "ul": [
+                  {
+                    "t": "Soldes d'ouverture :",
+                    "x": "Débit et Crédit initiaux reportés de l'exercice précédent."
+                  },
+                  {
+                    "t": "Mouvements de l'exercice :",
+                    "x": "Cumul de tous les débits et crédits enregistrés sur la période."
+                  },
+                  {
+                    "t": "Soldes de clôture :",
+                    "x": "Solde final Débiteur ou Créditeur de chaque compte."
+                  }
+                ]
+              },
+              {
+                "p": "Le bandeau de contrôle vérifie en temps réel que le Total Débit est égal au Total Crédit. Vous pouvez filtrer la balance par classe de comptes (Classes 1 à 8) ou exporter la balance complète en format tableur."
+              }
+            ]
+          },
+          {
+            "id": "c-etats",
+            "title": "Les États Financiers et la Liasse Fiscale certifiée (DGID)",
+            "menu": "Comptabilité → États Financiers",
+            "blocks": [
+              {
+                "p": "Générez d'un simple clic l'ensemble des documents financiers officiels exigés par l'administration fiscale (DGID), les banques partenaires et les associés :"
+              },
+              {
+                "ul": [
+                  {
+                    "t": "Le Bilan Actif & Passif SYSCOHADA :",
+                    "x": "Présentation normalisée des immobilisations, stocks d'intrants, créances, trésorerie, capitaux propres et dettes financières, avec équilibre parfait Actif = Passif."
+                  },
+                  {
+                    "t": "Le Compte de Résultat avec Soldes Intermédiaires de Gestion (SIG) :",
+                    "x": "Décomposition économique détaillée : Chiffre d'Affaires, Marge Commerciale, Valeur Ajoutée (VA), Excédent Brut d'Exploitation (EBE), Résultat d'Exploitation, Résultat Financier, Résultat des Activités Ordinaires (RAO) et Résultat Net."
+                  },
+                  {
+                    "t": "Le Tableau des Flux de Trésorerie (TFT) :",
+                    "x": "Analyse rigoureuse de la trésorerie générée par l'activité opérationnelle, les investissements et le financement."
+                  },
+                  {
+                    "t": "Les 36 Notes Annexes SYSCOHADA :",
+                    "x": "Tableaux de détail réglementaires couvrant les immobilisations, amortissements, créances, dettes et engagements hors bilan."
+                  },
+                  {
+                    "t": "La Liasse Fiscale Imprimable :",
+                    "x": "Bouton d'impression et d'export direct au format de la liasse fiscale officielle, prêt pour le dépôt de déclaration fiscale de fin d'exercice."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "c-plan",
+            "title": "Le Plan Comptable de l'entreprise",
+            "menu": "Comptabilité → Plan Comptable",
+            "blocks": [
+              {
+                "p": "Le plan de comptes SYSCOHADA révisé est préconfiguré pour votre activité avec tous les comptes usuels des classes 1 à 8 (Capitaux, Immobilisations, Stocks, Tiers, Trésorerie, Charges, Produits). Vous pouvez à tout moment ajouter de nouveaux sous-comptes personnalisés pour adapter votre comptabilité aux spécificités de vos magasins d'intrants."
+              }
+            ]
+          }
+        ]
       }
     ],
     "closing": [
       {
         "id": "formules",
         "title": "Les formules et l’abonnement",
-        "lead": "Le prix dépend du nombre de magasins. Vous payez en ligne : votre compte est activé dès que le paiement est confirmé.",
+        "lead": "Le prix dépend du nombre de magasins et des fonctionnalités. Vous payez en ligne : votre compte est activé dès que le paiement est confirmé.",
         "blocks": [
           {
             "table": {
@@ -1028,18 +1193,23 @@
               "rows": [
                 [
                   "Standard",
-                  "1",
+                  "1 magasin",
                   "5 000 FCFA"
                 ],
                 [
                   "Médium",
-                  "2",
+                  "2 magasins",
                   "7 500 FCFA"
                 ],
                 [
                   "Premium",
-                  "3",
+                  "3 magasins",
                   "10 000 FCFA"
+                ],
+                [
+                  "Premium Plus",
+                  "Jusqu'à 5 magasins (Comptabilité & SYSCOHADA)",
+                  "15 000 FCFA"
                 ]
               ]
             }
@@ -1131,6 +1301,30 @@
               {
                 "t": "Compte d’exploitation",
                 "x": "Le tableau qui résume l’année : chiffre d’affaires, achats, marge, autres produits, autres charges et résultat."
+              },
+              {
+                "t": "SYSCOHADA",
+                "x": "Système Comptable de l'Organisation pour l'Harmonisation en Afrique du Droit des Affaires. Référentiel légal obligatoire dans 17 pays d'Afrique de l'Ouest et Centrale."
+              },
+              {
+                "t": "Partie double",
+                "x": "Principe comptable universel où chaque opération équilibre au moins un débit et un crédit : Total Débits = Total Crédits."
+              },
+              {
+                "t": "Livre-Journal",
+                "x": "Registre comptable légal chronologique de toutes les pièces et écritures d'achats, ventes, caisse, banque et opérations diverses."
+              },
+              {
+                "t": "Grand Livre",
+                "x": "Recueil de tous les comptes SYSCOHADA avec l'historique complet de leurs débits, crédits et solde progressif."
+              },
+              {
+                "t": "Balance générale à 6 colonnes",
+                "x": "État de synthèse récapitulant les soldes initiaux, les mouvements de la période et les soldes de clôture de tous les comptes."
+              },
+              {
+                "t": "Liasse Fiscale certifiée",
+                "x": "Ensemble des documents normalisés (Bilan Actif/Passif, Compte de Résultat SIG, TFT et 36 Notes) destiné aux banques et à l'administration fiscale (DGID)."
               }
             ]
           }

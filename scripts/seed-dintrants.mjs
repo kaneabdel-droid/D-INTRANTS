@@ -307,7 +307,7 @@ async function main() {
         telephone: '+221 77 123 45 67',
         devise: 'XOF',
         statut: 'actif',
-        palier: 'medium',
+        palier: 'premium_plus',
         abonnement_expire_le: abonnementExpireLe,
       })
       .select()
@@ -318,9 +318,9 @@ async function main() {
   insist(
     await supabase.from('abonnements').insert({
       entreprise_id: entreprise.id,
-      palier: 'medium',
+      palier: 'premium_plus',
       duree_mois: 6,
-      montant_fcfa: 42750,
+      montant_fcfa: 85500,
       provider: 'chariow',
       provider_reference: 'demo_seed_sunuintrants',
       statut: 'paye',

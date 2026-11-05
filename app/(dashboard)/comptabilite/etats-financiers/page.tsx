@@ -33,7 +33,7 @@ export default async function EtatsFinanciersSyscohadaPage({
     .eq('entreprise_id', context.entrepriseId)
     .order('numero')
 
-  const toutesLignes: LigneBalance[] = (balanceData ?? []).map((l: any) => ({
+  let toutesLignes: LigneBalance[] = (balanceData ?? []).map((l: any) => ({
     exercice_id: l.exercice_id || courant.id,
     numero: l.numero,
     libelle: l.libelle,
@@ -42,6 +42,20 @@ export default async function EtatsFinanciersSyscohadaPage({
     total_credit: Number(l.total_credit) || 0,
     solde: Number(l.solde) || 0,
   }))
+
+  if (toutesLignes.length === 0) {
+    const { getBalance } = await import('../actions')
+    const { balance } = await getBalance(courant.id)
+    toutesLignes = (balance ?? []).map((b: any) => ({
+      exercice_id: courant.id,
+      numero: b.compte,
+      libelle: b.libelle,
+      classe: b.classe,
+      total_debit: b.debit,
+      total_credit: b.credit,
+      solde: b.debit - b.credit,
+    }))
+  }
 
   const etats = genererEtatsFinanciersSyscohada(toutesLignes, courant, exercices)
 
