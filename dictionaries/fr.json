@@ -192,12 +192,12 @@
     "demoDesc": "Entreprise de démonstration SUNUIntrants (2 magasins, données réelles d'achats, ventes, trésorerie et comptabilité complète SYSCOHADA) — choisissez un point de vue.",
     "demoError": "Connexion démo indisponible pour le moment. Réessayez dans un instant.",
     "demoAdmin": "Vue consolidée",
-    "demoAdminRole": "Administrateur entreprise (Premium Plus)",
+    "demoAdminRole": "Administrateur entreprise (Premium Plus : 5 magasins, utilisateurs illimités)",
     "demoGerant1": "SUNUIntrants1",
     "demoGerant1Role": "Gérant, Dakar",
     "demoGerant2": "SUNUIntrants2",
     "demoGerant2Role": "Gérant, Bamako",
-    "demoNote": "Cet espace de démonstration intègre la comptabilité complète en partie double et les états financiers SYSCOHADA (Forfait Premium Plus).",
+    "demoNote": "Cet espace de démonstration intègre la comptabilité complète en partie double et les états financiers SYSCOHADA (Forfait Premium Plus : jusqu'à 5 magasins et utilisateurs illimités).",
     "modulesTitle": "Un circuit complet, magasin par magasin",
     "moduleStock": {
       "title": "Stock en temps réel",
@@ -1019,7 +1019,7 @@
         "id": "partie-comptabilite",
         "label": "Partie 4",
         "title": "La Comptabilité & les États Financiers SYSCOHADA (Forfait Premium Plus)",
-        "text": "Disponible exclusivement avec le forfait Premium Plus (15 000 FCFA/mois) : tenue comptable complète en partie double, révision des comptes, Balance générale et liasse fiscale officielle conforme au Système Comptable OHADA (SYSCOHADA révisé).",
+        "text": "Disponible exclusivement avec le forfait Premium Plus (15 000 FCFA/mois, jusqu'à 5 magasins et utilisateurs illimités) : tenue comptable complète en partie double, révision des comptes, Balance générale et liasse fiscale officielle conforme au Système Comptable OHADA (SYSCOHADA révisé).",
         "sections": [
           {
             "id": "c-journal",
@@ -1208,7 +1208,7 @@
                 ],
                 [
                   "Premium Plus",
-                  "Jusqu'à 5 magasins (Comptabilité & SYSCOHADA)",
+                  "Jusqu'à 5 magasins • Utilisateurs illimités (Comptabilité & SYSCOHADA)",
                   "15 000 FCFA"
                 ]
               ]

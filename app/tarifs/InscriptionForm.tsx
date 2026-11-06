@@ -89,27 +89,64 @@ export default function InscriptionForm({ t, locale }: { t: Dict; locale: string
 
   return (
     <div className="space-y-8">
-      <div className="grid sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {(Object.keys(PALIERS) as PalierCode[]).map((code) => {
           const info = PALIERS[code]
           const selectionne = palier === code
+          const isPremiumPlus = code === 'premium_plus'
           return (
             <button
               key={code}
               type="button"
               onClick={() => setPalier(code)}
-              className={`text-left rounded-2xl border p-6 transition-all ${selectionne ? 'border-primary bg-primary/5 shadow-md' : 'border-surface-border bg-surface hover:border-primary/50'
-                }`}
+              className={`text-left rounded-2xl border p-5 transition-all flex flex-col justify-between ${
+                selectionne
+                  ? isPremiumPlus
+                    ? 'border-amber-500 bg-amber-500/5 shadow-md ring-1 ring-amber-500'
+                    : 'border-primary bg-primary/5 shadow-md ring-1 ring-primary'
+                  : 'border-surface-border bg-surface hover:border-primary/50'
+              }`}
             >
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-bold text-lg">{info.nom}</span>
-                {selectionne && <Check className="h-5 w-5 text-primary" />}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-bold text-base flex items-center gap-1.5">
+                    {info.nom}
+                    {isPremiumPlus && (
+                      <span className="text-[10px] bg-amber-500/20 text-amber-600 px-1.5 py-0.5 rounded font-bold">
+                        EXCLUSIF
+                      </span>
+                    )}
+                  </span>
+                  {selectionne && <Check className={`h-5 w-5 ${isPremiumPlus ? 'text-amber-600' : 'text-primary'}`} />}
+                </div>
+                <p className="text-2xl font-bold font-heading">{prix(info.prixMensuelFcfa)}</p>
+                <p className="text-xs text-foreground-muted mb-3">{t.perMonth}</p>
+                <div className="text-xs text-foreground-muted space-y-1">
+                  <p>{t.storesUpTo.replace('{n}', String(info.magasinsMax))}</p>
+                  {isPremiumPlus ? (
+                    <p className="text-amber-600 font-semibold flex items-center gap-1">
+                      <span>👥 Utilisateurs illimités</span>
+                    </p>
+                  ) : null}
+                </div>
               </div>
-              <p className="text-3xl font-bold font-heading">{prix(info.prixMensuelFcfa)}</p>
-              <p className="text-sm text-foreground-muted mb-3">{t.perMonth}</p>
-              <p className="text-sm text-foreground-muted">
-                {t.storesUpTo.replace('{n}', String(info.magasinsMax))}
-              </p>
+
+              <div className="mt-3 pt-2.5 border-t border-surface-border text-xs">
+                {isPremiumPlus ? (
+                  <div className="space-y-1">
+                    <span className="text-amber-600 font-semibold block leading-tight">
+                      ✨ Comptabilité complète & États financiers SYSCOHADA inclus
+                    </span>
+                    <span className="text-[11px] text-amber-700/80 dark:text-amber-300/80 block leading-tight font-medium">
+                      5 magasins • Utilisateurs illimités
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-foreground-muted block leading-tight">
+                    Gestion commerciale, stocks & trésorerie
+                  </span>
+                )}
+              </div>
             </button>
           )
         })}

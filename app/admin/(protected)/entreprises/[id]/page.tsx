@@ -68,7 +68,7 @@ export default async function AdminEntrepriseDetailPage({ params }: { params: Pr
             <div className="flex justify-between"><dt className="text-foreground-muted">Email</dt><dd className="text-right">{entreprise.email || '-'}</dd></div>
             <div className="flex justify-between"><dt className="text-foreground-muted">Id. Fiscal</dt><dd className="text-right">{entreprise.identification || '-'}</dd></div>
             <div className="flex justify-between"><dt className="text-foreground-muted">Téléphone</dt><dd>{entreprise.telephone || '-'}</dd></div>
-            <div className="flex justify-between"><dt className="text-foreground-muted">Palier</dt><dd className="font-medium">{palierInfo?.nom ?? entreprise.palier} ({palierInfo?.magasinsMax} magasin{palierInfo && palierInfo.magasinsMax > 1 ? 's' : ''} max)</dd></div>
+            <div className="flex justify-between"><dt className="text-foreground-muted">Palier</dt><dd className="font-medium">{palierInfo?.nom ?? entreprise.palier} ({palierInfo?.magasinsMax} magasin{palierInfo && palierInfo.magasinsMax > 1 ? 's' : ''} max{entreprise.palier === 'premium_plus' ? ' • Illimité users' : ''})</dd></div>
             <div className="flex justify-between"><dt className="text-foreground-muted">Abonnement</dt><dd>{entreprise.abonnement_expire_le ? `jusqu'au ${new Date(entreprise.abonnement_expire_le).toLocaleDateString('fr-FR')}` : 'non payé'}</dd></div>
             <div className="flex justify-between"><dt className="text-foreground-muted">Créée le</dt><dd>{entreprise.created_at ? new Date(entreprise.created_at).toLocaleDateString('fr-FR') : '-'}</dd></div>
           </dl>
@@ -89,7 +89,7 @@ export default async function AdminEntrepriseDetailPage({ params }: { params: Pr
 
         <div className="bg-background rounded-xl p-5 border border-surface-border">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-            <h2 className="font-semibold">Utilisateurs</h2>
+            <h2 className="font-semibold">Utilisateurs ({(utilisateurs ?? []).length}{entreprise.palier === 'premium_plus' ? ' / Illimité' : ''})</h2>
             <AjouterUtilisateurButton entrepriseId={entreprise.id} magasins={magasinsActifs} />
           </div>
           <ul className="text-sm divide-y divide-surface-border">

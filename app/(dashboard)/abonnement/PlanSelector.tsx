@@ -99,16 +99,26 @@ export default function PlanSelector({
                 </div>
                 <p className="text-2xl font-bold font-heading">{prix(info.prixMensuelFcfa)}</p>
                 <p className="text-xs text-foreground-muted">/ mois</p>
-                <p className="text-xs text-foreground-muted mt-2">
-                  Jusqu'à {info.magasinsMax} magasin{info.magasinsMax > 1 ? 's' : ''}
-                </p>
+                <div className="text-xs text-foreground-muted mt-2 space-y-0.5">
+                  <p>Jusqu'à {info.magasinsMax} magasin{info.magasinsMax > 1 ? 's' : ''}</p>
+                  {isPremiumPlus ? (
+                    <p className="text-amber-600 font-semibold flex items-center gap-1">
+                      <span>👥 Utilisateurs illimités</span>
+                    </p>
+                  ) : null}
+                </div>
               </div>
 
               <div className="mt-3 pt-2.5 border-t border-surface-border text-xs">
                 {isPremiumPlus ? (
-                  <span className="text-amber-600 font-semibold block leading-tight">
-                    ✨ Comptabilité complète & États financiers SYSCOHADA inclus
-                  </span>
+                  <div className="space-y-1">
+                    <span className="text-amber-600 font-semibold block leading-tight">
+                      ✨ Comptabilité complète & États financiers SYSCOHADA inclus
+                    </span>
+                    <span className="text-[11px] text-amber-700/80 dark:text-amber-300/80 block leading-tight font-medium">
+                      5 magasins • Utilisateurs illimités
+                    </span>
+                  </div>
                 ) : (
                   <span className="text-foreground-muted block leading-tight">
                     Gestion commerciale, stocks & trésorerie

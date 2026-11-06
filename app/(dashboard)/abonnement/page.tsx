@@ -14,11 +14,17 @@ export default async function AbonnementPage() {
     .eq('id', context.entrepriseId)
     .single()
 
-  const { count: nombreMagasins } = await supabase
-    .from('magasins')
-    .select('id', { count: 'exact', head: true })
-    .eq('entreprise_id', context.entrepriseId)
-    .eq('statut', 'actif')
+  const [{ count: nombreMagasins }, { count: nombreUtilisateurs }] = await Promise.all([
+    supabase
+      .from('magasins')
+      .select('id', { count: 'exact', head: true })
+      .eq('entreprise_id', context.entrepriseId)
+      .eq('statut', 'actif'),
+    supabase
+      .from('utilisateurs')
+      .select('id', { count: 'exact', head: true })
+      .eq('entreprise_id', context.entrepriseId),
+  ])
 
   const { data: historique } = await supabase
     .from('abonnements')
@@ -29,6 +35,7 @@ export default async function AbonnementPage() {
 
   const palier = (entreprise?.palier ?? 'standard') as PalierCode
   const info = PALIERS[palier]
+  const isPremiumPlus = palier === 'premium_plus'
   const expiration = entreprise?.abonnement_expire_le ? new Date(entreprise.abonnement_expire_le) : null
   const actif = expiration ? expiration > new Date() : false
 
@@ -39,14 +46,33 @@ export default async function AbonnementPage() {
         <p className="text-foreground-muted text-sm">Gérez le palier et le paiement de l&apos;abonnement d-intrants.</p>
       </div>
 
-      <div className="grid sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-background rounded-xl border border-surface-border p-5">
           <p className="text-sm text-foreground-muted">Palier actuel</p>
-          <p className="text-xl font-bold font-heading">{info.nom}</p>
+          <p className="text-xl font-bold font-heading flex items-center gap-1.5">
+            {info.nom}
+            {isPremiumPlus && (
+              <span className="text-[10px] bg-amber-500/20 text-amber-600 px-1.5 py-0.5 rounded font-bold">
+                Plus
+              </span>
+            )}
+          </p>
         </div>
         <div className="bg-background rounded-xl border border-surface-border p-5">
           <p className="text-sm text-foreground-muted">Magasins</p>
           <p className="text-xl font-bold font-heading">{nombreMagasins ?? 0} / {info.magasinsMax}</p>
+        </div>
+        <div className="bg-background rounded-xl border border-surface-border p-5">
+          <p className="text-sm text-foreground-muted">Utilisateurs</p>
+          <p className="text-xl font-bold font-heading">
+            {isPremiumPlus ? (
+              <span className="text-amber-600 text-base sm:text-xl font-bold">
+                {nombreUtilisateurs ?? 0} (Illimité)
+              </span>
+            ) : (
+              <span>{nombreUtilisateurs ?? 0}</span>
+            )}
+          </p>
         </div>
         <div className="bg-background rounded-xl border border-surface-border p-5">
           <p className="text-sm text-foreground-muted">{actif ? 'Expire le' : 'Statut'}</p>

@@ -5,11 +5,25 @@
 export type PalierCode = 'standard' | 'medium' | 'premium' | 'premium_plus'
 export type DureeMois = 1 | 6 | 12
 
-export const PALIERS: Record<PalierCode, { nom: string; magasinsMax: number; prixMensuelFcfa: number }> = {
-  standard: { nom: 'Standard', magasinsMax: 1, prixMensuelFcfa: 5000 },
-  medium: { nom: 'Médium', magasinsMax: 2, prixMensuelFcfa: 7500 },
-  premium: { nom: 'Premium', magasinsMax: 3, prixMensuelFcfa: 10000 },
-  premium_plus: { nom: 'Premium Plus', magasinsMax: 5, prixMensuelFcfa: 15000 },
+export interface PalierInfo {
+  nom: string
+  magasinsMax: number
+  utilisateursMax: number | null // null = illimité
+  prixMensuelFcfa: number
+  comptabiliteSyscohada?: boolean
+}
+
+export const PALIERS: Record<PalierCode, PalierInfo> = {
+  standard: { nom: 'Standard', magasinsMax: 1, utilisateursMax: null, prixMensuelFcfa: 5000 },
+  medium: { nom: 'Médium', magasinsMax: 2, utilisateursMax: null, prixMensuelFcfa: 7500 },
+  premium: { nom: 'Premium', magasinsMax: 3, utilisateursMax: null, prixMensuelFcfa: 10000 },
+  premium_plus: {
+    nom: 'Premium Plus',
+    magasinsMax: 5,
+    utilisateursMax: null, // 5 magasins et nombre d'utilisateurs illimité
+    prixMensuelFcfa: 15000,
+    comptabiliteSyscohada: true,
+  },
 }
 
 export const DUREES: { mois: DureeMois; label: string; reduction: number }[] = [

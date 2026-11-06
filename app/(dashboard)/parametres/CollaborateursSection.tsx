@@ -80,10 +80,12 @@ export default function CollaborateursSection({
   collaborateurs,
   magasins,
   currentUserId,
+  palier,
 }: {
   collaborateurs: CollaborateurItem[]
   magasins: MagasinOption[]
   currentUserId: string
+  palier?: string
 }) {
   const router = useRouter()
   const [collabList, setCollabList] = useState<CollaborateurItem[]>(collaborateurs)
@@ -184,10 +186,20 @@ export default function CollaborateursSection({
     <div className="rounded-xl border border-surface-border bg-surface p-6 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-surface-border">
         <div>
-          <h2 className="text-base font-bold font-heading text-foreground flex items-center gap-2">
-            <Shield className="h-4 w-4 text-primary" />
-            Équipe & Collaborateurs de l&apos;Entreprise
-          </h2>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-base font-bold font-heading text-foreground flex items-center gap-2">
+              <Shield className="h-4 w-4 text-primary" />
+              Équipe & Collaborateurs de l&apos;Entreprise
+            </h2>
+            <span className="text-[11px] font-mono text-foreground-muted bg-background px-2 py-0.5 rounded-full border border-surface-border">
+              {collabList.length} membre{collabList.length > 1 ? 's' : ''}
+            </span>
+            {palier === 'premium_plus' && (
+              <span className="text-[10px] font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                ✨ Utilisateurs illimités (Premium Plus)
+              </span>
+            )}
+          </div>
           <p className="text-xs text-foreground-muted mt-0.5">
             Gérez vos gérants de magasins, trésoriers, caissiers et magasiniers. Création possible avec un simple identifiant ou numéro de téléphone (sans e-mail requis).
           </p>

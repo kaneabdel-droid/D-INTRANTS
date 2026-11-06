@@ -15,7 +15,7 @@ export default async function ParametresPage() {
   const [{ data: entreprise }, { data: perm }, { data: rawCollabs }, { data: rawMagasins }] = await Promise.all([
     supabase
       .from('entreprises')
-      .select('nom, adresse, telephone, email, identification, devise, logo_url')
+      .select('nom, adresse, telephone, email, identification, devise, logo_url, palier')
       .eq('id', context.entrepriseId)
       .single(),
     supabase.from('parametres_permissions').select('matrice').maybeSingle(),
@@ -57,6 +57,7 @@ export default async function ParametresPage() {
           collaborateurs={collaborateurs}
           magasins={magasins}
           currentUserId={context.userId}
+          palier={entreprise?.palier}
         />
         <ParametresForm
           dict={dict}
