@@ -420,7 +420,13 @@ export async function synchroniserOperationsComptables() {
     if (montant <= 0) continue
 
     const dateStr = v.date_vente ? new Date(v.date_vente).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
-    const compteTresorerie = v.mode_paiement === 'credit' ? '411' : '531'
+    const mode = (v.mode_paiement || '').toLowerCase()
+    const compteTresorerie =
+      mode === 'credit' ? '411' :
+      (mode === 'mobile' || mode === 'wave' || mode === 'orange_money') ? '551' :
+      (mode === 'cheque' || mode === 'effet') ? '531' :
+      (mode === 'banque' || mode === 'virement') ? '521' :
+      '571'
 
     const { data: ecriture } = await supabase
       .from('ecritures_comptables')
@@ -571,8 +577,8 @@ export async function synchroniserOperationsComptables() {
         {
           ecriture_id: ecriture.id,
           entreprise_id: context.entrepriseId,
-          compte: '531',
-          libelle: `Règlement caisse`,
+          compte: '571',
+          libelle: `Règlement caisse (espèces)`,
           debit: 0,
           credit: montant,
         },

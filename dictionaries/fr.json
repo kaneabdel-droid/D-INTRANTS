@@ -1019,7 +1019,7 @@
         "id": "partie-comptabilite",
         "label": "Partie 4",
         "title": "La Comptabilité & les États Financiers SYSCOHADA (Forfait Premium Plus)",
-        "text": "Disponible exclusivement avec le forfait Premium Plus (15 000 FCFA/mois, jusqu'à 5 magasins et utilisateurs illimités) : tenue comptable complète en partie double, révision des comptes, Balance générale et liasse fiscale officielle conforme au Système Comptable OHADA (SYSCOHADA révisé).",
+        "text": "Disponible avec le forfait Premium Plus (15 000 FCFA/mois, jusqu'à 5 magasins et utilisateurs illimités) : tenue comptable complète en partie double, synchronisation automatique des flux, Balance générale, Grand Livre et liasse financière officielle conforme au Système Comptable OHADA (SYSCOHADA révisé) ainsi qu'aux référentiels d'autres pays (Maroc, Mauritanie, CEMAC, Nigéria, Ghana, Gambie).",
         "sections": [
           {
             "id": "c-journal",
@@ -1027,7 +1027,7 @@
             "menu": "Comptabilité → Journal",
             "blocks": [
               {
-                "p": "Le Livre-Journal enregistre de façon chronologique et infalsifiable toutes les opérations financières de votre entreprise, réparties dans des journaux auxiliaires dédiés :"
+                "p": "Le Livre-Journal enregistre de façon chronologique et infalsifiable toutes les opérations financières de votre activité (intrants agricoles et semences), réparties dans des journaux auxiliaires dédiés :"
               },
               {
                 "cards": [
@@ -1037,23 +1037,23 @@
                   },
                   {
                     "t": "Journal des Achats (ACH)",
-                    "x": "Factures fournisseurs, approvisionnements d'intrants et dettes (Comptes 601, 401, 445)."
+                    "x": "Factures fournisseurs semences certifiées, engrais, produits phytosanitaires et dettes (Comptes 601, 401, 445)."
                   },
                   {
                     "t": "Journal de Caisse (CAI)",
-                    "x": "Encaissements et décaissements en espèces au comptoir (Compte 531)."
+                    "x": "Encaissements et décaissements en espèces au comptoir (Compte 571 Caisse principale)."
                   },
                   {
                     "t": "Journal de Banque (BNQ)",
-                    "x": "Virements bancaires, chèques et opérations sur compte bancaire (Compte 521)."
+                    "x": "Virements bancaires, chèques et effets à l'encaissement (Comptes 521 Banques & 531 Chèques/effets)."
                   },
                   {
                     "t": "Journal Mobile Money (MOB)",
-                    "x": "Paiements électroniques Wave, Orange Money et Free Money (Compte 571 / 531)."
+                    "x": "Paiements électroniques Wave, Orange Money et Free Money (Compte 551 Monnaie électronique)."
                   },
                   {
                     "t": "Opérations Diverses (OD)",
-                    "x": "Salaires, loyers, amortissements, régularisations et clôture (Comptes 6, 28, 101)."
+                    "x": "Salaires, loyers, amortissements, régularisations et bilan d'ouverture (Comptes 6, 28, 101, 162)."
                   }
                 ]
               },
@@ -1074,20 +1074,21 @@
                 "ol": [
                   {
                     "t": "Génération automatique depuis les ventes :",
-                    "x": "Chaque vente validée génère l'écriture de chiffre d'affaires et la contrepartie en caisse ou créance client."
+                    "x": "Chaque vente validée génère l'écriture de chiffre d'affaires et la contrepartie en caisse espèces (571), mobile money (551), chèque (531), banque (521) ou créance client (411)."
                   },
                   {
                     "t": "Génération automatique depuis les achats :",
-                    "x": "Chaque réception d'intrants crée l'écriture d'achat de marchandises et la dette fournisseur correspondante."
+                    "x": "Chaque commande fournisseur réceptionnée crée l'écriture d'achat de marchandises (601) et la dette fournisseur (401)."
                   },
                   {
-                    "t": "Génération automatique depuis la trésorerie :",
-                    "x": "Les encaissements de créances, décaissements de dettes et charges de fonctionnement s'intègrent instantanément dans vos journaux de trésorerie."
+                    "t": "Génération automatique des règlements :",
+                    "x": "Chaque encaissement de créance ou paiement de dette fournisseur crédite ou débite les comptes de trésorerie appropriés."
+                  },
+                  {
+                    "t": "Génération automatique des dépenses :",
+                    "x": "Les charges d'exploitation enregistrées créent automatiquement les écritures de charges (624) et de règlement caisse espèces (571)."
                   }
                 ]
-              },
-              {
-                "p": "Le système contrôle les doublons : aucune opération déjà comptabilisée n'est réinsérée une seconde fois."
               }
             ]
           },
@@ -1097,7 +1098,7 @@
             "menu": "Comptabilité → Grand Livre",
             "blocks": [
               {
-                "p": "Le Grand Livre regroupe l'ensemble des mouvements comptables classés compte par compte, selon l'arborescence du SYSCOHADA (Classes 1 à 8). Pour chaque compte, vous visualisez la date de chaque écriture, le journal d'origine, le libellé, le débit, le crédit et le solde progressif débiteur ou créditeur. La recherche instantanée vous permet de retrouver n'importe quel compte ou libellé en une seconde."
+                "p": "Le Grand Livre regroupe l'historique exhaustif des mouvements compte par compte (du compte 101 au 701). Il permet d'analyser le détail chronologique de chaque solde débiteur ou créditeur et de justifier chaque ligne comptable."
               }
             ]
           },
@@ -1107,32 +1108,13 @@
             "menu": "Comptabilité → Balance",
             "blocks": [
               {
-                "p": "La Balance Générale présente la synthèse comptable obligatoire conforme aux normes OHADA sur 6 colonnes :"
-              },
-              {
-                "ul": [
-                  {
-                    "t": "Soldes d'ouverture :",
-                    "x": "Débit et Crédit initiaux reportés de l'exercice précédent."
-                  },
-                  {
-                    "t": "Mouvements de l'exercice :",
-                    "x": "Cumul de tous les débits et crédits enregistrés sur la période."
-                  },
-                  {
-                    "t": "Soldes de clôture :",
-                    "x": "Solde final Débiteur ou Créditeur de chaque compte."
-                  }
-                ]
-              },
-              {
-                "p": "Le bandeau de contrôle vérifie en temps réel que le Total Débit est égal au Total Crédit. Vous pouvez filtrer la balance par classe de comptes (Classes 1 à 8) ou exporter la balance complète en format tableur."
+                "p": "La Balance Générale présente la synthèse réglementaire à 6 colonnes (Mouvements de la période Débit/Crédit, Soldes de clôture Débiteur/Créditeur, Cumuls de l'exercice). Elle garantit l'équilibre fondamental entre le total des débits et le total des crédits."
               }
             ]
           },
           {
             "id": "c-etats",
-            "title": "Les États Financiers et la Liasse Fiscale certifiée (DGID)",
+            "title": "Les États Financiers et la Liasse Fiscale certifiée",
             "menu": "Comptabilité → États Financiers",
             "blocks": [
               {
@@ -1141,24 +1123,28 @@
               {
                 "ul": [
                   {
+                    "t": "Page de garde officielle plein format A4 :",
+                    "x": "Présentation institutionnelle respectant les dimensions A4 (280 mm de hauteur imprimable) avec en-tête républicain, ministère, désignation automatique de l'entreprise (NINEA, adresse, période), documents déposés, visa fiscal et signature/cachet fermement ancrés en bas de page."
+                  },
+                  {
                     "t": "Le Bilan Actif & Passif SYSCOHADA :",
-                    "x": "Présentation normalisée des immobilisations, stocks d'intrants, créances, trésorerie, capitaux propres et dettes financières, avec équilibre parfait Actif = Passif."
+                    "x": "Présentation normalisée des immobilisations, stocks, créances, trésorerie-actif (521, 551, 531, 571), capitaux propres et dettes financières, avec équilibre parfait Actif = Passif."
                   },
                   {
                     "t": "Le Compte de Résultat avec Soldes Intermédiaires de Gestion (SIG) :",
-                    "x": "Décomposition économique détaillée : Chiffre d'Affaires, Marge Commerciale, Valeur Ajoutée (VA), Excédent Brut d'Exploitation (EBE), Résultat d'Exploitation, Résultat Financier, Résultat des Activités Ordinaires (RAO) et Résultat Net."
+                    "x": "Décomposition économique : Chiffre d'Affaires, Marge Commerciale, Valeur Ajoutée (VA), Excédent Brut d'Exploitation (EBE), Résultat d'Exploitation, Résultat Financier, RAO et Résultat Net."
                   },
                   {
                     "t": "Le Tableau des Flux de Trésorerie (TFT) :",
-                    "x": "Analyse rigoureuse de la trésorerie générée par l'activité opérationnelle, les investissements et le financement."
+                    "x": "Analyse de la trésorerie générée par l'activité opérationnelle, les investissements et le financement."
                   },
                   {
-                    "t": "Les 36 Notes Annexes SYSCOHADA :",
-                    "x": "Tableaux de détail réglementaires couvrant les immobilisations, amortissements, créances, dettes et engagements hors bilan."
+                    "t": "Les 36 Notes Annexes réglementaires :",
+                    "x": "Tableaux de détail couvrant immobilisations, stocks, créances, dettes et Note 11 (Disponibilités avec banques, mobile money, chèques et caisse)."
                   },
                   {
-                    "t": "La Liasse Fiscale Imprimable :",
-                    "x": "Bouton d'impression et d'export direct au format de la liasse fiscale officielle, prêt pour le dépôt de déclaration fiscale de fin d'exercice."
+                    "t": "Conformité Multi-Pays & Multi-Référentiels :",
+                    "x": "Sélecteur interactif permettant d'éditer la liasse financière selon les plans et normes du Sénégal/UEMOA (SYSCOHADA), d'Afrique Centrale (CEMAC), du Maroc (PCGM / CGNC), de Mauritanie (PCGM), du Nigéria (IFRS / CAMA), du Ghana (GRA / IFRS) et de la Gambie (GRA / GAAP)."
                   }
                 ]
               }
@@ -1170,7 +1156,7 @@
             "menu": "Comptabilité → Plan Comptable",
             "blocks": [
               {
-                "p": "Le plan de comptes SYSCOHADA révisé est préconfiguré pour votre activité avec tous les comptes usuels des classes 1 à 8 (Capitaux, Immobilisations, Stocks, Tiers, Trésorerie, Charges, Produits). Vous pouvez à tout moment ajouter de nouveaux sous-comptes personnalisés pour adapter votre comptabilité aux spécificités de vos magasins d'intrants."
+                "p": "Le plan de comptes SYSCOHADA révisé est préconfiguré pour votre activité avec tous les comptes usuels des classes 1 à 8. Les comptes de trésorerie sont strictement normalisés : Compte 571 pour la Caisse principale (espèces), Compte 551 pour la Monnaie électronique (Mobile Money : Wave, Orange Money) et Compte 531 pour les Chèques, bons et effets à encaisser."
               }
             ]
           }

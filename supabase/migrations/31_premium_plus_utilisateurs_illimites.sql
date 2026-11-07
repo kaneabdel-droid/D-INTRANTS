@@ -11,3 +11,4 @@ set magasins_max = 5,
     utilisateurs_max = null,
     prix_mensuel_fcfa = 15000
 where code = 'premium_plus';
+

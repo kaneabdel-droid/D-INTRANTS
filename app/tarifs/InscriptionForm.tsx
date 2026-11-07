@@ -99,13 +99,12 @@ export default function InscriptionForm({ t, locale }: { t: Dict; locale: string
               key={code}
               type="button"
               onClick={() => setPalier(code)}
-              className={`text-left rounded-2xl border p-5 transition-all flex flex-col justify-between ${
-                selectionne
+              className={`text-left rounded-2xl border p-5 transition-all flex flex-col justify-between ${selectionne
                   ? isPremiumPlus
                     ? 'border-amber-500 bg-amber-500/5 shadow-md ring-1 ring-amber-500'
                     : 'border-primary bg-primary/5 shadow-md ring-1 ring-primary'
                   : 'border-surface-border bg-surface hover:border-primary/50'
-              }`}
+                }`}
             >
               <div>
                 <div className="flex items-center justify-between mb-2">

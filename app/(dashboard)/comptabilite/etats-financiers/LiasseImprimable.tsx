@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronUp,
   Filter,
+  Globe,
 } from 'lucide-react'
 import { formatMontant } from '@/lib/utils'
 type Lang = string
@@ -16,18 +17,38 @@ import {
   type NoteAnnexe,
   exporterLiasseCompleteCSV,
 } from '@/lib/syscohada'
+import {
+  getReferentielPays,
+  detecterPaysParDevise,
+  type CodePays,
+  LISTE_REFERENTIELS_PAYS,
+} from '@/lib/comptabilite/referentielsPays'
 
 export default function LiasseImprimable({
   etats,
   devise = 'F CFA',
   lang = 'fr',
   organisationNom,
+  paysCode,
+  onSelectPays,
 }: {
   etats: EtatsFinanciersSyscohada
   devise?: string
   lang?: Lang
   organisationNom: string
+  paysCode?: CodePays
+  onSelectPays?: (code: CodePays) => void
 }) {
+  const [paysActif, setPaysActif] = useState<CodePays>(() => {
+    if (paysCode) return paysCode
+    return detecterPaysParDevise(devise)
+  })
+
+  useEffect(() => {
+    if (paysCode) setPaysActif(paysCode)
+  }, [paysCode])
+
+  const referentiel = getReferentielPays(paysActif)
   const fm = (val: number | string | undefined | null) => {
     if (val === null || val === undefined || val === '') return '-'
     const n = Number(val)
@@ -185,21 +206,41 @@ export default function LiasseImprimable({
           <div>
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
               <Printer className="w-4 h-4 text-primary" />
-              Édition Officielle de la Liasse Financière (Format Imprimable & PDF)
+              Édition Officielle de la Liasse Financière ({referentiel.nomCourt})
             </h3>
             <p className="text-xs text-foreground-muted mt-0.5">
-              Conforme au modèle officiel DGID SYSCOHADA (Système Normal) • {totalNotesA} / 36 notes déclarées (A) • {totalNotesImprimees} notes éditées
+              {referentiel.referentielComptable} • {referentiel.directionFiscale} • {totalNotesA} / 36 notes (A) • {totalNotesImprimees} notes éditées
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-elevated rounded-lg border border-surface-border">
+              <Globe className="w-3.5 h-3.5 text-primary" />
+              <span className="text-[11px] font-semibold text-foreground-muted">Pays / Norme :</span>
+              <select
+                value={paysActif}
+                onChange={(e) => {
+                  const c = e.target.value as CodePays
+                  setPaysActif(c)
+                  onSelectPays?.(c)
+                }}
+                className="bg-transparent text-xs font-bold text-foreground focus:outline-none cursor-pointer"
+              >
+                {LISTE_REFERENTIELS_PAYS.map((p) => (
+                  <option key={p.code} value={p.code}>
+                    {p.drapeau} {p.nom}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <button
               type="button"
               onClick={telechargerCSV}
               className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors cursor-pointer"
             >
               <Download className="w-4 h-4" />
-              <span>Télécharger la Liasse (CSV Normalisé)</span>
+              <span>Télécharger la Liasse (CSV)</span>
             </button>
 
             <button
@@ -307,122 +348,129 @@ export default function LiasseImprimable({
         {/* ------------------------------------------------------------------ */}
         {/* PAGE 1 : PAGE DE GARDE OFFICIELLE & CERTIFICATION DU SIGNATAIRE     */}
         {/* ------------------------------------------------------------------ */}
-        <div className="bg-surface print:bg-white p-6 rounded-xl border border-surface-border print:border-none shadow-sm print:shadow-none print-break-page flex flex-col justify-between max-h-[1080px]">
-          <div className="space-y-3 text-center">
+        <div className="bg-surface print:bg-white p-8 rounded-2xl border border-surface-border print:border-none shadow-sm print:shadow-none print-break-page flex flex-col justify-between min-h-[960px] print:min-h-[280mm] print:h-[280mm] print:max-h-[280mm] print:p-8">
+          <div className="space-y-4 text-center">
             {/* Sceau & Ministère */}
-            <div className="border-b-2 border-foreground/80 pb-2 space-y-0.5">
-              <p className="text-xs font-black uppercase tracking-widest text-foreground">
-                {etats.fiche.pays}
+            <div className="border-b-2 border-foreground/80 pb-3 space-y-1">
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-xl">{referentiel.drapeau}</span>
+                <p className="text-sm font-black uppercase tracking-widest text-foreground">
+                  {referentiel.paysOfficiel}
+                </p>
+              </div>
+              <p className="text-[11px] uppercase font-semibold text-foreground-muted">
+                {referentiel.ministere}
               </p>
-              <p className="text-[10px] uppercase font-medium text-foreground-muted">
-                {etats.fiche.ministere}
+              <p className="text-[11px] uppercase font-bold text-foreground">
+                {referentiel.directionFiscale}
               </p>
-              <p className="text-[10px] uppercase font-bold text-foreground">
-                {etats.fiche.direction}
-              </p>
-              <p className="text-[10px] font-semibold text-primary">
-                {etats.fiche.centreDepot}
+              <p className="text-[11px] font-semibold text-primary">
+                {referentiel.centreDepot}
               </p>
             </div>
 
             {/* Titre officiel de la liasse */}
-            <div className="py-2 space-y-1">
-              <span className="inline-block px-2.5 py-0.5 text-[10px] font-black uppercase rounded bg-primary/10 text-primary border border-primary/20 tracking-wider">
-                SYSTÈME NORMAL
+            <div className="py-2 space-y-1.5">
+              <span className="inline-block px-3 py-1 text-[11px] font-black uppercase rounded bg-primary/10 text-primary border border-primary/20 tracking-wider">
+                {referentiel.systeme}
               </span>
-              <h1 className="text-lg font-black font-heading text-foreground uppercase tracking-wide">
-                ÉTATS FINANCIERS NORMALISÉS DU SYSTÈME COMPTABLE OUEST AFRICAIN (SYSCOHADA)
+              <h1 className="text-xl font-black font-heading text-foreground uppercase tracking-wide max-w-2xl mx-auto">
+                {referentiel.titres.liasse}
               </h1>
-              <p className="text-xs font-bold text-foreground">
+              <p className="text-xs font-semibold text-foreground-muted">
+                {referentiel.titres.sousTitreLiasse}
+              </p>
+              <p className="text-xs font-bold text-foreground pt-1">
                 EXERCICE CLOS LE : {new Date(etats.fiche.dateCloture).toLocaleDateString('fr-FR')} • DURÉE : {etats.fiche.dureeMois} MOIS
               </p>
             </div>
 
             {/* Cadre Désignation Entreprise */}
-            <div className="border border-foreground/60 rounded-lg p-3 text-left space-y-2 bg-surface-elevated/30 print:bg-transparent">
-              <p className="text-[10px] font-black uppercase tracking-wider text-primary border-b border-foreground/20 pb-0.5">
-                DÉSIGNATION DE L&apos;ENTREPRISE
-              </p>
-              <div className="grid grid-cols-2 gap-2 text-[11px]">
+            <div className="border-2 border-foreground/50 rounded-xl p-4 text-left space-y-2 bg-surface-elevated/30 print:bg-transparent shadow-xs">
+              <div className="flex items-center justify-between border-b border-foreground/20 pb-1">
+                <p className="text-[11px] font-black uppercase tracking-wider text-primary">
+                  DÉSIGNATION DE L&apos;ENTITÉ
+                </p>
+                <span className="text-[10px] font-bold text-foreground-muted">
+                  Norme : {referentiel.referentielComptable}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <span className="text-foreground-muted block text-[10px]">Dénomination sociale :</span>
-                  <span className="font-bold text-foreground">{etats.fiche.denomination}</span>
+                  <span className="font-black text-foreground text-sm">{etats.fiche.denomination}</span>
                 </div>
                 <div>
                   <span className="text-foreground-muted block text-[10px]">Sigle usuel :</span>
                   <span className="font-bold text-foreground">{etats.fiche.sigle}</span>
                 </div>
                 <div>
-                  <span className="text-foreground-muted block text-[10px]">N° d&apos;identification fiscale (NINEA) :</span>
-                  <span className="font-mono font-bold text-primary">{etats.fiche.nineaNif}</span>
+                  <span className="text-foreground-muted block text-[10px]">{referentiel.labelIdFiscal} :</span>
+                  <span className="font-mono font-bold text-primary text-xs">{etats.fiche.nineaNif || referentiel.placeholderIdFiscal}</span>
                 </div>
                 <div>
                   <span className="text-foreground-muted block text-[10px]">Période comptable :</span>
                   <span className="font-medium text-foreground">Du {etats.fiche.dateDebut} au {etats.fiche.dateFin}</span>
                 </div>
                 <div className="col-span-2">
-                  <span className="text-foreground-muted block text-[10px]">Adresse géographique complète :</span>
+                  <span className="text-foreground-muted block text-[10px]">Adresse géographique & coordonnées :</span>
                   <span className="font-medium text-foreground">{etats.fiche.adresse}</span>
+                  {(etats.fiche.telephone || etats.fiche.email) && (
+                    <span className="block text-[10px] text-foreground-muted mt-0.5">
+                      Tél : {etats.fiche.telephone || '—'} • Email : {etats.fiche.email || '—'}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Documents déposés & cadre de réception fiscale */}
-            <div className="grid grid-cols-2 gap-4 text-left text-[11px] pt-1">
+            <div className="grid grid-cols-2 gap-4 text-left text-xs pt-1">
               <div className="border border-foreground/40 rounded-lg p-3 space-y-1.5">
                 <p className="font-bold uppercase text-[10px] text-foreground border-b pb-0.5">Documents Déposés</p>
                 <div className="space-y-1 text-[10px]">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono font-bold text-primary">[X]</span>
-                    <span>Fiche d&apos;identification & renseignements divers</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono font-bold text-primary">[X]</span>
-                    <span>Bilan du Système Normal (Actif & Passif)</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono font-bold text-primary">[X]</span>
-                    <span>Compte de Résultat</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono font-bold text-primary">[X]</span>
-                    <span>Tableau des Flux de Trésorerie (TFT)</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono font-bold text-primary">[X]</span>
-                    <span>Notes Annexées ({totalNotesA} notes applicables déposées)</span>
-                  </div>
+                  {referentiel.documentsDeposes.map((doc, i) => (
+                    <div key={i} className="flex items-center gap-1.5">
+                      <span className="font-mono font-bold text-primary">[X]</span>
+                      <span>{doc}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
               <div className="border border-foreground/40 rounded-lg p-3 space-y-2 flex flex-col justify-between">
                 <div>
-                  <p className="font-bold uppercase text-[10px] text-foreground border-b pb-0.5">Réservé à l&apos;Administration Fiscale (DGID)</p>
-                  <p className="text-[10px] text-foreground-muted mt-1">Date de dépôt : _____________________</p>
-                  <p className="text-[10px] text-foreground-muted mt-1">Nom de l&apos;agent : _________________________</p>
+                  <p className="font-bold uppercase text-[10px] text-foreground border-b pb-0.5">
+                    {referentiel.titres.adminFiscale}
+                  </p>
+                  <p className="text-[10px] text-foreground-muted mt-1.5">Date de réception : _____________________</p>
+                  <p className="text-[10px] text-foreground-muted mt-1">Agent percepteur : _________________________</p>
+                  <p className="text-[10px] text-foreground-muted mt-1">N° Quittance / Enregistrement : ________________</p>
                 </div>
-                <div className="border-t border-dashed pt-1 text-center text-[9px] text-foreground-muted">
-                  Signature de l&apos;agent & Cachet du service
+                <div className="border-t border-dashed pt-1.5 text-center text-[9px] text-foreground-muted">
+                  Visa, Signature & Cachet de l&apos;Administration
                 </div>
               </div>
             </div>
           </div>
 
           {/* SIGNATURE & CERTIFICATION RAMENÉES FERMEMENT À LA 1ÈRE PAGE */}
-          <div className="mt-4 pt-3 border-t-2 border-foreground/50 flex justify-between items-end text-xs">
+          <div className="mt-6 pt-4 border-t-2 border-foreground/50 flex justify-between items-end text-xs">
             <div className="space-y-0.5">
-              <p className="text-[10px] text-foreground-muted uppercase font-bold tracking-wider">Certification des états financiers :</p>
-              <p className="text-foreground-muted text-[11px]">Certifié conforme par :</p>
+              <p className="text-[10px] text-foreground-muted uppercase font-bold tracking-wider">
+                {referentiel.titres.certification} :
+              </p>
+              <p className="text-foreground-muted text-[11px]">Certifié sincère et conforme par :</p>
               <p className="font-bold text-foreground text-sm">{etats.fiche.signataireNom}</p>
               <p className="text-[10px] text-foreground-muted">{etats.fiche.signataireQualite}</p>
               <p className="text-[9px] text-foreground-muted pt-1">
-                Date de signature : {new Date(etats.fiche.dateCloture).toLocaleDateString('fr-FR')}
+                Date de certification : {new Date(etats.fiche.dateCloture).toLocaleDateString('fr-FR')}
               </p>
             </div>
             <div className="text-right space-y-1">
               <p className="text-[10px] font-bold uppercase tracking-wider text-foreground">Signature & Cachet de l&apos;Entreprise</p>
-              <div className="w-52 h-16 border-2 border-dashed border-foreground/50 rounded flex items-center justify-center text-[9px] text-foreground-muted bg-surface-elevated/20">
-                Cadre réservé au cachet officiel
+              <div className="w-56 h-20 border-2 border-dashed border-foreground/50 rounded-lg flex items-center justify-center text-[9px] text-foreground-muted bg-surface-elevated/20">
+                Cadre réservé au cachet officiel de l&apos;entité
               </div>
             </div>
           </div>
@@ -437,7 +485,7 @@ export default function LiasseImprimable({
               FICHE D&apos;IDENTIFICATION ET RENSEIGNEMENTS DIVERS
             </h2>
             <p className="text-[10px] text-foreground-muted">
-              {etats.fiche.denomination} • NINEA : {etats.fiche.nineaNif} • Exercice clos au {etats.fiche.dateCloture}
+              {etats.fiche.denomination} • {referentiel.labelIdFiscal} : {etats.fiche.nineaNif || referentiel.placeholderIdFiscal} • Exercice clos au {etats.fiche.dateCloture}
             </p>
           </div>
 
@@ -447,7 +495,7 @@ export default function LiasseImprimable({
               <div className="space-y-0.5 text-[10px]">
                 <div className="flex justify-between"><span className="text-foreground-muted">Dénomination :</span><span className="font-semibold">{etats.fiche.denomination}</span></div>
                 <div className="flex justify-between"><span className="text-foreground-muted">Sigle usuel :</span><span className="font-semibold">{etats.fiche.sigle}</span></div>
-                <div className="flex justify-between"><span className="text-foreground-muted">NINEA :</span><span className="font-mono font-bold text-primary">{etats.fiche.nineaNif}</span></div>
+                <div className="flex justify-between"><span className="text-foreground-muted">{referentiel.labelIdFiscal} :</span><span className="font-mono font-bold text-primary">{etats.fiche.nineaNif || referentiel.placeholderIdFiscal}</span></div>
                 <div className="flex justify-between"><span className="text-foreground-muted">Exercice :</span><span>Du {etats.fiche.dateDebut} au {etats.fiche.dateFin}</span></div>
                 <div className="flex justify-between"><span className="text-foreground-muted">Adresse :</span><span className="truncate max-w-[200px]">{etats.fiche.adresse}</span></div>
               </div>
@@ -569,10 +617,10 @@ export default function LiasseImprimable({
           <div className="text-center border-b border-foreground/30 pb-1 mb-1 print:pb-0.5 print:mb-0.5 leading-tight">
             <div className="flex justify-between items-center text-[9px] print:text-[8px] text-foreground-muted">
               <span className="font-semibold text-foreground">{etats.fiche.denomination}</span>
-              <span>NINEA : {etats.fiche.nineaNif}</span>
+              <span>{referentiel.labelIdFiscal} : {etats.fiche.nineaNif || referentiel.placeholderIdFiscal}</span>
             </div>
             <h2 className="text-xs print:text-[10px] font-black font-heading uppercase text-foreground">
-              BILAN DU SYSTÈME NORMAL — ACTIF
+              {referentiel.titres.bilan} — ACTIF
             </h2>
             <p className="text-[9px] print:text-[7.5px] text-foreground-muted">
               Exercice clos au {etats.fiche.dateCloture} • Durée : {etats.fiche.dureeMois} mois
@@ -619,10 +667,10 @@ export default function LiasseImprimable({
           <div className="text-center border-b border-foreground/30 pb-1 mb-1 print:pb-0.5 print:mb-0.5 leading-tight">
             <div className="flex justify-between items-center text-[9px] print:text-[8px] text-foreground-muted">
               <span className="font-semibold text-foreground">{etats.fiche.denomination}</span>
-              <span>NINEA : {etats.fiche.nineaNif}</span>
+              <span>{referentiel.labelIdFiscal} : {etats.fiche.nineaNif || referentiel.placeholderIdFiscal}</span>
             </div>
             <h2 className="text-xs print:text-[10px] font-black font-heading uppercase text-foreground">
-              BILAN DU SYSTÈME NORMAL — PASSIF
+              {referentiel.titres.bilan} — PASSIF
             </h2>
             <p className="text-[9px] print:text-[7.5px] text-foreground-muted">
               Exercice clos au {etats.fiche.dateCloture} • Durée : {etats.fiche.dureeMois} mois
@@ -665,10 +713,10 @@ export default function LiasseImprimable({
           <div className="text-center border-b border-foreground/30 pb-1 mb-1 print:pb-0.5 print:mb-0.5 leading-tight">
             <div className="flex justify-between items-center text-[9px] print:text-[8px] text-foreground-muted">
               <span className="font-semibold text-foreground">{etats.fiche.denomination}</span>
-              <span>NINEA : {etats.fiche.nineaNif}</span>
+              <span>{referentiel.labelIdFiscal} : {etats.fiche.nineaNif || referentiel.placeholderIdFiscal}</span>
             </div>
             <h2 className="text-xs print:text-[10px] font-black font-heading uppercase text-foreground">
-              COMPTE DE RÉSULTAT DU SYSTÈME NORMAL
+              {referentiel.titres.compteResultat}
             </h2>
             <p className="text-[9px] print:text-[7.5px] text-foreground-muted">
               Exercice du 1er Janvier au 31 Décembre {libN} • Durée : {etats.fiche.dureeMois} mois
@@ -711,10 +759,10 @@ export default function LiasseImprimable({
           <div className="text-center border-b border-foreground/30 pb-1 mb-1 print:pb-0.5 print:mb-0.5 leading-tight">
             <div className="flex justify-between items-center text-[9px] print:text-[8px] text-foreground-muted">
               <span className="font-semibold text-foreground">{etats.fiche.denomination}</span>
-              <span>NINEA : {etats.fiche.nineaNif}</span>
+              <span>{referentiel.labelIdFiscal} : {etats.fiche.nineaNif || referentiel.placeholderIdFiscal}</span>
             </div>
             <h2 className="text-xs print:text-[10px] font-black font-heading uppercase text-foreground">
-              TABLEAU DES FLUX DE TRÉSORERIE (TFT)
+              {referentiel.titres.fluxTresorerie}
             </h2>
             <p className="text-[9px] print:text-[7.5px] text-foreground-muted">
               Méthode indirecte SYSCOHADA • Exercice {libN}
@@ -1125,8 +1173,8 @@ export default function LiasseImprimable({
               <span>{urlEdition || 'comptabilite/etats-financiers'}</span>
             </div>
             <div className="text-right">
-              <span className="font-bold text-foreground">D-AgroBusiness</span>
-              <span> — Liasse Fiscale SYSCOHADA (Système Normal)</span>
+              <span className="font-bold text-foreground">D-INTRANTS</span>
+              <span> — {referentiel.titres.piedPage}</span>
             </div>
           </div>
         </div>

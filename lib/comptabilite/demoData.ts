@@ -42,8 +42,9 @@ export const DEMO_PLAN_COMPTABLE = [
   { compte: '443', libelle: 'État, TVA facturée sur ventes (18%)', classe: 4, type: 'passif', actif: true },
   { compte: '445', libelle: 'État, TVA récupérable sur achats (18%)', classe: 4, type: 'actif', actif: true },
   { compte: '521', libelle: 'Banque BOA Sénégal', classe: 5, type: 'tresorerie', actif: true },
-  { compte: '531', libelle: 'Caisse centrale espèces', classe: 5, type: 'tresorerie', actif: true },
-  { compte: '571', libelle: 'Mobile Money (Wave / Orange Money)', classe: 5, type: 'tresorerie', actif: true },
+  { compte: '531', libelle: 'Chèques, bons et effets à encaisser', classe: 5, type: 'tresorerie', actif: true },
+  { compte: '551', libelle: 'Mobile Money (Wave / Orange Money)', classe: 5, type: 'tresorerie', actif: true },
+  { compte: '571', libelle: 'Caisse centrale espèces (comptoir)', classe: 5, type: 'tresorerie', actif: true },
   { compte: '601', libelle: 'Achats d’intrants et marchandises', classe: 6, type: 'charge', actif: true },
   { compte: '6031', libelle: 'Variation des stocks de marchandises', classe: 6, type: 'charge', actif: true },
   { compte: '611', libelle: 'Transports sur ventes et livraisons', classe: 6, type: 'charge', actif: true },
@@ -73,7 +74,7 @@ export const DEMO_ECRITURES_INTRANTS: DemoEcriture[] = [
       { id: 'l-01-3', compte: '244', libelle: 'Matériel info et mobilier magasins', debit: 2500000, credit: 0 },
       { id: 'l-01-4', compte: '311', libelle: 'Stock initial intrants au 01/01', debit: 4500000, credit: 0 },
       { id: 'l-01-5', compte: '521', libelle: 'Solde initial Banque BOA Sénégal', debit: 4000000, credit: 0 },
-      { id: 'l-01-6', compte: '531', libelle: 'Solde initial Caisse centrale', debit: 1000000, credit: 0 },
+      { id: 'l-01-6', compte: '571', libelle: 'Solde initial Caisse centrale', debit: 1000000, credit: 0 },
       { id: 'l-01-7', compte: '101', libelle: 'Capital social souscrit et libéré', debit: 0, credit: 25000000 },
       { id: 'l-01-8', compte: '162', libelle: 'Emprunt bancaire équipement BOA', debit: 0, credit: 10000000 },
     ],
@@ -183,7 +184,7 @@ export const DEMO_ECRITURES_INTRANTS: DemoEcriture[] = [
     validee: true,
     created_at: '2026-01-27T16:30:00Z',
     lignes_ecritures_comptables: [
-      { id: 'l-08-1', compte: '531', libelle: 'Encaissement espèces caisse centrale', debit: 1770000, credit: 0 },
+      { id: 'l-08-1', compte: '571', libelle: 'Encaissement espèces caisse centrale', debit: 1770000, credit: 0 },
       { id: 'l-08-2', compte: '701', libelle: 'Ventes comptant intrants HT', debit: 0, credit: 1500000 },
       { id: 'l-08-3', compte: '443', libelle: 'TVA facturée sur ventes (18%)', debit: 0, credit: 270000 },
     ],
@@ -215,7 +216,7 @@ export const DEMO_ECRITURES_INTRANTS: DemoEcriture[] = [
     validee: true,
     created_at: '2026-02-05T15:00:00Z',
     lignes_ecritures_comptables: [
-      { id: 'l-10-1', compte: '571', libelle: 'Encaissements Mobile Money Wave', debit: 1180000, credit: 0 },
+      { id: 'l-10-1', compte: '551', libelle: 'Encaissements Mobile Money Wave', debit: 1180000, credit: 0 },
       { id: 'l-10-2', compte: '701', libelle: 'Ventes petit matériel et outillage HT', debit: 0, credit: 1000000 },
       { id: 'l-10-3', compte: '443', libelle: 'TVA facturée sur ventes (18%)', debit: 0, credit: 180000 },
     ],
@@ -246,7 +247,7 @@ export const DEMO_ECRITURES_INTRANTS: DemoEcriture[] = [
     validee: true,
     created_at: '2026-02-15T14:15:00Z',
     lignes_ecritures_comptables: [
-      { id: 'l-12-1', compte: '531', libelle: 'Encaissement caisse espèces', debit: 4000000, credit: 0 },
+      { id: 'l-12-1', compte: '571', libelle: 'Encaissement caisse espèces', debit: 4000000, credit: 0 },
       { id: 'l-12-2', compte: '411', libelle: 'Acompte créance GIE Vallée', debit: 0, credit: 4000000 },
     ],
   },
@@ -277,7 +278,7 @@ export const DEMO_ECRITURES_INTRANTS: DemoEcriture[] = [
     created_at: '2026-02-28T17:30:00Z',
     lignes_ecritures_comptables: [
       { id: 'l-14-1', compte: '422', libelle: 'Paiement des salaires du mois', debit: 1800000, credit: 0 },
-      { id: 'l-14-2', compte: '531', libelle: 'Décaissement caisse centrale espèces', debit: 0, credit: 1800000 },
+      { id: 'l-14-2', compte: '571', libelle: 'Décaissement caisse centrale espèces', debit: 0, credit: 1800000 },
     ],
   },
   {
@@ -337,7 +338,7 @@ export const DEMO_ECRITURES_INTRANTS: DemoEcriture[] = [
     created_at: '2026-03-15T15:30:00Z',
     lignes_ecritures_comptables: [
       { id: 'l-18-1', compte: '611', libelle: 'Transport et manutention sur ventes', debit: 450000, credit: 0 },
-      { id: 'l-18-2', compte: '531', libelle: 'Règlement caisse espèces', debit: 0, credit: 450000 },
+      { id: 'l-18-2', compte: '571', libelle: 'Règlement caisse espèces', debit: 0, credit: 450000 },
     ],
   },
   {
@@ -352,7 +353,7 @@ export const DEMO_ECRITURES_INTRANTS: DemoEcriture[] = [
     created_at: '2026-03-20T16:00:00Z',
     lignes_ecritures_comptables: [
       { id: 'l-19-1', compte: '624', libelle: 'Carburant et vidange Toyota Hilux', debit: 380000, credit: 0 },
-      { id: 'l-19-2', compte: '531', libelle: 'Règlement caisse espèces', debit: 0, credit: 380000 },
+      { id: 'l-19-2', compte: '571', libelle: 'Règlement caisse espèces', debit: 0, credit: 380000 },
     ],
   },
   {
@@ -367,7 +368,7 @@ export const DEMO_ECRITURES_INTRANTS: DemoEcriture[] = [
     created_at: '2026-03-25T14:00:00Z',
     lignes_ecritures_comptables: [
       { id: 'l-20-1', compte: '628', libelle: 'Abonnements 4G et téléphonie', debit: 150000, credit: 0 },
-      { id: 'l-20-2', compte: '571', libelle: 'Paiement Wave Mobile Money', debit: 0, credit: 150000 },
+      { id: 'l-20-2', compte: '551', libelle: 'Paiement Wave Mobile Money', debit: 0, credit: 150000 },
     ],
   },
   {
@@ -398,6 +399,21 @@ export const DEMO_ECRITURES_INTRANTS: DemoEcriture[] = [
     lignes_ecritures_comptables: [
       { id: 'l-22-1', compte: '311', libelle: 'Stock final d’intrants (Augmentation)', debit: 1500000, credit: 0 },
       { id: 'l-22-2', compte: '6031', libelle: 'Variation des stocks de marchandises', debit: 0, credit: 1500000 },
+    ],
+  },
+  {
+    id: 'demo-ecr-23',
+    exercice_id: 'exo-2026',
+    journal: 'banque',
+    date_ecriture: '2026-03-28',
+    numero_piece: 'CHQ-2026-001',
+    libelle: 'Chèque n° 884120 reçu et remis à l’encaissement — Union Maraîchère',
+    source_module: 'reglements',
+    validee: true,
+    created_at: '2026-03-28T11:00:00Z',
+    lignes_ecritures_comptables: [
+      { id: 'l-23-1', compte: '531', libelle: 'Chèques et effets remis à l’encaissement', debit: 850000, credit: 0 },
+      { id: 'l-23-2', compte: '411', libelle: 'Règlement client par chèque certifié', debit: 0, credit: 850000 },
     ],
   },
 ]

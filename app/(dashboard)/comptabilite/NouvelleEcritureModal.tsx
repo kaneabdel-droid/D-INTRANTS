@@ -39,7 +39,7 @@ export default function NouvelleEcritureModal({
   const ajouterLigne = () => {
     setLignes([
       ...lignes,
-      { compte: plan[0]?.compte || '531', libelle: '', debit: 0, credit: 0 },
+      { compte: plan[0]?.compte || '571', libelle: '', debit: 0, credit: 0 },
     ])
   }
 
