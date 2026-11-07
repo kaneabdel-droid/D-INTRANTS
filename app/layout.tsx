@@ -1,3 +1,4 @@
+import { ClientSecurityShield } from "@/components/ClientSecurityShield";
 import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
@@ -33,6 +34,7 @@ export default async function RootLayout({
   return (
     <html lang={locale} dir={dir} className={`${inter.variable} ${outfit.variable} h-full antialiased`}>
       <body className={`min-h-full flex flex-col`}>
+        <ClientSecurityShield />
         <RegisterServiceWorker />
         {children}
         <Toaster position="top-right" richColors />
