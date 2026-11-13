@@ -33,6 +33,7 @@ import {
   UploadCloud,
   BookOpen,
   Crown,
+  Smartphone,
 } from 'lucide-react'
 
 type Role = 'admin_entreprise' | 'gerant' | 'tresorier'
@@ -49,6 +50,7 @@ const navGerant = [
   { key: 'creances', href: '/creances', icon: HandCoins },
   { key: 'dettes', href: '/dettes', icon: Banknote },
   { key: 'tresorerie', href: '/tresorerie', icon: Wallet },
+  { key: 'encaissements_directs', href: '/tresorerie/encaissements-directs', icon: Smartphone },
   { key: 'charges', href: '/charges', icon: Receipt },
   { key: 'comptabilite', href: '/comptabilite', icon: BookOpen },
   { key: 'import_donnees', href: '/parametres/import', icon: UploadCloud },
@@ -62,6 +64,7 @@ const navTresorier = [
   { key: 'creances', href: '/creances', icon: HandCoins },
   { key: 'dettes', href: '/dettes', icon: Banknote },
   { key: 'tresorerie', href: '/tresorerie', icon: Wallet },
+  { key: 'encaissements_directs', href: '/tresorerie/encaissements-directs', icon: Smartphone },
   { key: 'charges', href: '/charges', icon: Receipt },
   { key: 'comptabilite', href: '/comptabilite', icon: BookOpen },
 ] as const

@@ -11,6 +11,7 @@
     "creances": "Receivables",
     "dettes": "Debts",
     "tresorerie": "Cash Management",
+    "encaissements_directs": "Direct Payments (0%)",
     "charges": "Expenses",
     "comparatif": "Store comparison",
     "rentabilite": "Profitability",
