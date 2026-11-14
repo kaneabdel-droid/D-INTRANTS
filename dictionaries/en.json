@@ -833,23 +833,29 @@
                 "ol": [
                   {
                     "t": "Create a new sale.",
-                    "x": "Choose the customer (optional: “walk-in customer” if you do not know them), then add one line per item: quantity and unit price."
+                    "x": "Select customer (optional: walk-in customer), then add items: quantity and unit price."
                   },
                   {
-                    "t": "Choose the payment method:",
-                    "x": "cash, credit or mixed, and enter the amount paid."
+                    "t": "Choose payment method:",
+                    "x": "cash, credit, or split. For instant payments, use the 0% commission direct collection terminal to collect via merchant Wave QR, Orange Money, or card POS terminal without aggregator fees."
                   },
                   {
                     "t": "Confirm the sale.",
-                    "x": "The stock goes down and the money collected goes into your cash; what is still owed becomes a receivable on the customer."
+                    "x": "Inventory is reduced and collected funds enter your cash accounts; remaining balances are logged as customer receivables."
                   }
                 ]
               },
               {
-                "p": "A mistake? Cancel the sale: the stock is restored and the payment is taken back out of the cash."
+                "callout": {
+                  "l": "Direct Zero-Fee Payment",
+                  "x": "Wave QR, Orange Money, and card POS transactions go directly to your merchant devices and accounts without third-party commission deductions."
+                }
               },
               {
-                "edition": "the receipt and the PDF receipt of each sale, as well as the sales journal."
+                "p": "Made a mistake? Cancel the sale: stock is restored and the payment entry is reversed."
+              },
+              {
+                "edition": "receipt and invoice PDF for each sale, along with the sales journal."
               }
             ]
           },

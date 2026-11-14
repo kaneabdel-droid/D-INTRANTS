@@ -842,13 +842,19 @@
                   },
                   {
                     "t": "Choisissez le mode de paiement :",
-                    "x": "comptant, crédit ou mixte, et indiquez le montant payé."
+                    "x": "comptant, crédit ou mixte. En paiement comptant, vous pouvez utiliser le terminal d’encaissement direct 0% commission pour encaisser par Wave QR marchand, Orange Money ou TPE bancaire sans aucun frais d’agrégateur intermédiaire."
                   },
                   {
                     "t": "Validez la vente.",
                     "x": "Le stock diminue et l’argent encaissé entre dans votre trésorerie ; ce qui reste dû devient une créance sur le client."
                   }
                 ]
+              },
+              {
+                "callout": {
+                  "l": "Paiement direct 0% commission",
+                  "x": "Les règlements Wave QR, Orange Money et carte TPE se font directement sur vos propres appareils marchands : vous ne payez aucun frais d’intermédiaire."
+                }
               },
               {
                 "p": "Une erreur ? Annulez la vente : le stock est restauré et l’encaissement est retiré de la trésorerie."
