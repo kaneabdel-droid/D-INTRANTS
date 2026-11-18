@@ -36,27 +36,22 @@ export default async function HomePage() {
               <ArrowLeft className="h-4 w-4 rtl:rotate-180" /> {h.backToDemba}
             </a>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <LanguageSelector currentLang={locale} />
             <Link href="/guide" className="hidden text-sm font-medium text-foreground-muted hover:text-primary sm:inline">
               {dict.guide.meta.guideNav}
             </Link>
             <Link
-
               href="/login"
-
-              className="rounded-md border border-primary/40 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white"
-
+              className="rounded-lg border border-surface-border px-3.5 py-1.5 text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary"
             >
-
               {h.login}
-
             </Link>
             <Link
-              href="/tarifs"
-              className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-hover"
+              href="/signup"
+              className="rounded-lg bg-primary px-3.5 py-1.5 text-sm font-bold text-white shadow-sm transition hover:bg-primary-hover"
             >
-              {h.subscribe}
+              Créer mon entreprise
             </Link>
           </div>
         </div>
@@ -75,16 +70,23 @@ export default async function HomePage() {
             <p className="mt-5 max-w-md text-foreground-muted">{h.tagline}</p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
-                href="/tarifs"
-                className="rounded-md bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover"
+                href="/signup"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-primary/25 transition hover:bg-primary-hover hover:scale-[1.02]"
               >
-                {h.subscribe}
+                <span>Créer mon entreprise (Essai gratuit 7j)</span>
+                <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/decouvrir-dintrants"
-                className="rounded-md border border-primary/40 px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white"
+                className="rounded-xl border border-surface-border bg-surface px-5 py-3.5 text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary"
               >
                 {h.discover}
+              </Link>
+              <Link
+                href="/tarifs"
+                className="rounded-xl border border-surface-border px-5 py-3.5 text-sm font-medium text-foreground-muted transition hover:text-foreground"
+              >
+                {h.subscribe}
               </Link>
             </div>
           </div>
