@@ -105,7 +105,9 @@ export default function PlanSelector({
                     <p className="text-amber-600 font-semibold flex items-center gap-1">
                       <span>👥 Utilisateurs illimités</span>
                     </p>
-                  ) : null}
+                  ) : (
+                    <p>Jusqu'à {info.utilisateursMax} utilisateur{info.utilisateursMax && info.utilisateursMax > 1 ? 's' : ''}</p>
+                  )}
                 </div>
               </div>
 

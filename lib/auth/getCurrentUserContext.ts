@@ -29,6 +29,11 @@ export const getCurrentUserContext = cache(async (): Promise<UserContext> => {
 
   if (!user) redirect('/login')
 
+  // Redirection forcée si changement de mot de passe requis dès la première connexion
+  if (user.user_metadata?.doit_changer_mot_de_passe === true) {
+    redirect('/update-password?first=1')
+  }
+
   const [{ data }, { data: permData }] = await Promise.all([
     supabase
       .from('utilisateurs')

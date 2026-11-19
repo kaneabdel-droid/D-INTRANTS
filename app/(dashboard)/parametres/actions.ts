@@ -2,8 +2,15 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/admin'
 import { requireAdminEntreprise } from '@/lib/auth/getCurrentUserContext'
 import { estDeviseValide } from '@/lib/currency'
+import { PALIERS, type PalierCode } from '@/lib/abonnements/paliers'
+import {
+  genererEmailSynthetique,
+  normaliserIdentifiant,
+  extraireChiffresTelephone,
+} from '@/lib/auth-identifier'
 import type { Matrice } from '@/lib/permissions'
 
 type ActionResult = { success?: true; error?: string; logoUrl?: string }
@@ -36,10 +43,6 @@ export async function updateEntrepriseInfos(formData: FormData): Promise<ActionR
   return { success: true }
 }
 
-// Upload distinct de la mise à jour du formulaire : le logo se remplace
-// indépendamment des autres champs (pas besoin de re-saisir toute la fiche
-// pour changer d'image) via update_entreprise_logo, une fois l'upload Storage
-// terminé et l'URL publique connue.
 export async function uploadLogo(formData: FormData): Promise<ActionResult> {
   const context = await requireAdminEntreprise()
   const supabase = await createClient()
@@ -67,23 +70,23 @@ export async function uploadLogo(formData: FormData): Promise<ActionResult> {
   return { success: true, logoUrl }
 }
 
-// L'écriture est de toute façon bloquée par la policy RLS (admin_entreprise seul) : la vérification ici
-// évite un aller-retour inutile.
 export async function enregistrerPermissions(matrice: Matrice): Promise<ActionResult> {
   const context = await requireAdminEntreprise()
   const supabase = await createClient()
 
   const { error } = await supabase
     .from('parametres_permissions')
-    .upsert({ entreprise_id: context.entrepriseId, matrice, updated_par: context.userId, updated_at: new Date().toISOString() })
+    .upsert({
+      entreprise_id: context.entrepriseId,
+      matrice,
+      updated_par: context.userId,
+      updated_at: new Date().toISOString(),
+    })
   if (error) return { error: error.message }
 
   revalidatePath('/', 'layout')
   return { success: true }
 }
-
-import { createAdminClient } from '@/utils/supabase/admin'
-import { genererEmailSynthetique, normaliserIdentifiant } from '@/lib/auth-identifier'
 
 export type CreerCollaborateurResult = {
   success?: boolean
@@ -98,167 +101,342 @@ export type CreerCollaborateurResult = {
     nom_complet: string | null
     magasin_id?: string | null
     magasin_nom?: string | null
+    doit_changer_mot_de_passe?: boolean
   }
 }
 
+/**
+ * Création d'un collaborateur par l'administrateur de l'entreprise
+ * - Identifiant par défaut basé sur le numéro de téléphone normalisé
+ * - Option force changement de mot de passe à la première connexion
+ * - Contrôle strict des quotas d'utilisateurs autorisés selon la formule
+ */
 export async function creerCollaborateur(formData: FormData): Promise<CreerCollaborateurResult> {
-  const context = await requireAdminEntreprise()
+  try {
+    const context = await requireAdminEntreprise()
+    const adminSupabase = createAdminClient()
 
-  const rawIdentifiant = (formData.get('identifiant') as string)?.trim()
-  const nomComplet = (formData.get('nom_complet') as string)?.trim() || null
-  const telephone = (formData.get('telephone') as string)?.trim() || null
-  const emailInput = (formData.get('email') as string)?.trim() || ''
-  const password = (formData.get('password') as string) || ''
-  const roleInput = ((formData.get('role') as string)?.trim()) || 'gerant'
-  const magasinId = (formData.get('magasin_id') as string)?.trim() || null
+    // 1. Récupération des informations de palier et vérification des quotas
+    const { data: entRow } = await adminSupabase
+      .from('entreprises')
+      .select('palier, nom')
+      .eq('id', context.entrepriseId)
+      .single()
 
-  if (!rawIdentifiant) {
-    return { error: "L'identifiant ou numéro de téléphone est obligatoire." }
-  }
+    const isDemo = (entRow?.nom ?? '').toLowerCase().includes('sunu')
+    const palierCode: PalierCode = isDemo ? 'premium_plus' : ((entRow?.palier as PalierCode) ?? 'standard')
+    const palierInfo = PALIERS[palierCode] || PALIERS.standard
 
-  const identifiant = normaliserIdentifiant(rawIdentifiant)
-  if (identifiant.length < 3) {
-    return { error: "L'identifiant doit comporter au moins 3 caractères." }
-  }
+    const { count: nombreUtilisateurs } = await adminSupabase
+      .from('utilisateurs')
+      .select('id', { count: 'exact', head: true })
+      .eq('entreprise_id', context.entrepriseId)
 
-  if (!password || password.length < 6) {
-    return { error: 'Le mot de passe doit comporter au moins 6 caractères.' }
-  }
+    const nbActuel = nombreUtilisateurs ?? 0
+    if (palierInfo.utilisateursMax !== null && nbActuel >= palierInfo.utilisateursMax) {
+      return {
+        error: `Votre formule ${palierInfo.nom} est limitée à ${palierInfo.utilisateursMax} utilisateur(s) (${nbActuel}/${palierInfo.utilisateursMax} atteints). Rendez-vous dans l'onglet Abonnement pour passer à une formule supérieure et ajouter d'autres collaborateurs.`,
+      }
+    }
 
-  const authEmail = emailInput ? emailInput.toLowerCase() : genererEmailSynthetique(identifiant)
+    const telephone = (formData.get('telephone') as string)?.trim() || null
+    let rawIdentifiant = (formData.get('identifiant') as string)?.trim() || ''
 
-  const adminSupabase = createAdminClient()
+    // Identifiant par défaut = téléphone si non renseigné
+    if (!rawIdentifiant && telephone) {
+      rawIdentifiant = extraireChiffresTelephone(telephone)
+    }
 
-  // 1. Vérification unicité identifiant / téléphone
-  const { data: existant } = await adminSupabase
-    .from('utilisateurs')
-    .select('id')
-    .or(`identifiant.ilike.${identifiant}${telephone ? `,telephone.eq.${telephone}` : ''}`)
-    .maybeSingle()
+    if (!rawIdentifiant) {
+      return { error: 'Veuillez saisir un numéro de téléphone ou un identifiant.' }
+    }
 
-  if (existant) {
-    return { error: 'Cet identifiant ou numéro de téléphone est déjà utilisé par un autre collaborateur.' }
-  }
+    const identifiant = normaliserIdentifiant(rawIdentifiant)
+    if (identifiant.length < 3) {
+      return { error: "L'identifiant doit comporter au moins 3 caractères." }
+    }
 
-  // 2. Création ou récupération dans auth.users
-  let authUserId: string | null = null
+    const password = (formData.get('password') as string) || ''
+    if (!password || password.length < 6) {
+      return { error: 'Le mot de passe provisoire doit comporter au moins 6 caractères.' }
+    }
 
-  const { data: authCreated, error: authError } = await adminSupabase.auth.admin.createUser({
-    email: authEmail,
-    password,
-    email_confirm: true,
-    user_metadata: {
-      role: roleInput,
-      identifiant,
-      telephone,
-      nom_complet: nomComplet,
-      entreprise_id: context.entrepriseId,
-      magasin_id: roleInput === 'admin_entreprise' ? null : magasinId,
-    },
-  })
+    const nomComplet = (formData.get('nom_complet') as string)?.trim() || null
+    const emailInput = (formData.get('email') as string)?.trim() || ''
+    const roleInput = ((formData.get('role') as string)?.trim()) || 'gerant'
+    const magasinId = (formData.get('magasin_id') as string)?.trim() || null
+    const doitChangerMdp = formData.get('doit_changer_mot_de_passe') === 'on' || formData.get('doit_changer_mot_de_passe') === 'true'
 
-  if (authCreated?.user?.id) {
-    authUserId = authCreated.user.id
-  } else if (authError) {
-    if (authError.message.toLowerCase().includes('already') || authError.message.toLowerCase().includes('registered')) {
-      // Vérifier si un compte auth existe sans profil dans public.utilisateurs ou rattaché à cette même entreprise
-      const { data: { users } } = await adminSupabase.auth.admin.listUsers({ perPage: 1000 })
-      const existingUser = users.find(u => u.email?.toLowerCase() === authEmail.toLowerCase())
+    // Vérifier l'affectation au magasin pour les rôles magasins
+    if (roleInput !== 'admin_entreprise' && !magasinId) {
+      const { data: mags } = await adminSupabase
+        .from('magasins')
+        .select('id')
+        .eq('entreprise_id', context.entrepriseId)
+        .eq('statut', 'actif')
+        .limit(1)
 
-      if (existingUser) {
-        const { data: profilExistant } = await adminSupabase
-          .from('utilisateurs')
-          .select('id, entreprise_id')
-          .eq('id', existingUser.id)
-          .maybeSingle()
+      if (mags && mags.length > 0) {
+        return { error: 'Veuillez sélectionner le magasin auquel sera affecté ce collaborateur.' }
+      }
+    }
 
-        // S'il n'a AUCUN profil dans utilisateurs (compte orphelin), ou s'il appartient à la même entreprise
-        if (!profilExistant || profilExistant.entreprise_id === context.entrepriseId) {
-          const { error: updateErr } = await adminSupabase.auth.admin.updateUserById(existingUser.id, {
-            password,
-            user_metadata: {
-              role: roleInput,
-              identifiant,
-              telephone,
-              nom_complet: nomComplet,
-              entreprise_id: context.entrepriseId,
-              magasin_id: roleInput === 'admin_entreprise' ? null : magasinId,
-            },
-          })
-          if (updateErr) {
-            return { error: `Impossible de réinitialiser le compte existant : ${updateErr.message}` }
+    const authEmail = emailInput ? emailInput.toLowerCase() : genererEmailSynthetique(identifiant, context.entrepriseId)
+
+    // Vérification unicité identifiant / téléphone au sein de l'entreprise
+    let existantQuery = adminSupabase
+      .from('utilisateurs')
+      .select('id, entreprise_id')
+      .or(`identifiant.ilike.${identifiant}${telephone ? `,telephone.eq.${telephone}` : ''}`)
+
+    const { data: existant } = await existantQuery.limit(1).maybeSingle()
+
+    if (existant && existant.entreprise_id === context.entrepriseId) {
+      return { error: 'Cet identifiant ou numéro de téléphone est déjà attribué à un collaborateur de votre entreprise.' }
+    }
+
+    // Création auth.users
+    let authUserId: string | null = null
+
+    const { data: authCreated, error: authError } = await adminSupabase.auth.admin.createUser({
+      email: authEmail,
+      password,
+      email_confirm: true,
+      user_metadata: {
+        role: roleInput,
+        identifiant,
+        telephone,
+        nom_complet: nomComplet,
+        entreprise_id: context.entrepriseId,
+        magasin_id: roleInput === 'admin_entreprise' ? null : magasinId,
+        doit_changer_mot_de_passe: doitChangerMdp,
+      },
+    })
+
+    if (authCreated?.user?.id) {
+      authUserId = authCreated.user.id
+    } else if (authError) {
+      if (authError.message.toLowerCase().includes('already') || authError.message.toLowerCase().includes('registered')) {
+        const { data: { users } } = await adminSupabase.auth.admin.listUsers({ perPage: 1000 })
+        const existingUser = users.find((u) => u.email?.toLowerCase() === authEmail.toLowerCase())
+
+        if (existingUser) {
+          const { data: profilExistant } = await adminSupabase
+            .from('utilisateurs')
+            .select('id, entreprise_id')
+            .eq('id', existingUser.id)
+            .maybeSingle()
+
+          if (!profilExistant || profilExistant.entreprise_id === context.entrepriseId) {
+            const { error: updateErr } = await adminSupabase.auth.admin.updateUserById(existingUser.id, {
+              password,
+              user_metadata: {
+                role: roleInput,
+                identifiant,
+                telephone,
+                nom_complet: nomComplet,
+                entreprise_id: context.entrepriseId,
+                magasin_id: roleInput === 'admin_entreprise' ? null : magasinId,
+                doit_changer_mot_de_passe: doitChangerMdp,
+              },
+            })
+            if (updateErr) {
+              return { error: `Impossible de configurer le compte : ${updateErr.message}` }
+            }
+            authUserId = existingUser.id
+          } else {
+            return {
+              error: `L'identifiant "${rawIdentifiant}" est déjà utilisé. Veuillez en choisir un autre.`,
+            }
           }
-          authUserId = existingUser.id
         } else {
           return {
-            error: `L'identifiant "${rawIdentifiant}" ou cet e-mail est déjà utilisé par une autre entreprise. Veuillez en choisir un autre.`,
+            error: `L'identifiant "${rawIdentifiant}" est déjà utilisé. Veuillez en choisir un autre.`,
           }
         }
       } else {
-        return {
-          error: `L'identifiant "${rawIdentifiant}" ou cet e-mail est déjà utilisé. Veuillez en choisir un autre.`,
-        }
+        return { error: `Échec de création du compte : ${authError.message}` }
       }
-    } else {
-      return { error: `Échec de création du compte : ${authError.message}` }
     }
+
+    if (!authUserId) {
+      return { error: "Échec d'obtention de l'identifiant du compte." }
+    }
+
+    // Mise à jour / insertion dans public.utilisateurs
+    const parts = (nomComplet || '').trim().split(/\s+/)
+    const prenom = parts[0] || null
+    const nom = parts.slice(1).join(' ') || null
+
+    const { error: userError } = await adminSupabase
+      .from('utilisateurs')
+      .upsert({
+        id: authUserId,
+        entreprise_id: context.entrepriseId,
+        magasin_id: roleInput === 'admin_entreprise' ? null : magasinId,
+        role: roleInput,
+        identifiant,
+        nom_complet: nomComplet,
+        nom,
+        prenom,
+        telephone,
+        doit_changer_mot_de_passe: doitChangerMdp,
+        actif: true,
+      })
+
+    if (userError) {
+      if (authCreated?.user?.id) {
+        await adminSupabase.auth.admin.deleteUser(authCreated.user.id).catch(() => {})
+      }
+      return { error: `Échec d'enregistrement du profil : ${userError.message}` }
+    }
+
+    let magasinNom: string | null = null
+    if (magasinId) {
+      const { data: mag } = await adminSupabase
+        .from('magasins')
+        .select('nom')
+        .eq('id', magasinId)
+        .maybeSingle()
+      magasinNom = mag?.nom || null
+    }
+
+    revalidatePath('/parametres')
+    return {
+      success: true,
+      collaborateur: {
+        id: authUserId,
+        role: roleInput,
+        identifiant,
+        telephone,
+        nom,
+        prenom,
+        nom_complet: nomComplet,
+        magasin_id: roleInput === 'admin_entreprise' ? null : magasinId,
+        magasin_nom: magasinNom,
+        doit_changer_mot_de_passe: doitChangerMdp,
+      },
+    }
+  } catch (err: unknown) {
+    console.error('Erreur inattendue dans creerCollaborateur:', err)
+    const msg = err instanceof Error ? err.message : 'Une erreur inattendue est survenue.'
+    return { error: msg }
   }
+}
 
-  if (!authUserId) {
-    return { error: "Échec d'obtention de l'identifiant du compte." }
+/**
+ * Modification d'un collaborateur existant (rôle, magasin assigné, identifiant, téléphone, nom)
+ */
+export async function modifierCollaborateur(formData: FormData): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const context = await requireAdminEntreprise()
+    const adminSupabase = createAdminClient()
+
+    const collaborateurId = (formData.get('id') as string)?.trim()
+    if (!collaborateurId) return { error: 'Identifiant du collaborateur manquant.' }
+
+    const { data: cible } = await adminSupabase
+      .from('utilisateurs')
+      .select('id, role')
+      .eq('id', collaborateurId)
+      .eq('entreprise_id', context.entrepriseId)
+      .maybeSingle()
+
+    if (!cible) return { error: 'Collaborateur introuvable.' }
+
+    const nomComplet = (formData.get('nom_complet') as string)?.trim() || null
+    const telephone = (formData.get('telephone') as string)?.trim() || null
+    const rawIdentifiant = (formData.get('identifiant') as string)?.trim()
+    const identifiant = rawIdentifiant ? normaliserIdentifiant(rawIdentifiant) : null
+    const role = ((formData.get('role') as string)?.trim()) || cible.role
+    const magasinId = (formData.get('magasin_id') as string)?.trim() || null
+    const doitChangerMdp = formData.get('doit_changer_mot_de_passe') === 'on' || formData.get('doit_changer_mot_de_passe') === 'true'
+
+    const parts = (nomComplet || '').trim().split(/\s+/)
+    const prenom = parts[0] || null
+    const nom = parts.slice(1).join(' ') || null
+
+    const { error: updErr } = await adminSupabase
+      .from('utilisateurs')
+      .update({
+        nom_complet: nomComplet,
+        nom,
+        prenom,
+        telephone,
+        identifiant,
+        role,
+        magasin_id: role === 'admin_entreprise' ? null : magasinId,
+        doit_changer_mot_de_passe: doitChangerMdp,
+      })
+      .eq('id', collaborateurId)
+      .eq('entreprise_id', context.entrepriseId)
+
+    if (updErr) return { error: updErr.message }
+
+    await adminSupabase.auth.admin.updateUserById(collaborateurId, {
+      user_metadata: {
+        nom_complet: nomComplet,
+        telephone,
+        identifiant,
+        role,
+        magasin_id: role === 'admin_entreprise' ? null : magasinId,
+        doit_changer_mot_de_passe: doitChangerMdp,
+      },
+    }).catch(() => {})
+
+    revalidatePath('/parametres')
+    return { success: true }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Erreur lors de la modification.'
+    return { error: msg }
   }
+}
 
-  // 3. Mise à jour / insertion dans public.utilisateurs
-  const parts = (nomComplet || '').trim().split(/\s+/)
-  const prenom = parts[0] || null
-  const nom = parts.slice(1).join(' ') || null
+/**
+ * Réinitialisation directe de mot de passe par l'administrateur
+ */
+export async function reinitialiserMotDePasseCollaborateur(formData: FormData): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const context = await requireAdminEntreprise()
+    const adminSupabase = createAdminClient()
 
-  const { error: userError } = await adminSupabase
-    .from('utilisateurs')
-    .upsert({
-      id: authUserId,
-      entreprise_id: context.entrepriseId,
-      magasin_id: roleInput === 'admin_entreprise' ? null : magasinId,
-      role: roleInput,
-      identifiant,
-      nom_complet: nomComplet,
-      nom,
-      prenom,
-      telephone,
+    const collaborateurId = (formData.get('id') as string)?.trim()
+    const newPassword = (formData.get('password') as string) || ''
+    const doitChanger = formData.get('doit_changer_mot_de_passe') === 'on' || formData.get('doit_changer_mot_de_passe') === 'true'
+
+    if (!collaborateurId) return { error: 'Identifiant collaborateur manquant.' }
+    if (!newPassword || newPassword.length < 6) {
+      return { error: 'Le nouveau mot de passe doit comporter au moins 6 caractères.' }
+    }
+
+    const { data: cible } = await adminSupabase
+      .from('utilisateurs')
+      .select('id')
+      .eq('id', collaborateurId)
+      .eq('entreprise_id', context.entrepriseId)
+      .maybeSingle()
+
+    if (!cible) return { error: 'Collaborateur introuvable.' }
+
+    const { error: authErr } = await adminSupabase.auth.admin.updateUserById(collaborateurId, {
+      password: newPassword,
+      user_metadata: {
+        doit_changer_mot_de_passe: doitChanger,
+      },
     })
 
-  if (userError) {
-    // Si nouvel utilisateur auth créé, le nettoyer pour éviter un orphelin
-    if (authCreated?.user?.id) {
-      await adminSupabase.auth.admin.deleteUser(authCreated.user.id).catch(() => {})
-    }
-    return { error: `Échec d'enregistrement du profil : ${userError.message}` }
-  }
+    if (authErr) return { error: authErr.message }
 
-  let magasinNom: string | null = null
-  if (magasinId) {
-    const { data: mag } = await adminSupabase
-      .from('magasins')
-      .select('nom')
-      .eq('id', magasinId)
-      .maybeSingle()
-    magasinNom = mag?.nom || null
-  }
+    await adminSupabase
+      .from('utilisateurs')
+      .update({ doit_changer_mot_de_passe: doitChanger })
+      .eq('id', collaborateurId)
 
-  revalidatePath('/parametres')
-  return {
-    success: true,
-    collaborateur: {
-      id: authUserId,
-      role: roleInput,
-      identifiant,
-      telephone,
-      nom,
-      prenom,
-      nom_complet: nomComplet,
-      magasin_id: roleInput === 'admin_entreprise' ? null : magasinId,
-      magasin_nom: magasinNom,
-    },
+    revalidatePath('/parametres')
+    return { success: true }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Erreur lors de la réinitialisation.'
+    return { error: msg }
   }
 }
 
@@ -271,7 +449,6 @@ export async function supprimerCollaborateur(collaborateurId: string): Promise<{
 
   const adminSupabase = createAdminClient()
 
-  // Vérifier appartenance à la même entreprise
   const { data: cible } = await adminSupabase
     .from('utilisateurs')
     .select('id, role')
@@ -283,7 +460,6 @@ export async function supprimerCollaborateur(collaborateurId: string): Promise<{
     return { error: 'Collaborateur introuvable dans votre entreprise.' }
   }
 
-  // Supprimer profil utilisateur
   const { error: delProfileError } = await adminSupabase
     .from('utilisateurs')
     .delete()
@@ -294,8 +470,7 @@ export async function supprimerCollaborateur(collaborateurId: string): Promise<{
     return { error: delProfileError.message }
   }
 
-  // Supprimer de Supabase Auth
-  await adminSupabase.auth.admin.deleteUser(collaborateurId)
+  await adminSupabase.auth.admin.deleteUser(collaborateurId).catch(() => {})
 
   revalidatePath('/parametres')
   return { success: true }
@@ -352,3 +527,73 @@ export async function genererLienResetCollaborateur(collaborateurId: string): Pr
   }
 }
 
+/**
+ * Création d'un magasin par l'administrateur de l'entreprise
+ * - Contrôle strict du quota de magasins autorisés selon la formule
+ */
+export async function creerMagasin(formData: FormData): Promise<{
+  success?: boolean
+  error?: string
+  magasin?: { id: string; nom: string; adresse?: string | null; telephone?: string | null }
+}> {
+  try {
+    const context = await requireAdminEntreprise()
+    const adminSupabase = createAdminClient()
+
+    const nom = (formData.get('nom') as string)?.trim()
+    const adresse = (formData.get('adresse') as string)?.trim() || null
+    const telephone = (formData.get('telephone') as string)?.trim() || null
+
+    if (!nom) {
+      return { error: 'Le nom du magasin est obligatoire.' }
+    }
+
+    const { data: entRow } = await adminSupabase
+      .from('entreprises')
+      .select('palier, nom')
+      .eq('id', context.entrepriseId)
+      .single()
+
+    const isDemo = (entRow?.nom ?? '').toLowerCase().includes('sunu')
+    const palierCode: PalierCode = isDemo ? 'premium_plus' : ((entRow?.palier as PalierCode) ?? 'standard')
+    const palierInfo = PALIERS[palierCode] || PALIERS.standard
+
+    const { count: nombreMagasins } = await adminSupabase
+      .from('magasins')
+      .select('id', { count: 'exact', head: true })
+      .eq('entreprise_id', context.entrepriseId)
+      .eq('statut', 'actif')
+
+    const nbActuel = nombreMagasins ?? 0
+    if (nbActuel >= palierInfo.magasinsMax) {
+      return {
+        error: `Votre formule ${palierInfo.nom} est limitée à ${palierInfo.magasinsMax} magasin(s) (${nbActuel}/${palierInfo.magasinsMax} atteints). Rendez-vous dans l'onglet Abonnement pour passer à une formule supérieure et ouvrir un nouveau point de vente.`,
+      }
+    }
+
+    const { data: mag, error: magErr } = await adminSupabase
+      .from('magasins')
+      .insert({
+        entreprise_id: context.entrepriseId,
+        nom,
+        adresse,
+        telephone,
+        statut: 'actif',
+      })
+      .select('id, nom, adresse, telephone')
+      .single()
+
+    if (magErr) {
+      return { error: `Échec de création du magasin : ${magErr.message}` }
+    }
+
+    revalidatePath('/parametres')
+    return {
+      success: true,
+      magasin: mag,
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Erreur lors de la création du magasin.'
+    return { error: msg }
+  }
+}

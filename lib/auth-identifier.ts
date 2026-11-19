@@ -4,18 +4,34 @@ export const DOMAINE_AUTH_INTERNE = 'auth.dembasolution.internal'
 
 /**
  * Nettoie et normalise un identifiant ou un numéro de téléphone.
+ * Retire un éventuel '@' initial (affiché dans l'UI sous la forme @identifiant)
+ * et convertit les espaces en tirets bas pour former un identifiant valide.
  */
 export function normaliserIdentifiant(input: string): string {
-  return input.trim().toLowerCase()
+  return input
+    .trim()
+    .replace(/^@+/, '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+}
+
+/**
+ * Extrait uniquement les chiffres d'un numéro de téléphone.
+ */
+export function extraireChiffresTelephone(input?: string | null): string {
+  if (!input) return ''
+  return input.replace(/\D/g, '')
 }
 
 /**
  * Génère un e-mail synthétique sécurisé pour Supabase Auth à partir d'un identifiant ou téléphone.
  * Cet e-mail est purement technique et n'est jamais affiché aux utilisateurs finaux.
  */
-export function genererEmailSynthetique(identifiantOuTelephone: string): string {
+export function genererEmailSynthetique(identifiantOuTelephone: string, entrepriseId?: string): string {
   const clean = normaliserIdentifiant(identifiantOuTelephone).replace(/[^a-z0-9_.-]/g, '_')
-  return `${clean}@${DOMAINE_AUTH_INTERNE}`
+  const suffix = entrepriseId ? `.${entrepriseId.slice(0, 8)}` : ''
+  return `${clean}${suffix}@${DOMAINE_AUTH_INTERNE}`
 }
 
 /**
@@ -36,7 +52,6 @@ export async function resoudreAuthEmail(
 ): Promise<{ email: string; isSynthetic: boolean; userId?: string }> {
   const rawInput = identifiantOuEmail.trim()
 
-  // 1. Si la saisie contient un '@' et n'est pas notre domaine interne, c'est un e-mail réel classique
   if (rawInput.includes('@') && !estEmailSynthetique(rawInput)) {
     return {
       email: rawInput.toLowerCase(),
@@ -45,49 +60,39 @@ export async function resoudreAuthEmail(
   }
 
   const cleanIdentifiant = normaliserIdentifiant(rawInput)
-  const digitsOnly = rawInput.replace(/[^0-9]/g, '')
-  const last9 = digitsOnly.length >= 9 ? digitsOnly.slice(-9) : digitsOnly
+  const phoneDigits = extraireChiffresTelephone(rawInput)
 
-  // 2. Recherche par identifiant ou par numéro de téléphone dans public.utilisateurs
-  let userRow: { id: string } | null = null
-
-  const { data: directMatch } = await supabaseAdmin
-    .from('utilisateurs')
-    .select('id, identifiant, telephone')
-    .or(`identifiant.ilike.${cleanIdentifiant},telephone.eq.${cleanIdentifiant}`)
-    .maybeSingle()
-
-  userRow = directMatch
-
-  // Si pas trouvé directement et que l'entrée ressemble à un numéro de téléphone
-  if (!userRow && last9.length >= 8) {
-    const { data: telMatches } = await supabaseAdmin
+  try {
+    // 1. Recherche par identifiant exact ou téléphone
+    let query = supabaseAdmin
       .from('utilisateurs')
       .select('id, identifiant, telephone')
-      .or(`telephone.ilike.%${last9}%,identifiant.ilike.%${last9}%`)
-      .limit(1)
 
-    if (telMatches && telMatches[0]) {
-      userRow = telMatches[0]
+    if (phoneDigits.length >= 7) {
+      const phoneEnd = phoneDigits.slice(-9)
+      query = query.or(`identifiant.ilike.${cleanIdentifiant},telephone.ilike.%${phoneEnd}%`)
+    } else {
+      query = query.ilike('identifiant', cleanIdentifiant)
     }
-  }
 
-  if (userRow?.id) {
-    // Récupérer le compte auth associé
-    const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(userRow.id)
-    if (authUser?.user?.email) {
-      return {
-        email: authUser.user.email,
-        isSynthetic: estEmailSynthetique(authUser.user.email),
-        userId: userRow.id,
+    const { data: userRow } = await query.limit(1).maybeSingle()
+
+    if (userRow?.id) {
+      const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(userRow.id)
+      if (authUser?.user?.email) {
+        return {
+          email: authUser.user.email,
+          isSynthetic: estEmailSynthetique(authUser.user.email),
+          userId: userRow.id,
+        }
       }
     }
+  } catch (err) {
+    // Fallback en cas d'erreur de requête
   }
 
-  // 3. Fallback : si l'identifiant n'est pas encore trouvé en table, on teste l'alias synthétique
-  const fallbackKey = digitsOnly.length >= 8 ? digitsOnly : cleanIdentifiant
   return {
-    email: genererEmailSynthetique(fallbackKey),
+    email: genererEmailSynthetique(cleanIdentifiant),
     isSynthetic: true,
   }
 }

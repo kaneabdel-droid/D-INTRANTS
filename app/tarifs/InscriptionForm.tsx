@@ -100,10 +100,10 @@ export default function InscriptionForm({ t, locale }: { t: Dict; locale: string
               type="button"
               onClick={() => setPalier(code)}
               className={`text-left rounded-2xl border p-5 transition-all flex flex-col justify-between ${selectionne
-                  ? isPremiumPlus
-                    ? 'border-amber-500 bg-amber-500/5 shadow-md ring-1 ring-amber-500'
-                    : 'border-primary bg-primary/5 shadow-md ring-1 ring-primary'
-                  : 'border-surface-border bg-surface hover:border-primary/50'
+                ? isPremiumPlus
+                  ? 'border-amber-500 bg-amber-500/5 shadow-md ring-1 ring-amber-500'
+                  : 'border-primary bg-primary/5 shadow-md ring-1 ring-primary'
+                : 'border-surface-border bg-surface hover:border-primary/50'
                 }`}
             >
               <div>
@@ -126,7 +126,9 @@ export default function InscriptionForm({ t, locale }: { t: Dict; locale: string
                     <p className="text-amber-600 font-semibold flex items-center gap-1">
                       <span>👥 Utilisateurs illimités</span>
                     </p>
-                  ) : null}
+                  ) : (
+                    <p>Jusqu'à {info.utilisateursMax} utilisateur{info.utilisateursMax && info.utilisateursMax > 1 ? 's' : ''}</p>
+                  )}
                 </div>
               </div>
 

@@ -21,12 +21,13 @@ export default async function ParametresPage() {
     supabase.from('parametres_permissions').select('matrice').maybeSingle(),
     supabase
       .from('utilisateurs')
-      .select('id, role, identifiant, telephone, nom, prenom, nom_complet, magasin_id, magasins(id, nom)')
+      .select('id, role, identifiant, telephone, nom, prenom, nom_complet, magasin_id, doit_changer_mot_de_passe, magasins(id, nom)')
       .eq('entreprise_id', context.entrepriseId),
     supabase
       .from('magasins')
       .select('id, nom')
       .eq('entreprise_id', context.entrepriseId)
+      .eq('statut', 'actif')
       .order('nom', { ascending: true }),
   ])
 
@@ -40,6 +41,7 @@ export default async function ParametresPage() {
     nom_complet: c.nom_complet,
     magasin_id: c.magasin_id,
     magasin_nom: c.magasins?.nom || null,
+    doit_changer_mot_de_passe: c.doit_changer_mot_de_passe ?? false,
   }))
 
   const magasins = (rawMagasins || []).map((m: any) => ({

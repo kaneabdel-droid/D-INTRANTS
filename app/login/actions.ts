@@ -104,9 +104,13 @@ export async function login(formData: FormData): Promise<LoginActionResult> {
   // Récupération du contexte complet de l'utilisateur pour le cache hors-ligne
   const { data: userProfile } = await supabase
     .from('utilisateurs')
-    .select('id, identifiant, telephone, nom, prenom, nom_complet, role, entreprise_id, magasin_id, entreprises(nom, devise), magasins(nom)')
+    .select('id, identifiant, telephone, nom, prenom, nom_complet, role, doit_changer_mot_de_passe, entreprise_id, magasin_id, entreprises(nom, devise), magasins(nom)')
     .eq('id', signInData.user.id)
     .maybeSingle()
+
+  const doitChangerMotDePasse =
+    userProfile?.doit_changer_mot_de_passe === true ||
+    signInData.user.user_metadata?.doit_changer_mot_de_passe === true
 
   const entreprise = Array.isArray(userProfile?.entreprises) ? userProfile?.entreprises[0] : userProfile?.entreprises
   const magasin = Array.isArray(userProfile?.magasins) ? userProfile?.magasins[0] : userProfile?.magasins
@@ -120,7 +124,7 @@ export async function login(formData: FormData): Promise<LoginActionResult> {
 
   return {
     success: true,
-    redirectUrl: '/dashboard',
+    redirectUrl: doitChangerMotDePasse ? '/update-password?first=1' : '/dashboard',
     userContext: userProfile ? {
       userId: userProfile.id,
       nomComplet,

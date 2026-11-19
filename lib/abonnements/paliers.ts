@@ -14,9 +14,9 @@ export interface PalierInfo {
 }
 
 export const PALIERS: Record<PalierCode, PalierInfo> = {
-  standard: { nom: 'Standard', magasinsMax: 1, utilisateursMax: null, prixMensuelFcfa: 5000 },
-  medium: { nom: 'Médium', magasinsMax: 2, utilisateursMax: null, prixMensuelFcfa: 7500 },
-  premium: { nom: 'Premium', magasinsMax: 3, utilisateursMax: null, prixMensuelFcfa: 10000 },
+  standard: { nom: 'Standard', magasinsMax: 1, utilisateursMax: 2, prixMensuelFcfa: 5000 },
+  medium: { nom: 'Médium', magasinsMax: 2, utilisateursMax: 5, prixMensuelFcfa: 7500 },
+  premium: { nom: 'Premium', magasinsMax: 3, utilisateursMax: 10, prixMensuelFcfa: 10000 },
   premium_plus: {
     nom: 'Premium Plus',
     magasinsMax: 5,

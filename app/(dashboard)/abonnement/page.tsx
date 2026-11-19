@@ -70,7 +70,7 @@ export default async function AbonnementPage() {
                 {nombreUtilisateurs ?? 0} (Illimité)
               </span>
             ) : (
-              <span>{nombreUtilisateurs ?? 0}</span>
+              <span>{nombreUtilisateurs ?? 0} / {info.utilisateursMax}</span>
             )}
           </p>
         </div>
