@@ -1,9 +1,8 @@
--- Migration 33 : Ajout de doit_changer_mot_de_passe, actif, policies magasins et mise à jour quotas utilisateurs
+-- Migration 33 : Ajout de doit_changer_mot_de_passe, policies magasins et mise à jour quotas utilisateurs
 
--- 1. Colonnes complémentaires sur public.utilisateurs
+-- 1. Colonne complémentaire sur public.utilisateurs
 alter table public.utilisateurs
-  add column if not exists doit_changer_mot_de_passe boolean not null default false,
-  add column if not exists actif boolean not null default true;
+  add column if not exists doit_changer_mot_de_passe boolean not null default false;
 
 -- 2. RLS magasins : Permettre aux administrateurs d'entreprise de créer et modifier leurs magasins
 drop policy if exists "admin_insert_magasins" on public.magasins;

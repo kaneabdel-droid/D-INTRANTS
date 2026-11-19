@@ -263,26 +263,36 @@ export async function creerCollaborateur(formData: FormData): Promise<CreerColla
       return { error: "Échec d'obtention de l'identifiant du compte." }
     }
 
-    // Mise à jour / insertion dans public.utilisateurs
+    // 3. Mise à jour / insertion dans public.utilisateurs (avec fallback résilient)
     const parts = (nomComplet || '').trim().split(/\s+/)
     const prenom = parts[0] || null
     const nom = parts.slice(1).join(' ') || null
 
-    const { error: userError } = await adminSupabase
+    const payloadUtilisateur: Record<string, any> = {
+      id: authUserId,
+      entreprise_id: context.entrepriseId,
+      magasin_id: roleInput === 'admin_entreprise' ? null : magasinId,
+      role: roleInput,
+      identifiant,
+      nom_complet: nomComplet,
+      nom,
+      prenom,
+      telephone,
+    }
+
+    if (doitChangerMdp) {
+      payloadUtilisateur.doit_changer_mot_de_passe = true
+    }
+
+    let { error: userError } = await adminSupabase
       .from('utilisateurs')
-      .upsert({
-        id: authUserId,
-        entreprise_id: context.entrepriseId,
-        magasin_id: roleInput === 'admin_entreprise' ? null : magasinId,
-        role: roleInput,
-        identifiant,
-        nom_complet: nomComplet,
-        nom,
-        prenom,
-        telephone,
-        doit_changer_mot_de_passe: doitChangerMdp,
-        actif: true,
-      })
+      .upsert(payloadUtilisateur)
+
+    if (userError && userError.message?.toLowerCase().includes('doit_changer_mot_de_passe')) {
+      delete payloadUtilisateur.doit_changer_mot_de_passe
+      const retry = await adminSupabase.from('utilisateurs').upsert(payloadUtilisateur)
+      userError = retry.error
+    }
 
     if (userError) {
       if (authCreated?.user?.id) {
@@ -356,20 +366,35 @@ export async function modifierCollaborateur(formData: FormData): Promise<{ succe
     const prenom = parts[0] || null
     const nom = parts.slice(1).join(' ') || null
 
-    const { error: updErr } = await adminSupabase
+    const updatePayload: Record<string, any> = {
+      nom_complet: nomComplet,
+      nom,
+      prenom,
+      telephone,
+      identifiant,
+      role,
+      magasin_id: role === 'admin_entreprise' ? null : magasinId,
+    }
+
+    if (doitChangerMdp !== undefined) {
+      updatePayload.doit_changer_mot_de_passe = doitChangerMdp
+    }
+
+    let { error: updErr } = await adminSupabase
       .from('utilisateurs')
-      .update({
-        nom_complet: nomComplet,
-        nom,
-        prenom,
-        telephone,
-        identifiant,
-        role,
-        magasin_id: role === 'admin_entreprise' ? null : magasinId,
-        doit_changer_mot_de_passe: doitChangerMdp,
-      })
+      .update(updatePayload)
       .eq('id', collaborateurId)
       .eq('entreprise_id', context.entrepriseId)
+
+    if (updErr && updErr.message?.toLowerCase().includes('doit_changer_mot_de_passe')) {
+      delete updatePayload.doit_changer_mot_de_passe
+      const retry = await adminSupabase
+        .from('utilisateurs')
+        .update(updatePayload)
+        .eq('id', collaborateurId)
+        .eq('entreprise_id', context.entrepriseId)
+      updErr = retry.error
+    }
 
     if (updErr) return { error: updErr.message }
 
@@ -427,10 +452,14 @@ export async function reinitialiserMotDePasseCollaborateur(formData: FormData): 
 
     if (authErr) return { error: authErr.message }
 
-    await adminSupabase
-      .from('utilisateurs')
-      .update({ doit_changer_mot_de_passe: doitChanger })
-      .eq('id', collaborateurId)
+    try {
+      await adminSupabase
+        .from('utilisateurs')
+        .update({ doit_changer_mot_de_passe: doitChanger })
+        .eq('id', collaborateurId)
+    } catch {
+      // Tolérance si la colonne doit_changer_mot_de_passe n'existe pas en base
+    }
 
     revalidatePath('/parametres')
     return { success: true }

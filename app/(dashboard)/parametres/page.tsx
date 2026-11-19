@@ -12,17 +12,13 @@ export default async function ParametresPage() {
   const dict = await getDictionary(await getLocale())
   const t = dict.parametres
 
-  const [{ data: entreprise }, { data: perm }, { data: rawCollabs }, { data: rawMagasins }] = await Promise.all([
+  const [{ data: entreprise }, { data: perm }, { data: rawMagasins }] = await Promise.all([
     supabase
       .from('entreprises')
       .select('nom, adresse, telephone, email, identification, devise, logo_url, palier')
       .eq('id', context.entrepriseId)
       .single(),
     supabase.from('parametres_permissions').select('matrice').maybeSingle(),
-    supabase
-      .from('utilisateurs')
-      .select('id, role, identifiant, telephone, nom, prenom, nom_complet, magasin_id, doit_changer_mot_de_passe, magasins(id, nom)')
-      .eq('entreprise_id', context.entrepriseId),
     supabase
       .from('magasins')
       .select('id, nom')
@@ -31,7 +27,24 @@ export default async function ParametresPage() {
       .order('nom', { ascending: true }),
   ])
 
-  const collaborateurs = (rawCollabs || []).map((c: any) => ({
+  // Requête résiliente pour les collaborateurs
+  let rawCollabs: any[] = []
+  const { data: collabsWithMdp, error: colErr } = await supabase
+    .from('utilisateurs')
+    .select('id, role, identifiant, telephone, nom, prenom, nom_complet, magasin_id, doit_changer_mot_de_passe, magasins(id, nom)')
+    .eq('entreprise_id', context.entrepriseId)
+
+  if (colErr) {
+    const { data: collabsSimple } = await supabase
+      .from('utilisateurs')
+      .select('id, role, identifiant, telephone, nom, prenom, nom_complet, magasin_id, magasins(id, nom)')
+      .eq('entreprise_id', context.entrepriseId)
+    rawCollabs = collabsSimple || []
+  } else {
+    rawCollabs = collabsWithMdp || []
+  }
+
+  const collaborateurs = rawCollabs.map((c: any) => ({
     id: c.id,
     role: c.role,
     identifiant: c.identifiant,
