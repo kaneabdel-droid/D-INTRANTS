@@ -183,13 +183,40 @@ export async function creerCollaborateur(formData: FormData): Promise<CreerColla
 
     const authEmail = emailInput ? emailInput.toLowerCase() : genererEmailSynthetique(identifiant, context.entrepriseId)
 
-    // Vérification unicité identifiant / téléphone au sein de l'entreprise
-    let existantQuery = adminSupabase
-      .from('utilisateurs')
-      .select('id, entreprise_id')
-      .or(`identifiant.ilike.${identifiant}${telephone ? `,telephone.eq.${telephone}` : ''}`)
+    // Vérification unicité identifiant / téléphone au sein de l'entreprise (tolérante au schéma cache)
+    let existant: { id: string; entreprise_id: string } | null = null
+    const cleanPhone = telephone ? extraireChiffresTelephone(telephone) : null
 
-    const { data: existant } = await existantQuery.limit(1).maybeSingle()
+    try {
+      let existantQuery = adminSupabase.from('utilisateurs').select('id, entreprise_id')
+      if (cleanPhone && cleanPhone.length >= 6) {
+        existantQuery = existantQuery.or(`identifiant.ilike.${identifiant},telephone.ilike.%${cleanPhone.slice(-9)}%`)
+      } else {
+        existantQuery = existantQuery.ilike('identifiant', identifiant)
+      }
+      const { data: exData, error: exErr } = await existantQuery.limit(1).maybeSingle()
+      if (!exErr && exData) {
+        existant = exData
+      }
+    } catch {
+      // Ignorer si la colonne identifiant n'est pas encore dans le schéma cache
+    }
+
+    if (!existant && cleanPhone && cleanPhone.length >= 6) {
+      try {
+        const { data: phoneRow } = await adminSupabase
+          .from('utilisateurs')
+          .select('id, entreprise_id')
+          .ilike('telephone', `%${cleanPhone.slice(-9)}%`)
+          .limit(1)
+          .maybeSingle()
+        if (phoneRow) {
+          existant = phoneRow
+        }
+      } catch {
+        // Ignorer
+      }
+    }
 
     if (existant && existant.entreprise_id === context.entrepriseId) {
       return { error: 'Cet identifiant ou numéro de téléphone est déjà attribué à un collaborateur de votre entreprise.' }
@@ -268,16 +295,20 @@ export async function creerCollaborateur(formData: FormData): Promise<CreerColla
     const prenom = parts[0] || null
     const nom = parts.slice(1).join(' ') || null
 
-    const payloadUtilisateur: Record<string, any> = {
+    const basePayload: Record<string, any> = {
       id: authUserId,
       entreprise_id: context.entrepriseId,
       magasin_id: roleInput === 'admin_entreprise' ? null : magasinId,
       role: roleInput,
-      identifiant,
-      nom_complet: nomComplet,
       nom,
       prenom,
       telephone,
+    }
+
+    const payloadUtilisateur: Record<string, any> = {
+      ...basePayload,
+      identifiant,
+      nom_complet: nomComplet,
     }
 
     if (doitChangerMdp) {
@@ -288,9 +319,12 @@ export async function creerCollaborateur(formData: FormData): Promise<CreerColla
       .from('utilisateurs')
       .upsert(payloadUtilisateur)
 
-    if (userError && userError.message?.toLowerCase().includes('doit_changer_mot_de_passe')) {
-      delete payloadUtilisateur.doit_changer_mot_de_passe
-      const retry = await adminSupabase.from('utilisateurs').upsert(payloadUtilisateur)
+    if (userError && (
+      userError.message?.toLowerCase().includes('identifiant') ||
+      userError.message?.toLowerCase().includes('nom_complet') ||
+      userError.message?.toLowerCase().includes('doit_changer_mot_de_passe')
+    )) {
+      const retry = await adminSupabase.from('utilisateurs').upsert(basePayload)
       userError = retry.error
     }
 
@@ -366,14 +400,18 @@ export async function modifierCollaborateur(formData: FormData): Promise<{ succe
     const prenom = parts[0] || null
     const nom = parts.slice(1).join(' ') || null
 
-    const updatePayload: Record<string, any> = {
-      nom_complet: nomComplet,
+    const baseUpdate: Record<string, any> = {
       nom,
       prenom,
       telephone,
-      identifiant,
       role,
       magasin_id: role === 'admin_entreprise' ? null : magasinId,
+    }
+
+    const updatePayload: Record<string, any> = {
+      ...baseUpdate,
+      nom_complet: nomComplet,
+      identifiant,
     }
 
     if (doitChangerMdp !== undefined) {
@@ -386,11 +424,14 @@ export async function modifierCollaborateur(formData: FormData): Promise<{ succe
       .eq('id', collaborateurId)
       .eq('entreprise_id', context.entrepriseId)
 
-    if (updErr && updErr.message?.toLowerCase().includes('doit_changer_mot_de_passe')) {
-      delete updatePayload.doit_changer_mot_de_passe
+    if (updErr && (
+      updErr.message?.toLowerCase().includes('identifiant') ||
+      updErr.message?.toLowerCase().includes('nom_complet') ||
+      updErr.message?.toLowerCase().includes('doit_changer_mot_de_passe')
+    )) {
       const retry = await adminSupabase
         .from('utilisateurs')
-        .update(updatePayload)
+        .update(baseUpdate)
         .eq('id', collaborateurId)
         .eq('entreprise_id', context.entrepriseId)
       updErr = retry.error
@@ -516,12 +557,18 @@ export async function genererLienResetCollaborateur(collaborateurId: string): Pr
   const context = await requireAdminEntreprise()
   const adminSupabase = createAdminClient()
 
-  const { data: cible } = await adminSupabase
-    .from('utilisateurs')
-    .select('id, identifiant, telephone, nom_complet, nom, prenom')
-    .eq('id', collaborateurId)
-    .eq('entreprise_id', context.entrepriseId)
-    .maybeSingle()
+  let cible: any = null
+  try {
+    const { data: cData } = await adminSupabase
+      .from('utilisateurs')
+      .select('id, telephone, nom, prenom')
+      .eq('id', collaborateurId)
+      .eq('entreprise_id', context.entrepriseId)
+      .maybeSingle()
+    cible = cData
+  } catch {
+    // Ignorer
+  }
 
   if (!cible) {
     return { error: 'Collaborateur introuvable.' }

@@ -63,19 +63,46 @@ export async function resoudreAuthEmail(
   const phoneDigits = extraireChiffresTelephone(rawInput)
 
   try {
-    // 1. Recherche par identifiant exact ou téléphone
-    let query = supabaseAdmin
-      .from('utilisateurs')
-      .select('id, identifiant, telephone')
+    let userRow: { id: string } | null = null
 
-    if (phoneDigits.length >= 7) {
-      const phoneEnd = phoneDigits.slice(-9)
-      query = query.or(`identifiant.ilike.${cleanIdentifiant},telephone.ilike.%${phoneEnd}%`)
-    } else {
-      query = query.ilike('identifiant', cleanIdentifiant)
+    // 1. Recherche par identifiant ou téléphone si la colonne identifiant existe
+    try {
+      let query = supabaseAdmin
+        .from('utilisateurs')
+        .select('id, telephone')
+
+      if (phoneDigits.length >= 7) {
+        const phoneEnd = phoneDigits.slice(-9)
+        query = query.or(`identifiant.ilike.${cleanIdentifiant},telephone.ilike.%${phoneEnd}%`)
+      } else {
+        query = query.ilike('identifiant', cleanIdentifiant)
+      }
+
+      const { data, error: qErr } = await query.limit(1).maybeSingle()
+      if (!qErr && data) {
+        userRow = data
+      }
+    } catch {
+      // Tolérance si la colonne identifiant n'est pas dans le schéma cache
     }
 
-    const { data: userRow } = await query.limit(1).maybeSingle()
+    // 2. Fallback par téléphone direct
+    if (!userRow && phoneDigits.length >= 7) {
+      try {
+        const phoneEnd = phoneDigits.slice(-9)
+        const { data: phoneMatch } = await supabaseAdmin
+          .from('utilisateurs')
+          .select('id')
+          .ilike('telephone', `%${phoneEnd}%`)
+          .limit(1)
+          .maybeSingle()
+        if (phoneMatch) {
+          userRow = phoneMatch
+        }
+      } catch {
+        // Ignorer
+      }
+    }
 
     if (userRow?.id) {
       const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(userRow.id)
